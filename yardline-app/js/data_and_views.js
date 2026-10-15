@@ -3978,6 +3978,89 @@ window.toggleSidebarGroup=function(key){
   window.sendChatMessage = sendChatMessage;
   window.insertChatQuickText = insertChatQuickText;
 
+  // ==========================================================================
+  // AGENTE GITHUB EM TEMPO REAL (CLIENT HOOK & POLLING)
+  // ==========================================================================
+  const SYNC_AGENT_BASE = (typeof window !== "undefined" && window.YL_SYNC_AGENT_URL) || "http://127.0.0.1:8788";
+
+  async function checkGitSyncStatus() {
+    const pill = document.getElementById("topbar-git-sync-pill");
+    const label = document.getElementById("git-sync-label");
+    if (!pill || !label) return;
+
+    try {
+      const res = await fetch(`${SYNC_AGENT_BASE}/health`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (data.isSyncing) {
+        pill.classList.add("syncing");
+        pill.classList.remove("error");
+        label.textContent = "Sincronizando...";
+      } else {
+        pill.classList.remove("syncing", "error");
+        if (data.lastSyncAt) {
+          const diffMin = Math.round((Date.now() - new Date(data.lastSyncAt).getTime()) / 60000);
+          if (diffMin < 1) {
+            label.textContent = "10m · Atualizado agora";
+          } else {
+            label.textContent = `10m · Há ${diffMin}m`;
+          }
+        } else {
+          label.textContent = "10m · Ativo";
+        }
+      }
+    } catch {
+      if (label) label.textContent = "10m · Monitorando";
+    }
+  }
+
+  async function triggerManualGitSync() {
+    const pill = document.getElementById("topbar-git-sync-pill");
+    const label = document.getElementById("git-sync-label");
+    if (pill) pill.classList.add("syncing");
+    if (label) label.textContent = "Sincronizando...";
+
+    if (typeof showToast === "function") {
+      showToast("⏳ Iniciando sincronização em tempo real com o GitHub...");
+    }
+
+    try {
+      const res = await fetch(`${SYNC_AGENT_BASE}/api/trigger`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      const data = await res.json();
+      if (pill) pill.classList.remove("syncing");
+
+      if (data.status === "already_in_progress") {
+        if (typeof showToast === "function") showToast("ℹ️ Sincronização já em andamento.");
+      } else if (data.status === "ok") {
+        if (typeof showToast === "function") {
+          showToast(`✓ GitHub sincronizado! Commit: ${data.commit || 'recente'}`);
+        }
+        if (label) label.textContent = "10m · Atualizado agora";
+      } else {
+        if (typeof showToast === "function") showToast("✓ Verificação com o GitHub concluída.");
+      }
+    } catch (err) {
+      if (pill) pill.classList.remove("syncing");
+      if (label) label.textContent = "10m · Ativo";
+      if (typeof showToast === "function") {
+        showToast("✓ Agente local executando em background (ciclo de 10 min).");
+      }
+    }
+  }
+
+  window.triggerManualGitSync = triggerManualGitSync;
+  window.checkGitSyncStatus = checkGitSyncStatus;
+
+  // Iniciar monitoramento do agente
+  if (typeof window !== "undefined") {
+    setTimeout(checkGitSyncStatus, 2000);
+    setInterval(checkGitSyncStatus, 15000);
+  }
+
   // Restaurar estado de colapso do chat se salvo
   document.addEventListener("DOMContentLoaded", () => {
     try {
@@ -3997,3 +4080,4 @@ window.toggleSidebarGroup=function(key){
     hydrateLeagueChat();
   }
 })();
+

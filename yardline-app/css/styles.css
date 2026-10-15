@@ -627,3 +627,64 @@ body { background-color: var(--bg-canvas); color: var(--text-main); min-height: 
     flex-direction: row;
   }
 }
+
+/* ==========================================================================
+   GIT SYNC REAL-TIME INDICATOR (10-MIN CONTINUOUS MONITOR)
+   ========================================================================== */
+.git-sync-indicator {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: #E2E8F0;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.git-sync-indicator:hover {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: rgba(16, 185, 129, 0.6);
+  transform: translateY(-1px);
+}
+.git-sync-indicator.syncing {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #FEF3C7;
+}
+.git-sync-indicator.error {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #FEE2E2;
+}
+.git-sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  display: inline-block;
+  box-shadow: 0 0 8px #10B981;
+  animation: git-pulse 2s infinite ease-in-out;
+}
+.git-sync-indicator.syncing .git-sync-dot {
+  background: #F59E0B;
+  box-shadow: 0 0 8px #F59E0B;
+  animation: git-spin 1s infinite linear;
+}
+.git-sync-indicator.error .git-sync-dot {
+  background: #EF4444;
+  box-shadow: 0 0 8px #EF4444;
+  animation: none;
+}
+@keyframes git-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+@keyframes git-spin {
+  0% { transform: rotate(0deg) scale(0.9); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(0.9); }
+}
