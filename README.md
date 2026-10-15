@@ -1,0 +1,74 @@
+# YARDLINE — Portal Oficial NFL & Camada de Inteligência Operacional
+
+Plataforma unificada de análise, inteligência tática, sincronização em tempo real com ligas Sleeper e monitoramento contínuo da NFL.
+
+---
+
+## 🏗️ Arquitetura do Projeto
+
+O repositório é composto pelos seguintes subsistemas integrados:
+
+```
+├── yardline-app/               # Frontend Principal (SPA estática de alta performance)
+│   ├── index.html              # Shell 3-colunas estilo FantasyPros/Sleeper
+│   ├── css/styles.css          # Design System completo e responsivo
+│   └── js/
+│       ├── data_and_views.js   # Catálogos, Command Center e views
+│       └── engines.js          # Motores de domínio, scoring PPR+IDP e Sleeper API
+│
+├── server/                     # Backend Core em Node.js / Express
+│   ├── src/
+│   │   ├── server.js           # API REST em porta 3001
+│   │   ├── db/                 # Banco SQLite persistente (yardline.db)
+│   │   └── services/           # Ingestão de rosters, waivers e notícias
+│   └── package.json
+│
+├── news-worker/                # Coletor Dedicado NFL.com/news
+│   ├── nfl-news-worker.mjs     # Monitoramento editorial a cada 5m (Porta 8787)
+│   └── data/nfl-news.json      # Armazenamento canônico de notícias e capas
+│
+├── sleeper-single-file.ts      # Standalone Sleeper Single File Stack (Porta 3000)
+│   └── sleeper-snapshot.json   # Cache snapshot da Neilo Pistola League
+│
+├── AUDITORIA-TECNICA-SLEEPER-LEAGUE-MATCHUP.md  # Blueprint técnico e regras de scoring
+└── .gitignore
+```
+
+---
+
+## 🚀 Como Executar
+
+### 1. Frontend Web (Live Server)
+```bash
+cd yardline-app
+npx live-server --port=8080
+```
+Acesse em: `http://localhost:8080/`
+
+### 2. Backend Core de Produção
+```bash
+cd server
+npm install
+node src/server.js
+```
+Acesse a saúde em: `http://localhost:3001/api/health`
+
+### 3. Coletor Oficial de Notícias NFL.com
+```bash
+node news-worker/nfl-news-worker.mjs
+```
+Acesse em: `http://127.0.0.1:8787/api/news`
+
+### 4. Sleeper Single File Stack
+```bash
+npx tsx sleeper-single-file.ts
+```
+Acesse a SPA em: `http://localhost:3000/`
+
+---
+
+## 🏈 Liga Ativa (Configuração Padrão)
+- **ID da Liga:** `1369770282776006656` (*Neilo Pistola League*)
+- **Formato:** 16 Times, Keeper PPR com IDP (3 DL, 3 LB, 3 DB, 1 IDP FLEX)
+- **Semana:** 6
+- **Time do Usuário:** Gengar My Balls (Roster 2 · Faraco)
