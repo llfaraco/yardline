@@ -3127,7 +3127,7 @@ function toggleArticleExpand(newsId) {
   function card(p,slot=''){
     if(!p)return '';
     const d=dataFor(p), proj=d.proj??(typeof getEffectiveProjection==='function'?getEffectiveProjection(d):null), avg=d.avgPpr??d.avgPPR;
-    const status=d.injuryStatus||d.status||'Saudável', danger=/out|ir|doubtful|questionable|inactive/i.test(status);
+    const status=d.injuryStatus||d.status||'Não informado', danger=/out|ir|doubtful|questionable|inactive/i.test(status);
     return `<article class="yl-player-card-v2" onclick="openPlayerDossierModal('${esc(d.sleeperId||d.id)}')">
       <div class="yl-player-card-v2__top"><div class="yl-player-card-v2__identity"><div class="yl-player-card-v2__name">${esc(d.name)}</div><div class="yl-player-card-v2__meta"><span>${esc(slot||d.pos)}</span><span>·</span><span>${esc(d.team||'FA')}</span>${d.number?`<span>· ${esc(d.number)}</span>`:''}</div></div><img class="yl-player-card-v2__photo" src="${esc(d.photo||d.teamLogo)}" onerror="this.onerror=null;this.src='${esc(d.teamLogo)}'" alt=""></div>
       <div class="yl-player-card-v2__body"><div class="yl-player-card-v2__metrics"><div class="yl-player-card-v2__metric"><b>${num(proj)}</b><span>Proj.</span></div><div class="yl-player-card-v2__metric"><b>${num(avg)}</b><span>PPG</span></div><div class="yl-player-card-v2__metric"><b>${num(d.totalPts)}</b><span>Total</span></div><div class="yl-player-card-v2__metric"><b>${num(d.ylIndex)}</b><span>YL Index</span></div></div><div class="yl-player-card-v2__footer"><span class="${danger?'badge badge-crimson':'badge badge-green'}">${esc(status)}</span><span>Ver dossiê →</span></div></div>

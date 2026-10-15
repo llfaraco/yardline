@@ -2291,6 +2291,11 @@ if (typeof window !== 'undefined') {
       const snapshot = await request(`/api/leagues/${id}/shell`);
       const catalog = await request('/api/players/catalog');
       window.YL_CANONICAL = window.YL_CANONICAL || { players: {} }; window.YL_CANONICAL.players = catalog; window.YL_CANONICAL.fetchedAt = Date.now(); activeSleeperPlayersCatalog = catalog; if (typeof indexSleeperPlayersCatalog === 'function') indexSleeperPlayersCatalog(catalog);
+      window.YL_LIVE_PLAYER_DATA = {};
+      (snapshot.matchups || []).forEach(matchup => (matchup.players || []).forEach(player => {
+        const sid = String(player.player_id);
+        window.YL_LIVE_PLAYER_DATA[sid] = { points: player.points ?? null, projectedPoints: player.projected_points ?? null, scoringBreakdown: player.scoringBreakdown || null };
+      }));
       window.YL_SHELL_SNAPSHOT = snapshot; activeSleeperLeagueData = { ...snapshot.league, league_id: snapshot.league.providerLeagueId, roster_positions: snapshot.league.rosterPositions, settings: snapshot.league.settings, scoring_settings: snapshot.league.scoringSettings }; activeNflState = snapshot.state; activeLeagueWeek = Number(snapshot.state?.week || 1);
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ roster_id: r.rosterId, owner_id: r.owner, players: r.players, starters: r.starters, reserve: r.reserve, settings: r.settings }));
       const wanted = String((typeof activeSleeperUsername !== 'undefined' && activeSleeperUsername) || 'faraco').replace(/^@/, '').toLowerCase(); userRealRoster = activeSleeperRosters.find(r => String(r.owner || '').toLowerCase() === wanted) || activeSleeperRosters.find(r => Number(r.roster_id) === Number(typeof selectedActiveRosterId !== 'undefined' && selectedActiveRosterId)) || activeSleeperRosters[0]; selectedActiveRosterId = userRealRoster?.roster_id;
@@ -2305,29 +2310,44 @@ if (typeof window !== 'undefined') {
 if (typeof window !== 'undefined') setTimeout(() => { if (typeof window.syncRealSleeperLeagueLive === 'function') window.syncRealSleeperLeagueLive().catch(() => {}); }, 50);
 
 
-/* YARDLINE FIX 2 — enriquecimento final dos cards */
+/* YARDLINE FIX 2 — cards baseados no registro canônico real do Sleeper */
 if (typeof window !== 'undefined') {
   const baseResolve = window.resolveNFLPlayer;
   const logoFor = t => t ? `https://a.espncdn.com/i/teamlogos/nfl/500/${String(t).toLowerCase()}.png` : 'https://a.espncdn.com/i/teamlogos/nfl/500/nfl.png';
   window.resolveNFLPlayer = function(id){
-    const p = typeof baseResolve === 'function' ? baseResolve(id) : null;
-    if (!p) return p;
-    const raw = window.YL_CANONICAL?.players?.[String(id)] || {};
-    const dossiers = typeof YL_PLAYER_DOSSIERS !== 'undefined' ? YL_PLAYER_DOSSIERS : {};
-    const espn = String(raw.espn_id || p.espnId || '');
-    const legacy = dossiers[espn] || dossiers[String(id)] || Object.values(dossiers).find(x => String(x?.name||'').toLowerCase() === String(p.name||'').toLowerCase()) || {};
-    const team = raw.team || p.team || legacy.team || 'FA';
-    return Object.assign({}, legacy, p, {
-      id:String(id), sleeperId:String(id), espnId:espn || p.espnId || legacy.espnId,
-      name:raw.full_name || p.name || legacy.name || `Jogador #${id}`,
-      pos:raw.position || raw.fantasy_positions?.[0] || p.pos || legacy.pos || 'FLEX',
-      team, teamName:team === 'FA' ? 'Free Agent' : team,
-      teamLogo:p.teamLogo || legacy.teamLogo || logoFor(team),
-      photo:p.photo || raw.search_rank ? `https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg` : (legacy.photo || `https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`),
-      injuryStatus:raw.injury_status || p.injuryStatus || legacy.injuryStatus || 'Status não informado',
-      age:p.age ?? legacy.age, height:p.height ?? legacy.height, weight:p.weight ?? legacy.weight, college:p.college ?? legacy.college,
-      proj:p.proj ?? legacy.proj, avgPpr:p.avgPpr ?? legacy.avgPpr, totalPts:p.totalPts ?? legacy.totalPts, ylIndex:p.ylIndex ?? legacy.ylIndex
-    });
+    const sid = String(id || '');
+    const raw = window.YL_CANONICAL?.players?.[sid];
+    if (raw) {
+      const live = window.YL_LIVE_PLAYER_DATA?.[sid] || {};
+      const team = raw.team || null;
+      return {
+        id: sid,
+        sleeperId: sid,
+        espnId: raw.espnId || raw.espn_id || null,
+        name: raw.name || [raw.firstName, raw.lastName].filter(Boolean).join(' ') || `Jogador #${sid}`,
+        pos: raw.position || raw.fantasyPositions?.[0] || '—',
+        team,
+        teamName: team || 'Free Agent',
+        teamLogo: raw.teamLogoUrl || raw.teamLogo || logoFor(team),
+        number: raw.number ?? null,
+        age: raw.age ?? null,
+        exp: raw.yearsExp ?? null,
+        college: raw.college ?? null,
+        height: raw.height ?? null,
+        weight: raw.weight ?? null,
+        photo: raw.photoUrl || `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`,
+        status: raw.status ?? null,
+        injuryStatus: raw.injuryStatus ?? null,
+        proj: live.projectedPoints ?? null,
+        avgPpr: live.avgPpr ?? null,
+        totalPts: live.totalPts ?? null,
+        ylIndex: live.ylIndex ?? null,
+        points: live.points ?? null,
+        scoringBreakdown: live.scoringBreakdown ?? null,
+        dataSource: 'sleeper'
+      };
+    }
+    return null;
   };
   if (window.YL_FIX2) {
     window.renderHomeView = window.renderHomeView;
