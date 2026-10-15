@@ -7,6 +7,7 @@ import { sleeperSyncService, normalizeSleeperPlayer, normalizeLeague, normalizeM
 import { sleeperConnector } from './modules/sleeper/sleeper.connector.js';
 import { solveOptimalLineupAssignment } from './modules/engines/lineup.solver.js';
 import { calculateLeagueBaselines, computeVBD } from './modules/engines/vbd.engine.js';
+import { scorePlayerStats, normalizeScoringSettings } from './modules/engines/scoring.engine.js';
 import { billingService } from './modules/billing/billing.service.js';
 import { newsService } from './modules/news/news.service.js';
 
@@ -224,13 +225,29 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
   }).sort((a, b) => b.wins - a.wins || b.fpts - a.fpts).map((team, index) => ({ ...team, rank: index + 1 }));
   const transactions = db.prepare('SELECT * FROM transactions WHERE league_id = ? AND week = ? ORDER BY occurred_at DESC').all(league.id, week).map(t => ({ ...t, rosterIds: parse(t.roster_ids_json, []), adds: parse(t.adds_json, {}), drops: parse(t.drops_json, {}), draftPicks: parse(t.draft_picks_json, []), waiverBudget: parse(t.waiver_budget_json, []), raw: parse(t.raw_json, {}) }));
   const tradedPicks = db.prepare('SELECT * FROM traded_picks WHERE league_id = ? ORDER BY season, round, pick_no').all(league.id).map(p => ({ ...p, raw: parse(p.raw_json, {}) }));
+  const playerData = {};
+  const scoringSettings = normalizeScoringSettings(parse(league.scoring_settings_json, {}));
+  const statsRows = db.prepare('SELECT player_id, week, stats_json FROM player_stats WHERE season = ? ORDER BY week').all(String(league.season));
+  for (const row of statsRows) {
+    const pid = String(row.player_id);
+    const stats = parse(row.stats_json, {});
+    const hasStats = Object.keys(stats).length > 0;
+    const explicitPoints = stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std;
+    const points = Number(explicitPoints ?? (hasStats ? scorePlayerStats(stats, scoringSettings).points : NaN));
+    const current = playerData[pid] || { totalPts: 0, games: 0, currentPoints: null };
+    if (Number.isFinite(points)) { current.totalPts += points; current.games += 1; if (Number(row.week) === week) current.currentPoints = points; }
+    playerData[pid] = current;
+  }
+  for (const [pid, data] of Object.entries(playerData)) data.avgPpr = data.games ? Number((data.totalPts / data.games).toFixed(2)) : null;
+  const projectionRows = db.prepare('SELECT player_id, projection FROM projections WHERE season = ? AND week = ? ORDER BY created_at DESC').all(String(league.season), week);
+  for (const row of projectionRows) if (playerData[String(row.player_id)]?.projectedPoints == null) playerData[String(row.player_id)].projectedPoints = Number(row.projection);
   res.json({
     dataStatus: league.last_synced_at ? 'synced' : 'not_synced',
     syncedAt: league.last_synced_at,
     league: { id: league.id, providerLeagueId: league.provider_league_id, name: league.name, season: league.season, status: league.status, settings, scoringSettings: parse(league.scoring_settings_json, {}), rosterPositions: parse(league.roster_positions_json, []) },
     state: { ...(state || {}), week },
     rosters: rosters.map(r => ({ rosterId: r.provider_roster_id, owner: r.display_name, teamName: r.team_name, avatar: r.avatar, players: parse(r.players_json, []), starters: parse(r.starters_json, []), reserve: parse(r.reserve_json, []), settings: parse(r.settings_json, {}) })),
-    standings, matchups, transactions, tradedPicks
+    standings, matchups, transactions, tradedPicks, playerData
   });
 });
 

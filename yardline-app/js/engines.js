@@ -2291,10 +2291,10 @@ if (typeof window !== 'undefined') {
       const snapshot = await request(`/api/leagues/${id}/shell`);
       const catalog = await request('/api/players/catalog');
       window.YL_CANONICAL = window.YL_CANONICAL || { players: {} }; window.YL_CANONICAL.players = catalog; window.YL_CANONICAL.fetchedAt = Date.now(); activeSleeperPlayersCatalog = catalog; if (typeof indexSleeperPlayersCatalog === 'function') indexSleeperPlayersCatalog(catalog);
-      window.YL_LIVE_PLAYER_DATA = {};
+      window.YL_LIVE_PLAYER_DATA = { ...(snapshot.playerData || {}) };
       (snapshot.matchups || []).forEach(matchup => (matchup.players || []).forEach(player => {
         const sid = String(player.player_id);
-        window.YL_LIVE_PLAYER_DATA[sid] = { points: player.points ?? null, projectedPoints: player.projected_points ?? null, scoringBreakdown: player.scoringBreakdown || null };
+        window.YL_LIVE_PLAYER_DATA[sid] = { ...(window.YL_LIVE_PLAYER_DATA[sid] || {}), points: player.points ?? null, projectedPoints: player.projected_points ?? window.YL_LIVE_PLAYER_DATA[sid]?.projectedPoints ?? null, scoringBreakdown: player.scoringBreakdown || null };
       }));
       window.YL_SHELL_SNAPSHOT = snapshot; activeSleeperLeagueData = { ...snapshot.league, league_id: snapshot.league.providerLeagueId, roster_positions: snapshot.league.rosterPositions, settings: snapshot.league.settings, scoring_settings: snapshot.league.scoringSettings }; activeNflState = snapshot.state; activeLeagueWeek = Number(snapshot.state?.week || 1);
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ roster_id: r.rosterId, owner_id: r.owner, players: r.players, starters: r.starters, reserve: r.reserve, settings: r.settings }));
