@@ -96,9 +96,9 @@ app.post('/api/auth/logout', (req, res) => {
 app.get('/api/state/nfl', async (req, res) => {
   try {
     const state = await sleeperSyncService.getNflState();
-    res.json(state || { season: '2026', week: 6, display_week: 6, season_type: 'regular' });
+    res.json(state || { season: String(new Date().getUTCFullYear()), week: null, display_week: null, season_type: 'regular', data_status: 'unavailable' });
   } catch (err) {
-    res.json({ season: '2026', week: 6, display_week: 6, season_type: 'regular' });
+    res.json({ season: String(new Date().getUTCFullYear()), week: null, display_week: null, season_type: 'regular', data_status: 'unavailable' });
   }
 });
 
@@ -126,9 +126,9 @@ app.get('/api/integrations/sleeper/user/:userId/leagues/:season', async (req, re
 // Sincronizar Liga Escolhida
 app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
   try {
-    const { leagueId, week = 6 } = req.body;
+    const { leagueId, week = null } = req.body;
     if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
-    const result = await sleeperSyncService.syncLeagueDetails(leagueId, parseInt(week, 10));
+    const result = await sleeperSyncService.syncLeagueDetails(leagueId, week == null ? null : parseInt(week, 10));
     res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -160,10 +160,10 @@ app.post('/api/integrations/sleeper/connect', requireAuth, async (req, res) => {
 
 app.post('/api/integrations/sleeper/sync', requireAuth, async (req, res) => {
   try {
-    const { leagueId, week = 6 } = req.body;
+    const { leagueId, week = null } = req.body;
     if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
 
-    const result = await sleeperSyncService.syncLeagueDetails(leagueId, parseInt(week, 10));
+    const result = await sleeperSyncService.syncLeagueDetails(leagueId, week == null ? null : parseInt(week, 10));
     res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -197,6 +197,40 @@ app.get('/api/leagues/:leagueId', (req, res) => {
     rosterPositions: JSON.parse(league.roster_positions_json || '[]'),
     rostersCount: rosters.length,
     members: memberships
+  });
+});
+
+// Snapshot canônico para o LeagueShell: uma única fonte para todas as telas.
+app.get('/api/leagues/:leagueId/shell', (req, res) => {
+  const league = db.prepare('SELECT * FROM leagues WHERE id = ? OR provider_league_id = ?').get(req.params.leagueId, req.params.leagueId);
+  if (!league) return res.status(404).json({ error: 'Liga não encontrada.' });
+  const parse = (value, fallback) => { try { return JSON.parse(value ?? ''); } catch { return fallback; } };
+  const latestState = db.prepare(`SELECT payload_json FROM sync_payloads WHERE league_id = ? AND resource = 'state' ORDER BY captured_at DESC LIMIT 1`).get(league.id);
+  const state = parse(latestState?.payload_json, null);
+  const settings = parse(league.settings_json, {});
+  const week = Number(req.query.week || state?.week || settings.leg || 1);
+  const rosters = db.prepare(`SELECT r.*, m.display_name, m.team_name, m.avatar FROM rosters r LEFT JOIN league_memberships m ON r.owner_membership_id=m.id WHERE r.league_id=? ORDER BY r.provider_roster_id`).all(league.id);
+  const rawMatchups = db.prepare('SELECT * FROM matchups WHERE league_id = ? AND week = ? ORDER BY provider_matchup_id').all(league.id, week);
+  const matchups = rawMatchups.map(matchup => ({
+    ...matchup,
+    customPoints: parse(matchup.custom_points_json, {}),
+    players: db.prepare(`SELECT mp.*, p.canonical_name AS name, p.position, p.team, p.photo_url AS photoUrl FROM matchup_players mp LEFT JOIN players p ON p.id=mp.player_id WHERE mp.matchup_id=? ORDER BY mp.roster_id, mp.is_starter DESC, mp.slot`).all(matchup.id).map(player => ({ ...player, scoringBreakdown: parse(player.scoring_breakdown_json, {}) }))
+  }));
+  const standings = rosters.map(r => {
+    const s = parse(r.settings_json, {});
+    const fpts = Number(s.fpts || 0) + Number(s.fpts_decimal || 0) / 100;
+    const fptsAgainst = Number(s.fpts_against || 0) + Number(s.fpts_against_decimal || 0) / 100;
+    return { rosterId: r.provider_roster_id, teamName: r.team_name || `Time #${r.provider_roster_id}`, manager: r.display_name || 'Manager', wins: Number(s.wins || 0), losses: Number(s.losses || 0), ties: Number(s.ties || 0), fpts: Number(fpts.toFixed(2)), fptsAgainst: Number(fptsAgainst.toFixed(2)), record: `${s.wins || 0}-${s.losses || 0}${s.ties ? `-${s.ties}` : ''}` };
+  }).sort((a, b) => b.wins - a.wins || b.fpts - a.fpts).map((team, index) => ({ ...team, rank: index + 1 }));
+  const transactions = db.prepare('SELECT * FROM transactions WHERE league_id = ? AND week = ? ORDER BY occurred_at DESC').all(league.id, week).map(t => ({ ...t, rosterIds: parse(t.roster_ids_json, []), adds: parse(t.adds_json, {}), drops: parse(t.drops_json, {}), draftPicks: parse(t.draft_picks_json, []), waiverBudget: parse(t.waiver_budget_json, []), raw: parse(t.raw_json, {}) }));
+  const tradedPicks = db.prepare('SELECT * FROM traded_picks WHERE league_id = ? ORDER BY season, round, pick_no').all(league.id).map(p => ({ ...p, raw: parse(p.raw_json, {}) }));
+  res.json({
+    dataStatus: league.last_synced_at ? 'synced' : 'not_synced',
+    syncedAt: league.last_synced_at,
+    league: { id: league.id, providerLeagueId: league.provider_league_id, name: league.name, season: league.season, status: league.status, settings, scoringSettings: parse(league.scoring_settings_json, {}), rosterPositions: parse(league.roster_positions_json, []) },
+    state: { ...(state || {}), week },
+    rosters: rosters.map(r => ({ rosterId: r.provider_roster_id, owner: r.display_name, teamName: r.team_name, avatar: r.avatar, players: parse(r.players_json, []), starters: parse(r.starters_json, []), reserve: parse(r.reserve_json, []), settings: parse(r.settings_json, {}) })),
+    standings, matchups, transactions, tradedPicks
   });
 });
 
@@ -308,7 +342,7 @@ app.get('/api/leagues/:leagueId/matchup-details', (req, res) => {
       manager: myRoster?.display_name ? '@' + myRoster.display_name : '@Faraco',
       score: isRosterA ? matchup.score_a : matchup.score_b,
       starters: JSON.parse(myRoster?.starters_json || '[]'),
-      bench: JSON.parse(myRoster?.players_json || '[]')
+      bench: JSON.parse(myRoster?.players_json || '[]').filter(pid => !new Set(JSON.parse(myRoster?.starters_json || '[]').map(String)).has(String(pid)))
     },
     oppTeam: {
       rosterId: oppRosterId,
@@ -316,7 +350,7 @@ app.get('/api/leagues/:leagueId/matchup-details', (req, res) => {
       manager: oppRoster?.display_name ? '@' + oppRoster.display_name : '@neyllon',
       score: isRosterA ? matchup.score_b : matchup.score_a,
       starters: JSON.parse(oppRoster?.starters_json || '[]'),
-      bench: JSON.parse(oppRoster?.players_json || '[]')
+      bench: JSON.parse(oppRoster?.players_json || '[]').filter(pid => !new Set(JSON.parse(oppRoster?.starters_json || '[]').map(String)).has(String(pid)))
     }
   });
 });
@@ -337,22 +371,24 @@ app.get('/api/leagues/:leagueId/matchups/current', async (req, res) => {
   }
 });
 
-// Command Center Tático
+// Command Center Tático, derivado do snapshot persistido.
 app.get('/api/command-center', (req, res) => {
   const leagueId = req.query.leagueId || '1369770282776006656';
   const rosterId = parseInt(req.query.rosterId || '2', 10);
   const league = db.prepare('SELECT * FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+  const stateRow = league && db.prepare(`SELECT payload_json FROM sync_payloads WHERE league_id=? AND resource='state' ORDER BY captured_at DESC LIMIT 1`).get(league.id);
+  let state = {}; try { state = JSON.parse(stateRow?.payload_json || '{}'); } catch {}
+  const roster = league && db.prepare('SELECT settings_json FROM rosters WHERE league_id=? AND provider_roster_id=?').get(league.id, rosterId);
+  let rosterSettings = {}; try { rosterSettings = JSON.parse(roster?.settings_json || '{}'); } catch {}
+  const fpts = Number(rosterSettings.fpts || 0) + Number(rosterSettings.fpts_decimal || 0) / 100;
 
   res.json({
-    leagueName: league?.name || 'Neilo Pistola League',
-    currentWeek: 6,
+    leagueName: league?.name || null,
+    currentWeek: Number(state.week || league?.settings_json && JSON.parse(league.settings_json || '{}').leg || 0),
     activeRosterId: rosterId,
-    efficiencyPercent: 97,
-    alerts: [
-      { type: 'MEDICAL', severity: 'warning', title: 'Alerta Médico Pré-Jogo', description: 'Nenhum desfalque crítico ativo na escalação principal.' },
-      { type: 'WAIVER', severity: 'action', title: 'Waiver Recomendado', description: 'Adição prioritária disponível no mercado livre da liga.' },
-      { type: 'TRADE', severity: 'info', title: 'Radar Trade Hub', description: '15 adversários mapeados para simulação de propostas.' }
-    ]
+    efficiencyPercent: null,
+    pointsFor: Number(fpts.toFixed(2)),
+    alerts: []
   });
 });
 
@@ -379,10 +415,10 @@ app.get('/api/waivers', (req, res) => {
 // Rankings Posicionais com VBD
 app.get('/api/rankings', (req, res) => {
   const pos = req.query.pos?.toUpperCase();
-  let sql = 'SELECT * FROM players';
+  let sql = `SELECT p.*, pr.projection AS current_projection FROM players p LEFT JOIN projections pr ON pr.id = (SELECT p2.id FROM projections p2 WHERE p2.player_id = p.id ORDER BY p2.season DESC, p2.week DESC, p2.created_at DESC LIMIT 1)`;
   const params = [];
   if (pos && pos !== 'ALL') {
-    sql += ' WHERE position = ?';
+    sql += ' WHERE p.position = ?';
     params.push(pos);
   }
   sql += ' LIMIT 50';
@@ -390,9 +426,9 @@ app.get('/api/rankings', (req, res) => {
   res.json(list.map((p, idx) => ({
     rank: idx + 1,
     ...p,
-    proj: parseFloat((15.5 - (idx * 0.25)).toFixed(1)),
-    vbd: parseFloat((15.5 - (idx * 0.25) - 7.5).toFixed(1)),
-    confidence: '88%'
+    proj: p.current_projection == null ? null : Number(p.current_projection),
+    vbd: null,
+    confidence: p.current_projection == null ? 'unavailable' : 'sleeper'
   })));
 });
 
@@ -430,7 +466,9 @@ app.get('/api/leagues/:leagueId/manager-dna/:rosterId', async (req, res) => {
       WHERE (r.league_id = ? OR r.league_id = ?) AND r.provider_roster_id = ?
     `).get(league?.id || leagueId, leagueId, rId);
 
-    const transactions = await sleeperSyncService.getLeagueTransactions(providerLeagueId, 6).catch(() => []);
+    const transactions = league?.id
+      ? db.prepare('SELECT roster_ids_json AS roster_ids, adds_json AS adds, drops_json AS drops, type, waiver_budget_json AS waiver_budget, raw_json FROM transactions WHERE league_id = ? ORDER BY occurred_at DESC').all(league.id).map(t => ({ ...t, roster_ids: JSON.parse(t.roster_ids || '[]'), adds: JSON.parse(t.adds || '{}'), drops: JSON.parse(t.drops || '{}'), waiver_budget: JSON.parse(t.waiver_budget || '[]'), settings: JSON.parse(t.raw_json || '{}').settings || {} }))
+      : [];
     const dna = calculateManagerDna({
       managerId: roster?.provider_user_id || `mgr_${rId}`,
       rosterId: rId,
@@ -485,6 +523,15 @@ app.get('/api/news', (req, res) => {
   const { category, limit = 20, offset = 0 } = req.query;
   const news = newsService.getNewsFeed({ category, limit: parseInt(limit, 10), offset: parseInt(offset, 10) });
   res.json(news);
+});
+
+app.get('/api/players/:playerId/history', (req, res) => {
+  const season = String(req.query.season || new Date().getUTCFullYear());
+  const rows = db.prepare(`SELECT s.week, s.stats_json, p.projection FROM player_stats s LEFT JOIN projections p ON p.player_id=s.player_id AND p.season=s.season AND p.week=s.week WHERE s.player_id=? AND s.season=? ORDER BY s.week`).all(String(req.params.playerId), season).map(row => {
+    let stats = {}; try { stats = JSON.parse(row.stats_json || '{}'); } catch {}
+    return { week: row.week, opp: stats.opponent || '—', proj: row.projection == null ? null : Number(row.projection), fpts: stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? null, snap: stats.off_pct ?? stats.snap_pct ?? null, att: stats.rush_att ?? stats.pass_att ?? stats.rec_tgt ?? null, cmp: stats.pass_cmp ?? null, yd: stats.pass_yd ?? stats.rush_yd ?? stats.rec_yd ?? null, td: stats.pass_td ?? stats.rush_td ?? stats.rec_td ?? null, int: stats.pass_int ?? null };
+  });
+  res.json({ playerId: String(req.params.playerId), season, rows, dataStatus: rows.length ? 'synced' : 'not_synced' });
 });
 
 app.get('/api/players/:playerId/news', (req, res) => {

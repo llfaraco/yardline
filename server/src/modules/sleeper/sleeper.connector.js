@@ -115,6 +115,14 @@ class SleeperConnector {
     return this.request('/players/nfl');
   }
 
+  getNflStats(season, week) {
+    return this.request(`/stats/nfl/${encodeURIComponent(season)}/${encodeURIComponent(week)}`);
+  }
+
+  getNflProjections(season, week) {
+    return this.request(`/projections/nfl/${encodeURIComponent(season)}/${encodeURIComponent(week)}`);
+  }
+
   getLeagueTradedPicks(leagueId) {
     return this.request(`/league/${leagueId}/traded_picks`);
   }

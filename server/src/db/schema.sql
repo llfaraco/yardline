@@ -258,3 +258,71 @@ CREATE INDEX IF NOT EXISTS idx_matchup_players_matchup ON matchup_players(matchu
 CREATE INDEX IF NOT EXISTS idx_player_identities_lookup ON player_identities(provider, provider_player_id);
 CREATE INDEX IF NOT EXISTS idx_projections_lookup ON projections(player_id, season, week, scoring_format);
 CREATE INDEX IF NOT EXISTS idx_news_player_links_player ON news_player_links(player_id);
+
+-- ========================================================
+-- Sincronização Sleeper idempotente e scoring explicável
+-- ========================================================
+
+CREATE TABLE IF NOT EXISTS player_stats (
+  id TEXT PRIMARY KEY,
+  player_id TEXT NOT NULL,
+  season TEXT NOT NULL,
+  week INTEGER NOT NULL,
+  stats_json TEXT NOT NULL,
+  source TEXT NOT NULL DEFAULT 'sleeper',
+  captured_at TEXT NOT NULL,
+  UNIQUE(player_id, season, week, source),
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id TEXT PRIMARY KEY,
+  league_id TEXT NOT NULL,
+  provider_transaction_id TEXT NOT NULL,
+  season TEXT NOT NULL,
+  week INTEGER NOT NULL,
+  type TEXT NOT NULL,
+  status TEXT,
+  roster_ids_json TEXT NOT NULL,
+  adds_json TEXT NOT NULL,
+  drops_json TEXT NOT NULL,
+  draft_picks_json TEXT NOT NULL,
+  waiver_budget_json TEXT NOT NULL,
+  raw_json TEXT NOT NULL,
+  occurred_at TEXT,
+  captured_at TEXT NOT NULL,
+  UNIQUE(league_id, provider_transaction_id),
+  FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS traded_picks (
+  id TEXT PRIMARY KEY,
+  league_id TEXT NOT NULL,
+  season TEXT NOT NULL,
+  round INTEGER NOT NULL,
+  pick_no INTEGER,
+  roster_id INTEGER,
+  previous_owner_id INTEGER,
+  owner_id INTEGER,
+  raw_json TEXT NOT NULL,
+  captured_at TEXT NOT NULL,
+  UNIQUE(league_id, season, round, pick_no),
+  FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sync_payloads (
+  id TEXT PRIMARY KEY,
+  league_id TEXT,
+  resource TEXT NOT NULL,
+  resource_key TEXT NOT NULL,
+  payload_hash TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  captured_at TEXT NOT NULL,
+  UNIQUE(resource, resource_key, payload_hash),
+  FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_player_stats_lookup ON player_stats(player_id, season, week);
+CREATE INDEX IF NOT EXISTS idx_transactions_league_week ON transactions(league_id, week);
+CREATE INDEX IF NOT EXISTS idx_traded_picks_league ON traded_picks(league_id, season);
+CREATE INDEX IF NOT EXISTS idx_sync_payloads_resource ON sync_payloads(resource, resource_key);
