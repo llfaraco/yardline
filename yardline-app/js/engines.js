@@ -2367,3 +2367,165 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
   window.YL_LOAD_PLAYER_SEASON=async function(id,season){const modal=document.getElementById('player-modal-content');const p=profile(id);if(!p||!modal)return;modal.querySelector('.sleeper-dossier__logs').innerHTML='<p class="sleeper-empty">Carregando dados oficiais do Sleeper…</p>';let rows=[],error='';try{rows=await seasonRows(id,season);}catch(e){error='Não foi possível carregar este histórico agora.';}const news=await newsFor(p);render(p,season,rows,news,error);};
   window.openPlayerDossierModal=async function(id){const p=profile(id);const modal=document.getElementById('player-modal'),content=document.getElementById('player-modal-content');if(!modal||!content)return;modal.classList.add('open');content.innerHTML='<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Carregando perfil oficial do Sleeper…</p></div>';if(!p){content.innerHTML='<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Jogador ainda não foi carregado no catálogo oficial.</p></div>';return;}const season=Number(window.activeNflState?.season||activeLeagueWeek&&activeSleeperLeagueData?.season||new Date().getFullYear());try{const [rows,news]=await Promise.all([seasonRows(p.id,season),newsFor(p)]);render(p,season,rows,news,'');}catch(e){render(p,season,[],[], 'A consulta oficial falhou temporariamente.');}};
 })();
+
+
+// ==========================================
+// ⚙️ SLEEPER AUDIT SCORING ENGINE (PILLAR 2)
+// Liga: Neilo Pistola League (16 times, Keeper PPR com IDP)
+// ==========================================
+(function() {
+  const RULES = [
+    { key: 'pass_yd', stat: 'passing_yards', label: 'Passing yards' },
+    { key: 'pass_td', stat: 'passing_touchdowns', label: 'Passing TD' },
+    { key: 'pass_2pt', stat: 'passing_2pt', label: 'Passing 2PT' },
+    { key: 'pass_int', stat: 'interceptions_thrown', label: 'Interceptions' },
+    { key: 'pass_int_td', stat: 'pick_sixes_thrown', label: 'Pick six thrown' },
+    { key: 'pass_sack', stat: 'sacks_taken', label: 'Sacks taken' },
+    { key: 'rush_yd', stat: 'rushing_yards', label: 'Rushing yards' },
+    { key: 'rush_td', stat: 'rushing_touchdowns', label: 'Rushing TD' },
+    { key: 'rush_2pt', stat: 'rushing_2pt', label: 'Rushing 2PT' },
+    { key: 'rec', stat: 'receptions', label: 'Receptions' },
+    { key: 'rec_yd', stat: 'receiving_yards', label: 'Receiving yards' },
+    { key: 'rec_td', stat: 'receiving_touchdowns', label: 'Receiving TD' },
+    { key: 'rec_2pt', stat: 'receiving_2pt', label: 'Receiving 2PT' },
+    { key: 'fum_lost', stat: 'fumbles_lost', label: 'Fumbles lost' },
+    { key: 'fum_rec_td', stat: 'fumble_recovery_touchdowns', label: 'Fumble recovery TD' },
+    { key: 'idp_tkl_solo', stat: 'solo_tackles', label: 'Solo tackles' },
+    { key: 'idp_tkl_ast', stat: 'assisted_tackles', label: 'Assisted tackles' },
+    { key: 'idp_qb_hit', stat: 'qb_hits', label: 'QB hits' },
+    { key: 'idp_tkl_loss', stat: 'tackles_for_loss', label: 'Tackles for loss' },
+    { key: 'idp_pass_def', stat: 'passes_defended', label: 'Passes defended' },
+    { key: 'idp_int', stat: 'idp_interceptions', label: 'IDP interceptions' },
+    { key: 'idp_sack', stat: 'idp_sacks', label: 'IDP sacks' },
+    { key: 'idp_ff', stat: 'idp_forced_fumbles', label: 'IDP forced fumbles' },
+    { key: 'idp_fum_rec', stat: 'idp_fumble_recoveries', label: 'IDP fumble recoveries' },
+    { key: 'idp_safe', stat: 'idp_safeties', label: 'IDP safeties' },
+    { key: 'idp_def_td', stat: 'idp_touchdowns', label: 'IDP TD' },
+    { key: 'idp_blk_kick', stat: 'blocked_kicks', label: 'IDP Blocked kicks' },
+    { key: 'bonus_fd_te', stat: 'tight_end_first_downs', label: 'TE first downs' },
+    { key: 'sack', stat: 'team_defense_sacks', label: 'Def sacks' },
+    { key: 'int', stat: 'team_defense_interceptions', label: 'Def INT' },
+    { key: 'fum_rec', stat: 'team_defense_fumble_recoveries', label: 'Def FR' },
+    { key: 'ff', stat: 'team_defense_forced_fumbles', label: 'Def FF' },
+    { key: 'safe', stat: 'team_defense_safeties', label: 'Def Safeties' },
+    { key: 'def_td', stat: 'team_defense_touchdowns', label: 'Def TD' },
+    { key: 'def_st_td', stat: 'special_teams_touchdowns', label: 'Special Teams TD' },
+    { key: 'blk_kick', stat: 'team_defense_blocked_kicks', label: 'Def Blocked kicks' }
+  ];
+
+  // Regras oficiais da Neilo Pistola League (Sleeper #1369770282776006656)
+  const DEFAULT_SCORING = {
+    pass_yd: 0.05, pass_td: 4, pass_2pt: 2, pass_int: -2, pass_int_td: -4, pass_sack: -1,
+    rush_yd: 0.1, rush_td: 6, rush_2pt: 2,
+    rec: 1, rec_yd: 0.1, rec_td: 6, rec_2pt: 2, bonus_fd_te: 0.5,
+    fum_lost: -2, fum_rec_td: 6,
+    idp_tkl_solo: 1, idp_tkl_ast: 0.5, idp_sack: 4, idp_tkl_loss: 1, idp_qb_hit: 0.5,
+    idp_pass_def: 1, idp_int: 6, idp_ff: 4, idp_fum_rec: 2, idp_safe: 4, idp_def_td: 6, idp_blk_kick: 3,
+    xpm: 1, xpmiss: -2,
+    fgm_0_19: 2, fgm_20_29: 2, fgm_30_39: 3, fgm_40_49: 4, fgm_50_59: 5, fgm_60p: 6,
+    fgmiss_0_19: -3, fgmiss_20_29: -2, fgmiss_30_39: -1, fgmiss: 0,
+    pts_allow_0: 10, pts_allow_1_6: 7, pts_allow_7_13: 4, pts_allow_14_20: 1,
+    pts_allow_21_27: 0, pts_allow_28_34: -1, pts_allow_35p: -4,
+    sack: 1, int: 2, fum_rec: 2, ff: 1, safe: 2, def_td: 6, def_st_td: 6, blk_kick: 2
+  };
+
+  function roundHalfPoint(n) {
+    return Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
+  }
+
+  function value(stats, key) {
+    const n = Number(stats?.[key] ?? 0);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function calculateKickingBuckets(stats, scoring, breakdown = {}) {
+    let pts = 0;
+    pts += value(stats, 'xpm') * (scoring.xpm ?? 1);
+    pts += value(stats, 'xpmiss') * (scoring.xpmiss ?? -2);
+
+    const fgKeys = ['fgm_0_19', 'fgm_20_29', 'fgm_30_39', 'fgm_40_49', 'fgm_50_59', 'fgm_60p'];
+    for (const k of fgKeys) {
+      const cnt = value(stats, k);
+      if (cnt > 0) {
+        const p = cnt * (scoring[k] ?? 3);
+        pts += p;
+        breakdown[k] = (breakdown[k] || 0) + p;
+      }
+    }
+    const fgMissKeys = ['fgmiss_0_19', 'fgmiss_20_29', 'fgmiss_30_39', 'fgmiss'];
+    for (const k of fgMissKeys) {
+      const cnt = value(stats, k);
+      if (cnt > 0) {
+        const p = cnt * (scoring[k] ?? 0);
+        pts += p;
+        breakdown[k] = (breakdown[k] || 0) + p;
+      }
+    }
+    return pts;
+  }
+
+  function calculateDefenseBuckets(stats, scoring, breakdown = {}) {
+    if (stats?.pts_allow == null) return 0;
+    const pa = Number(stats.pts_allow);
+    let bucketKey = null;
+    if (pa === 0) bucketKey = 'pts_allow_0';
+    else if (pa <= 6) bucketKey = 'pts_allow_1_6';
+    else if (pa <= 13) bucketKey = 'pts_allow_7_13';
+    else if (pa <= 20) bucketKey = 'pts_allow_14_20';
+    else if (pa <= 27) bucketKey = 'pts_allow_21_27';
+    else if (pa <= 34) bucketKey = 'pts_allow_28_34';
+    else bucketKey = 'pts_allow_35p';
+
+    const pts = scoring[bucketKey] ?? 0;
+    if (pts !== 0) breakdown[bucketKey] = pts;
+    return pts;
+  }
+
+  function calculatePlayerScore(stats, scoring = DEFAULT_SCORING) {
+    const s = Object.assign({}, DEFAULT_SCORING, scoring);
+    const breakdown = {};
+    let total = 0;
+
+    for (const rule of RULES) {
+      const multiplier = Number(s[rule.key] ?? 0);
+      const quantity = value(stats, rule.stat) || value(stats, rule.key);
+      const points = quantity * multiplier;
+      if (points !== 0) {
+        breakdown[rule.key] = points;
+        total += points;
+      }
+    }
+
+    total += calculateKickingBuckets(stats, s, breakdown);
+    total += calculateDefenseBuckets(stats, s, breakdown);
+
+    return { total: roundHalfPoint(total), breakdown };
+  }
+
+  function calculateRosterScore(starters, playerStats = {}, scoring = DEFAULT_SCORING, customPoints = null) {
+    if (customPoints != null) {
+      return { total: roundHalfPoint(customPoints), playerScores: [], source: 'custom_points' };
+    }
+    const list = Array.isArray(starters) ? starters : [];
+    const playerScores = list.map(playerId => {
+      const stats = playerStats[playerId] || {};
+      const res = calculatePlayerScore(stats, scoring);
+      return { playerId: String(playerId), ...res };
+    });
+    const total = roundHalfPoint(playerScores.reduce((sum, p) => sum + p.total, 0));
+    return { total, playerScores, source: 'calculated' };
+  }
+
+  window.YL_SCORING_RULES = RULES;
+  window.YL_DEFAULT_SCORING = DEFAULT_SCORING;
+  window.roundHalfPoint = roundHalfPoint;
+  window.calculateKickingBuckets = calculateKickingBuckets;
+  window.calculateDefenseBuckets = calculateDefenseBuckets;
+  window.calculatePlayerScore = calculatePlayerScore;
+  window.calculateRosterScore = calculateRosterScore;
+  window.YL_SCORING_ENGINE = {
+    RULES, DEFAULT_SCORING, roundHalfPoint,
+    calculateKickingBuckets, calculateDefenseBuckets,
+    calculatePlayerScore, calculateRosterScore
+  };
+})();

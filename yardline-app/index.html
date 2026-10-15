@@ -47,6 +47,11 @@
       <button class="btn-yl btn-outline" style="padding:5px 10px;font-size:11.5px;" onclick="openNavTab('teams')">🏈 Elencos NFL</button>
       <button class="btn-yl btn-primary" style="padding:5px 12px;font-size:12px;" onclick="openNavTab('aimode')">✨ Modo IA</button>
       <button class="btn-yl btn-navy" style="padding:5px 12px;font-size:12px;" onclick="openNavTab('plans')">Planos Pix</button>
+      <button class="btn-yl btn-outline" id="topbar-chat-toggle" style="padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:5px;" onclick="toggleLeagueChat()" title="Alternar League Chat">
+        <span>💬</span>
+        <span>Chat</span>
+        <span class="badge badge-green" id="chat-count-pill" style="font-size:9.5px;padding:1px 5px;">14</span>
+      </button>
     </div>
   </header>
 
@@ -120,6 +125,37 @@
       <section id="view-social" class="view-section"></section>
       <section id="view-plans" class="view-section"></section>
     </main>
+
+    <!-- RIGHT COLUMN: PERSISTENT LEAGUE CHAT (PILLAR 3) -->
+    <aside class="yl-chat-rail" id="yl-chat-rail">
+      <div class="yl-chat-header">
+        <div class="yl-chat-header__title">
+          <span>💬</span>
+          <span>League Chat</span>
+          <span class="badge badge-navy" style="font-size:9.5px;padding:2px 6px;">Neilo Pistola</span>
+        </div>
+        <div class="yl-chat-header__actions">
+          <button class="btn-yl btn-outline" style="padding:2px 8px;font-size:11px;" onclick="toggleLeagueChat()" title="Recolher League Chat">✕</button>
+        </div>
+      </div>
+      <div class="yl-chat-feed" id="yl-chat-feed">
+        <!-- Rendered by renderLeagueChatFeed() -->
+      </div>
+      <div class="yl-chat-composer">
+        <form id="yl-chat-form" onsubmit="event.preventDefault();sendChatMessage();" style="display:flex;gap:6px;width:100%;">
+          <input type="text" id="yl-chat-input" placeholder="Enter Message..." autocomplete="off" />
+          <button type="submit" class="btn-yl btn-primary" style="padding:0 12px;font-size:12px;">Enviar</button>
+        </form>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted);padding:0 2px;">
+          <span style="display:flex;gap:6px;">
+            <button type="button" class="btn-yl btn-outline" style="padding:2px 6px;font-size:9.5px;" onclick="insertChatQuickText('Boa sorte na rodada!')">🍀 Sorte</button>
+            <button type="button" class="btn-yl btn-outline" style="padding:2px 6px;font-size:9.5px;" onclick="insertChatQuickText('Alguém aberto para trades de IDP?')">🔄 Trade</button>
+            <button type="button" class="btn-yl btn-outline" style="padding:2px 6px;font-size:9.5px;" onclick="insertChatQuickText('Purdy e Kittle vão pontuar alto!')">🔥 Hype</button>
+          </span>
+          <span style="font-weight:600;color:var(--yl-navy);">@Faraco</span>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <div class="yl-modal-overlay" id="article-reader-modal" onclick="if(event.target===this)closeModal('article-reader-modal')"><div class="yl-modal-card" id="article-modal-content"></div></div>
@@ -165,36 +201,5 @@
 
 <script src="js/data_and_views.js"></script>
   <script src="js/engines.js"></script>
-<!-- Code injected by live-server -->
-<script type="text/javascript">
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function() {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					head.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					head.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function(msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			console.log('Live reload enabled.');
-		})();
-	}
-	// ]]>
-</script>
 </body>
 </html>
