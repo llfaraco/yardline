@@ -3905,6 +3905,18 @@ window.toggleSidebarGroup=function(key){
     }, 50);
   }
 
+  async function hydrateLeagueChat() {
+    const base = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
+    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
+    try {
+      const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages?limit=100`, { headers: { Accept: 'application/json' } });
+      if (!response.ok) return;
+      const payload = await response.json();
+      saveStoredChatMessages((payload.messages || []).map(message => ({ ...message, time: new Date(message.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), isMe: String(message.author).toLowerCase().includes('faraco') })));
+      renderLeagueChatFeed();
+    } catch (error) { console.warn('[LeagueChat] backend indisponível; mantendo cache local.'); }
+  }
+
   function toggleLeagueChat() {
     const shell = document.querySelector(".yl-main-shell");
     const rail = document.getElementById("yl-chat-rail");
@@ -3920,7 +3932,7 @@ window.toggleSidebarGroup=function(key){
     showToast(isCollapsed ? "💬 League Chat recolhido" : "💬 League Chat expandido");
   }
 
-  function sendChatMessage() {
+  async function sendChatMessage() {
     const input = document.getElementById("yl-chat-input");
     if (!input) return;
     const text = (input.value || "").trim();
@@ -3930,14 +3942,22 @@ window.toggleSidebarGroup=function(key){
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    msgs.push({
+    const draft = {
       author: "@Faraco (Gengar My Balls)",
       initials: "GM",
       text,
       time: `Hoje · ${timeStr}`,
       isMe: true
-    });
+    };
 
+    const base = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
+    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
+    try {
+      const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message: text, author: draft.author, initials: draft.initials }) });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const saved = await response.json();
+      msgs.push({ ...draft, createdAt: saved.createdAt });
+    } catch (error) { msgs.push(draft); }
     saveStoredChatMessages(msgs);
     input.value = "";
     renderLeagueChatFeed();
@@ -3968,10 +3988,12 @@ window.toggleSidebarGroup=function(key){
       }
     } catch (e) {}
     renderLeagueChatFeed();
+    hydrateLeagueChat();
   });
 
   // Executar imediatamente se o DOM já estiver pronto
   if (document.readyState === "complete" || document.readyState === "interactive") {
     renderLeagueChatFeed();
+    hydrateLeagueChat();
   }
 })();

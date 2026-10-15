@@ -534,6 +534,27 @@ app.get('/api/players/:playerId/history', (req, res) => {
   res.json({ playerId: String(req.params.playerId), season, rows, dataStatus: rows.length ? 'synced' : 'not_synced' });
 });
 
+app.get('/api/leagues/:leagueId/messages', (req, res) => {
+  const league = db.prepare('SELECT id FROM leagues WHERE id=? OR provider_league_id=?').get(req.params.leagueId, req.params.leagueId);
+  if (!league) return res.status(404).json({ error: 'Liga não encontrada.' });
+  const limit = Math.min(Number(req.query.limit || 100), 200);
+  const messages = db.prepare('SELECT id, provider_user_id AS providerUserId, author, initials, message AS text, created_at AS createdAt FROM league_messages WHERE league_id=? ORDER BY created_at DESC LIMIT ?').all(league.id, limit).reverse();
+  res.json({ messages });
+});
+
+app.post('/api/leagues/:leagueId/messages', (req, res) => {
+  const league = db.prepare('SELECT id FROM leagues WHERE id=? OR provider_league_id=?').get(req.params.leagueId, req.params.leagueId);
+  if (!league) return res.status(404).json({ error: 'Liga não encontrada.' });
+  const message = String(req.body?.message || '').trim().slice(0, 2000);
+  if (!message) return res.status(400).json({ error: 'message é obrigatório.' });
+  const author = String(req.body?.author || 'Faraco').trim().slice(0, 120) || 'Faraco';
+  const initials = String(req.body?.initials || author.slice(0, 2)).trim().slice(0, 4).toUpperCase();
+  const createdAt = new Date().toISOString();
+  const id = `msg_${crypto.randomUUID()}`;
+  db.prepare('INSERT INTO league_messages (id, league_id, provider_user_id, author, initials, message, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)').run(id, league.id, req.body?.providerUserId || null, author, initials, message, createdAt);
+  res.status(201).json({ id, providerUserId: req.body?.providerUserId || null, author, initials, text: message, createdAt });
+});
+
 app.get('/api/players/:playerId/news', (req, res) => {
   const news = newsService.getPlayerNews(req.params.playerId);
   res.json(news);

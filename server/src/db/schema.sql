@@ -322,7 +322,19 @@ CREATE TABLE IF NOT EXISTS sync_payloads (
   FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS league_messages (
+  id TEXT PRIMARY KEY,
+  league_id TEXT NOT NULL,
+  provider_user_id TEXT,
+  author TEXT NOT NULL,
+  initials TEXT,
+  message TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_player_stats_lookup ON player_stats(player_id, season, week);
 CREATE INDEX IF NOT EXISTS idx_transactions_league_week ON transactions(league_id, week);
 CREATE INDEX IF NOT EXISTS idx_traded_picks_league ON traded_picks(league_id, season);
 CREATE INDEX IF NOT EXISTS idx_sync_payloads_resource ON sync_payloads(resource, resource_key);
+CREATE INDEX IF NOT EXISTS idx_league_messages_feed ON league_messages(league_id, created_at);
