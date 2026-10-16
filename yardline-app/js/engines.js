@@ -2189,8 +2189,11 @@ if (typeof window !== 'undefined') {
       // absent from the roster DTO; never guess a roster without an identity.
       if (!userRealRoster && wanted) {
         const wantedName = String(wanted).replace(/^@/, '').trim().toLowerCase();
-        const ownedStanding = (snapshot.standings || []).find(team => String(team.manager || '').trim().toLowerCase() === wantedName);
-        if (ownedStanding) userRealRoster = activeSleeperRosters.find(roster => Number(roster.roster_id) === Number(ownedStanding.rosterId)) || null;
+        userRealRoster = activeSleeperRosters.find(roster => String(roster.ownerName || roster.owner || '').trim().toLowerCase() === wantedName) || null;
+        if (!userRealRoster) {
+          const ownedStanding = (snapshot.standings || []).find(team => String(team.manager || '').trim().toLowerCase() === wantedName);
+          if (ownedStanding) userRealRoster = activeSleeperRosters.find(roster => Number(roster.roster_id) === Number(ownedStanding.rosterId)) || null;
+        }
       }
       selectedActiveRosterId = userRealRoster?.roster_id ?? null;
       window.YL_ACTIVE_ROSTERS = activeSleeperRosters;
