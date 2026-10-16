@@ -537,14 +537,26 @@ body { background-color: var(--bg-canvas); color: var(--text-main); min-height: 
   border: 1px solid var(--border-box);
   border-radius: 8px;
   padding: 12px 14px;
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 .yl-matchup-mini-card:hover {
-  border-color: #94a3b8;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-color: #002244;
+  box-shadow: 0 4px 12px rgba(0,34,68,0.08);
+  transform: translateY(-1px);
 }
 .yl-matchup-mini-card.is-featured {
+  border: 1px solid #c3112b;
+  background: #fffbfa;
+}
+.yl-matchup-mini-card.is-selected {
+  border: 2px solid #002244;
+  box-shadow: 0 0 0 2px rgba(0, 34, 68, 0.15), 0 4px 14px rgba(0, 34, 68, 0.08);
+  background: #f8fafc;
+}
+.yl-matchup-mini-card.is-featured.is-selected {
   border: 2px solid #c3112b;
+  box-shadow: 0 0 0 2px rgba(195, 17, 43, 0.2), 0 4px 14px rgba(195, 17, 43, 0.1);
   background: #fffbfa;
 }
 .yl-matchup-mini-team {

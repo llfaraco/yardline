@@ -3386,7 +3386,9 @@ window.toggleSidebarGroup=function(key){
     const pos = canonical?.pos || fallback.pos || 'FLEX';
     const team = canonical?.team || fallback.team || 'FA';
     const opp = fallback.opp || '—';
-    const proj = canonical?.proj != null ? Number(canonical.proj) : (fallback.proj != null ? Number(fallback.proj) : null);
+    const proj = canonical?.proj != null && Number.isFinite(Number(canonical.proj))
+      ? Number(canonical.proj)
+      : (fallback.proj != null && Number.isFinite(Number(fallback.proj)) ? Number(fallback.proj) : 0.0);
     const photo = canonical?.photo || `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`;
     const status = canonical?.injuryStatus || (fallback.status === 'Active' ? null : fallback.status) || 'Sem restrição';
     const statusShort = status.toLowerCase().includes('out') ? 'OUT' : status.toLowerCase().includes('quest') ? 'Q' : status.toLowerCase().includes('prob') ? 'P' : '';
@@ -3422,17 +3424,46 @@ window.toggleSidebarGroup=function(key){
     { type: "fa", badge: "FREE AGENT", user: "thalesmagni", time: "Ontem · 18:14", add: "Kwity Paye (DE/DL · IND)", drop: "Montez Sweat (DE)" }
   ];
 
+  // Mapa Canônico dos 16 Elencos da Neilo Pistola League (19 Titulares + Banco Completo por Time)
+  const LEAGUE_16_ROSTERS_MAP = {
+    "1": { rosterId: 1, owner: "neyllon", teamName: "Curitiba Red Fox", record: "2-3", fpts: 849.7, fptsAgainst: 829.3, starters: ["3257","11435","7569","7526","3634","12518","12507","13285","4999","1945","12574","6782","5871","12578","6131","7647","6911","6788","7069"], players: ["6788","11643","9753","4971","3257","11435","7528","12578","12547","11603","4999","12574","6131","7635","13281","13405","2306","1945","7647","13285","11565","12508","7069","7569","5871","6911","12518","10894","3634","6782","13340","7526","12507"] },
+    "2": { rosterId: 2, owner: "Faraco", teamName: "Gengar My Balls", record: "4-1", fpts: 1091.3, fptsAgainst: 857.8, starters: ["8183","7588","8112","9997","11646","4217","12474","11576","6791","6083","5991","10892","13457","6860","12140","13381","11685","11739","12605"], players: ["10892","11470","11576","11610","11646","11667","11685","11739","12140","12474","12504","12505","12605","12646","13381","13413","13457","4217","4224","5846","5947","5991","6083","6791","6860","6868","7523","7588","8112","8183","8210","9997"] },
+    "3": { rosterId: 3, owner: "NacuaMatata90", teamName: "Parsons a Parsons", record: "1-4", fpts: 723.9, fptsAgainst: 854.5, starters: ["4046","12527","5045","11635","11631","12506","11627","12481","13369","12961","5865","8280","13341","6941","8355","11724","7136","11656","13385"], players: ["11627","11631","11635","11656","11724","11792","12481","12506","12527","12961","13301","13317","13341","13359","13369","13385","3973","4046","5045","5865","6217","6865","6941","7136","7640","7649","7811","8280","8355","8362","9756"] },
+    "4": { rosterId: 4, owner: "Abreu77", teamName: "Williams The Conqueror", record: "2-3", fpts: 748.8, fptsAgainst: 884.8, starters: ["11560","10235","6783","4983","11620","12517","5857","4981","8311","7042","12571","5061","7626","7648","6485","6065","5908","8339","8323"], players: ["6065","7648","8311","6888","11560","3155","10235","7042","5847","13293","5908","5857","13411","4199","5960","8323","5864","5061","6770","8339","4993","4983","13286","13417","4981","7839","6485","11620","12529","7626","12517","12571","6783"] },
+    "5": { rosterId: 5, owner: "ASantiagoS", teamName: "Eli Pug", record: "1-4", fpts: 776.4, fptsAgainst: 976.4, starters: ["9228","13287","11632","12530","4039","5022","5001","8129","5816","650","7113","3558","8265","12566","10914","13375","6333","8364","12591"], players: ["10905","10914","11586","11632","11675","12048","12492","12530","12566","12591","13287","13375","13458","2505","3321","3558","4039","5001","5022","5816","5849","6333","650","7049","7090","7113","8129","8136","8265","8364","9228"] },
+    "6": { rosterId: 6, owner: "wendelayres", teamName: "Uranus Destroyers", record: "2-3", fpts: 863.5, fptsAgainst: 881.5, starters: ["11563","8150","13346","2449","12499","7002","8228","1466","13379","2747","11760","10921","4967","10947","11742","8680","13376","7044","13384"], players: ["13294","8155","13384","7002","6819","7044","1466","2747","11569","8680","13346","9754","8228","8150","2449","11563","11760","12499","11742","13379","10947","13376","5912","10226","12585","5944","13296","13272","10921","8154","1373","4967","9504"] },
+    "7": { rosterId: 7, owner: "MarcoCoelho", teamName: "Guabi JackRabbits", record: "2-3", fpts: 826.2, fptsAgainst: 1002.3, starters: ["11559","8151","10218","4037","9486","6826","11637","7600","10936","12185","7637","8385","2311","2617","11017","8266","5893","12631","8359"], players: ["10218","10927","10936","11017","11559","11637","12185","12631","13347","13414","2311","2617","4037","5841","5844","5872","5893","6039","6797","6826","6901","7600","7637","7726","8151","8266","8359","8385","843","8676","9486","9508"] },
+    "8": { rosterId: 8, owner: "cauexavier", teamName: "Paranaguá Rat Crew 🏆🏆", record: "4-1", fpts: 893.4, fptsAgainst: 846.7, starters: ["12545","4034","5859","9488","8126","11604","12489","4454","8349","12713","6125","12978","8383","6214","7672","1052","6896","11697","8392"], players: ["13489","13324","11604","5372","7672","10231","9482","8126","12713","6416","4454","11583","4177","10219","4034","5859","11697","8349","12489","8132","6896","7021","12545","8392","1052","12978","6214","9488","8383","12542","8134","6125","2064"] },
+    "9": { rosterId: 9, owner: "Fontanella", teamName: "Arapiraca Miners", record: "4-1", fpts: 917.1, fptsAgainst: 847.1, starters: ["6804","6813","9493","9487","8144","9480","12501","7611","6807","3451","12610","13390","2427","5726","0","7921","8330","8275","8333"], players: ["12501","5297","6813","13434","3451","13390","8330","8144","8333","6794","11729","7611","9225","2427","13391","5726","6807","7921","12610","13453","13946","8275","12533","9493","9511","11630","9480","11589","6804","6790","8111","3294","9487"] },
+    "10": { rosterId: 10, owner: "Mattadra", teamName: "The Nuggets", record: "2-3", fpts: 977.0, fptsAgainst: 924.2, starters: ["11564","11584","13298","13279","12514","8130","12526","11624","5876","5189","11665","10898","10888","13377","13488","7346","12588","11682","6799"], players: ["11564","13298","8343","11687","13402","11665","13345","13488","5189","12526","10898","9221","6799","11624","13377","7346","13279","10888","8130","9479","13370","11682","12522","13311","12514","13349","12588","12491","6119","2197","13388","5876","11584"] },
+    "11": { rosterId: 11, owner: "perriy", teamName: "Capanema Noias", record: "4-1", fpts: 973.1, fptsAgainst: 831.3, starters: ["4881","9509","12519","9500","9501","8131","8138","7567","4960","11261","12652","10883","0","6141","5843","12556","12567","11705","8406"], players: ["5843","7715","8172","9500","11625","12652","11705","8161","8406","7567","6949","7547","8270","4960","9509","6141","4032","12567","12556","12487","11261","4135","4881","12519","9501","8395","8131","10883","6130","12535","10944","8119","8138"] },
+    "12": { rosterId: 12, owner: "31ers", teamName: "31ers", record: "3-2", fpts: 849.5, fptsAgainst: 770.5, starters: ["421","7594","7571","2133","2216","3214","1479","6806","13363","4227","6118","11668","7696","6900","4118","4968","11676","11662","11731"], players: ["10213","10881","11539","11647","1166","11662","11668","11676","11731","13363","1479","2036","2133","2216","3214","4118","421","4227","4866","4968","5580","5906","6118","6800","6806","6900","7571","7594","7641","7696","9502"] },
+    "13": { rosterId: 13, owner: "BrunoChiarello", teamName: "South Caxias Immigrants", record: "5-0", fpts: 1153.3, fptsAgainst: 809.4, starters: ["4984","5967","8167","8146","7525","8110","11581","13305","6302","11533","2393","5839","3172","7841","8329","5041","13371","7016","7666"], players: ["7016","12711","4984","13305","6302","9224","13371","10935","3160","5892","7543","11581","5839","12718","5041","2393","8286","7525","7666","5967","13360","8146","8167","7841","3172","10859","6801","7564","8329","8110","13268","4943","11533"] },
+    "14": { rosterId: 14, owner: "thalesmagni", teamName: "How I Metcalf Your Mother", record: "0-5", fpts: 746.8, fptsAgainst: 973.5, starters: ["11566","12512","10232","8137","11628","10236","12534","11783","8659","6650","5840","7633","10940","5346","8367","10917","3233","5017","10891"], players: ["10232","10236","10891","10917","10940","11566","11628","11783","12015","12483","12502","12509","12512","12534","12617","12622","13424","3233","3286","4017","5017","5346","5840","5870","6301","6650","7633","8137","8142","8367","8659","9226"] },
+    "15": { rosterId: 15, owner: "AugustoVelloso", teamName: "Vagabundos Iluminados", record: "0-5", fpts: 857.4, fptsAgainst: 993.0, starters: ["96","12490","11608","8121","10229","12493","4035","13150","4070","11786","7627","10916","11669","8267","13365","7782","11678","11726","11710"], players: ["10222","10229","10916","10923","11608","11669","11678","11710","11726","11786","12467","12490","12493","12495","13150","13365","13394","3163","4035","4070","5226","6183","7553","7627","7659","7782","8121","8148","8205","8267","96","9757"] },
+    "16": { rosterId: 16, owner: "negrini", teamName: "Hurts So Good", record: "4-1", fpts: 940.3, fptsAgainst: 905.5, starters: ["9758","3198","11834","13274","6786","9484","3271","5927","10949","2020","10885","2227","10873","11727","6815","5332","4081","12597","4963"], players: ["10885","2227","5850","10880","9758","2020","11834","11727","13274","6815","4963","5012","8289","5927","10873","13337","13276","12536","4147","5332","13420","7039","3198","9484","8408","3271","13330","10949","4081","12597","6904","11439","6786"] }
+  };
+  window.LEAGUE_16_ROSTERS_MAP = LEAGUE_16_ROSTERS_MAP;
+
   // Os 8 Confrontos da Semana 6 da Neilo Pistola League
   const WEEK6_ALL_MATCHUPS = [
-    { id: 1, away: { name: "Guabi JackRabbits", owner: "@MarcoCoelho", record: "2-3", proj: 124.0, score: 0 }, home: { name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1", proj: 133.0, score: 0 }, isFeatured: false },
-    { id: 2, away: { name: "The Nuggets", owner: "@Mattadra", record: "2-3", proj: 134.5, score: 0 }, home: { name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0", proj: 152.0, score: 0 }, isFeatured: false },
-    { id: 3, away: { name: "Williams The Conqueror", owner: "@Abreu77", record: "2-3", proj: 119.5, score: 0 }, home: { name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3", proj: 127.8, score: 0 }, isFeatured: false },
-    { id: 4, away: { name: "How I Metcalf Your Mother", owner: "@thalesmagni", record: "0-5", proj: 114.0, score: 0 }, home: { name: "Vagabundos Iluminados", owner: "@AugustoVelloso", record: "0-5", proj: 122.0, score: 0 }, isFeatured: false },
-    { id: 5, away: { name: "Paranaguá Rat Crew 🏆🏆", owner: "@cauexavier", record: "4-1", proj: 131.5, score: 0 }, home: { name: "31ers", owner: "@31ers", record: "3-2", proj: 128.0, score: 0 }, isFeatured: false },
-    { id: 6, away: { name: "Eli Pug", owner: "@ASantiagoS", record: "1-4", proj: 118.0, score: 0 }, home: { name: "Capanema Noias", owner: "@perriy", record: "4-1", proj: 138.4, score: 0 }, isFeatured: false },
-    { id: 7, away: { name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3", proj: 136.4, score: 0 }, home: { name: "Gengar My Balls", owner: "@Faraco", record: "4-1", proj: 148.6, score: 0 }, isFeatured: true },
-    { id: 8, away: { name: "Parsons a Parsons", owner: "@NacuaMatata90", record: "1-4", proj: 115.0, score: 0 }, home: { name: "Hurts So Good", owner: "@negrini", record: "4-1", proj: 135.2, score: 0 }, isFeatured: false }
+    { id: 1, away: { rosterId: 7, name: "Guabi JackRabbits", owner: "@MarcoCoelho", record: "2-3", proj: 124.0, score: 0 }, home: { rosterId: 9, name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1", proj: 133.0, score: 0 }, isFeatured: false },
+    { id: 2, away: { rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3", proj: 134.5, score: 0 }, home: { rosterId: 13, name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0", proj: 152.0, score: 0 }, isFeatured: false },
+    { id: 3, away: { rosterId: 4, name: "Williams The Conqueror", owner: "@Abreu77", record: "2-3", proj: 119.5, score: 0 }, home: { rosterId: 6, name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3", proj: 127.8, score: 0 }, isFeatured: false },
+    { id: 4, away: { rosterId: 14, name: "How I Metcalf Your Mother", owner: "@thalesmagni", record: "0-5", proj: 114.0, score: 0 }, home: { rosterId: 15, name: "Vagabundos Iluminados", owner: "@AugustoVelloso", record: "0-5", proj: 122.0, score: 0 }, isFeatured: false },
+    { id: 5, away: { rosterId: 8, name: "Paranaguá Rat Crew 🏆🏆", owner: "@cauexavier", record: "4-1", proj: 131.5, score: 0 }, home: { rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2", proj: 128.0, score: 0 }, isFeatured: false },
+    { id: 6, away: { rosterId: 5, name: "Eli Pug", owner: "@ASantiagoS", record: "1-4", proj: 118.0, score: 0 }, home: { rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1", proj: 138.4, score: 0 }, isFeatured: false },
+    { id: 7, away: { rosterId: 1, name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3", proj: 136.4, score: 0 }, home: { rosterId: 2, name: "Gengar My Balls", owner: "@Faraco", record: "4-1", proj: 148.6, score: 0 }, isFeatured: true },
+    { id: 8, away: { rosterId: 3, name: "Parsons a Parsons", owner: "@NacuaMatata90", record: "1-4", proj: 115.0, score: 0 }, home: { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1", proj: 135.2, score: 0 }, isFeatured: false }
   ];
+
+  window.selectedLeagueMatchupId = 7;
+  window.selectLeagueMatchup = function(mId) {
+    window.selectedLeagueMatchupId = Number(mId);
+    if (typeof renderAuditLeagueView === 'function') {
+      renderAuditLeagueView();
+    }
+  };
 
   // ==========================================
   // PILLAR 1: MATCHUP VIEW UNIFICATION (#view-league)
@@ -3441,32 +3472,57 @@ window.toggleSidebarGroup=function(key){
     const container = document.getElementById("view-league");
     if (!container) return;
 
-    // Titulares dos dois times
-    const r2Starters = (userRealRoster?.starters && userRealRoster.starters.length === 19)
+    const activeMatchupId = window.selectedLeagueMatchupId || 7;
+    const currentMatchup = WEEK6_ALL_MATCHUPS.find(m => m.id === activeMatchupId) || WEEK6_ALL_MATCHUPS[6];
+
+    // Identificação dos times Home (Mandante) e Away (Visitante)
+    const homeTeam = currentMatchup.home;
+    const awayTeam = currentMatchup.away;
+
+    // Buscar dados dos elencos
+    const homeRosterData = LEAGUE_16_ROSTERS_MAP[String(homeTeam.rosterId)] || null;
+    const awayRosterData = LEAGUE_16_ROSTERS_MAP[String(awayTeam.rosterId)] || null;
+
+    // Titulares dos dois times (garantindo 19 slots por lado)
+    const homeStarters = (homeTeam.rosterId === 2 && userRealRoster?.starters && userRealRoster.starters.length === 19)
       ? userRealRoster.starters.map(String)
-      : ["8183", "7588", "8112", "9997", "11646", "4217", "12474", "11576", "6791", "6083", "5991", "10892", "13457", "6860", "12140", "13381", "11685", "11739", "12605"];
+      : (homeRosterData?.starters && homeRosterData.starters.length === 19)
+        ? homeRosterData.starters.map(String)
+        : ["8183", "7588", "8112", "9997", "11646", "4217", "12474", "11576", "6791", "6083", "5991", "10892", "13457", "6860", "12140", "13381", "11685", "11739", "12605"];
 
-    const r1Starters = ["3257", "11435", "7569", "7526", "3634", "12518", "12507", "13285", "4999", "1945", "12574", "6782", "5871", "12578", "6131", "7647", "6911", "6788", "7069"];
+    const awayStarters = (awayRosterData?.starters && awayRosterData.starters.length === 19)
+      ? awayRosterData.starters.map(String)
+      : ["3257", "11435", "7569", "7526", "3634", "12518", "12507", "13285", "4999", "1945", "12574", "6782", "5871", "12578", "6131", "7647", "6911", "6788", "7069"];
 
-    // Bancos
-    const r2Bench = ["11610", "11667", "12504", "12505", "12646", "13413", "4224", "5846", "5947", "6868", "7523"];
-    const r1Bench = ["11643", "9753", "4971", "7528", "12547", "11603", "7635", "13281", "13405", "2306", "11565", "12508", "10894", "13340"];
+    // Bancos (Isolamento estrito: banco NUNCA soma na pontuação)
+    const homeBench = (homeRosterData?.players)
+      ? homeRosterData.players.filter(p => !homeStarters.includes(String(p))).map(String)
+      : ["11610", "11667", "12504", "12505", "12646", "13413", "4224", "5846", "5947", "6868", "7523"];
 
-    // Projeções calculadas
-    let myProjTotal = 0;
-    let oppProjTotal = 0;
+    const awayBench = (awayRosterData?.players)
+      ? awayRosterData.players.filter(p => !awayStarters.includes(String(p))).map(String)
+      : ["11643", "9753", "4971", "7528", "12547", "11603", "7635", "13281", "13405", "2306", "11565", "12508", "10894", "13340"];
+
+    // Projeções calculadas exclusivamente sobre os 19 titulares
+    let homeProjTotal = 0;
+    let awayProjTotal = 0;
     const starterPairs = WEEK6_SLOTS.map((slot, i) => {
-      const myP = resolveMatchupPlayer(r2Starters[i]);
-      const oppP = resolveMatchupPlayer(r1Starters[i]);
-      myProjTotal += myP.proj;
-      oppProjTotal += oppP.proj;
-      return { slot, myP, oppP };
+      const homeP = resolveMatchupPlayer(homeStarters[i]);
+      const awayP = resolveMatchupPlayer(awayStarters[i]);
+      homeProjTotal += (homeP.proj || 0);
+      awayProjTotal += (awayP.proj || 0);
+      return { slot, homeP, awayP };
     });
 
-    const myProjDisplay = myProjTotal > 0 ? myProjTotal.toFixed(1) : "148.6";
-    const oppProjDisplay = oppProjTotal > 0 ? oppProjTotal.toFixed(1) : "136.4";
-    const myWinProb = 61;
-    const oppWinProb = 39;
+    const homeProjDisplay = homeProjTotal > 0 ? homeProjTotal.toFixed(1) : homeTeam.proj.toFixed(1);
+    const awayProjDisplay = awayProjTotal > 0 ? awayProjTotal.toFixed(1) : awayTeam.proj.toFixed(1);
+
+    const totalProj = (homeProjTotal + awayProjTotal) || 1;
+    const homeWinProb = Math.min(95, Math.max(5, Math.round((homeProjTotal / totalProj) * 100)));
+    const awayWinProb = 100 - homeWinProb;
+
+    const homeInitials = homeTeam.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'HM';
+    const awayInitials = awayTeam.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'AW';
 
     container.innerHTML = `
       <!-- TOP SYNC & AUDIT PILL -->
@@ -3482,7 +3538,7 @@ window.toggleSidebarGroup=function(key){
               Neilo Pistola League (#1369770282776006656)
             </h2>
             <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
-              Confronto oficial Week 6: <strong>Gengar My Balls</strong> (@Faraco) vs <strong>Curitiba Red Fox</strong> (@neyllon)
+              Confronto oficial Week 6: <strong>${esc(homeTeam.name)}</strong> (${esc(homeTeam.owner)}) vs <strong>${esc(awayTeam.name)}</strong> (${esc(awayTeam.owner)})
             </div>
           </div>
           <div style="display:flex;gap:8px;">
@@ -3500,28 +3556,28 @@ window.toggleSidebarGroup=function(key){
       <div class="yl-matchup-hero">
         <div class="yl-matchup-hero__top">
           <div style="display:flex;align-items:center;gap:10px;">
-            <span class="badge badge-crimson" style="letter-spacing:0.5px;">MATCHUP OFICIAL DA SEMANA 6</span>
+            <span class="badge badge-crimson" style="letter-spacing:0.5px;">MATCHUP #${activeMatchupId} · SEMANA 6</span>
             <span style="font-size:12px;opacity:0.85;">Status dos Atletas: <strong>Yet to play (Aguardando Início)</strong></span>
           </div>
           <div style="font-size:12px;opacity:0.85;">
-            Placar Oficial Sleeper: <strong class="mono" style="font-size:14px;color:#34D399;">0.0 × 0.0</strong>
+            Placar Oficial Sleeper: <strong class="mono" style="font-size:14px;color:#34D399;">${(homeTeam.score || 0).toFixed(1)} × ${(awayTeam.score || 0).toFixed(1)}</strong>
           </div>
         </div>
 
         <div class="yl-matchup-hero__teams">
-          <!-- Team 1: Gengar My Balls (Faraco) -->
+          <!-- Team 1: Home Team -->
           <div class="yl-matchup-team-card team-left">
-            <div class="yl-matchup-team-card__logo">GM</div>
+            <div class="yl-matchup-team-card__logo">${esc(homeInitials)}</div>
             <div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <h3 style="font-size:18px;font-weight:700;margin:0;">Gengar My Balls</h3>
-                <span class="badge badge-green" style="font-size:9.5px;padding:1px 6px;">VOCÊ</span>
+                <h3 style="font-size:18px;font-weight:700;margin:0;">${esc(homeTeam.name)}</h3>
+                ${homeTeam.rosterId === 2 ? '<span class="badge badge-green" style="font-size:9.5px;padding:1px 6px;">VOCÊ</span>' : '<span class="badge badge-navy" style="font-size:9.5px;padding:1px 6px;">MANDANTE</span>'}
               </div>
               <div style="font-size:12px;opacity:0.8;margin-top:2px;">
-                @Faraco · <strong>4-1</strong> (2º Lugar) · 1091.3 pts
+                ${esc(homeTeam.owner)} · <strong>${esc(homeTeam.record)}</strong> · ${homeRosterData ? homeRosterData.fpts.toFixed(1) : '—'} pts
               </div>
               <div class="mono" style="font-size:26px;font-weight:700;color:#38BDF8;margin-top:6px;">
-                ${myProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
+                ${homeProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
               </div>
             </div>
           </div>
@@ -3532,34 +3588,34 @@ window.toggleSidebarGroup=function(key){
               VS
             </div>
             <div style="font-size:11px;opacity:0.8;margin-top:6px;">
-              Win Prob: <strong style="color:#34D399;">${myWinProb}%</strong> vs <strong>${oppWinProb}%</strong>
+              Win Prob: <strong style="color:#34D399;">${homeWinProb}%</strong> vs <strong>${awayWinProb}%</strong>
             </div>
             <div style="font-size:10px;opacity:0.65;margin-top:2px;">
-              Vantagem projetada: +12.2 pts
+              Vantagem projetada: ${homeProjTotal >= awayProjTotal ? '+' + (homeProjTotal - awayProjTotal).toFixed(1) : '-' + (awayProjTotal - homeProjTotal).toFixed(1)} pts
             </div>
           </div>
 
-          <!-- Team 2: Curitiba Red Fox (neyllon) -->
+          <!-- Team 2: Away Team -->
           <div class="yl-matchup-team-card team-right">
-            <div class="yl-matchup-team-card__logo logo-opponent">CR</div>
+            <div class="yl-matchup-team-card__logo logo-opponent">${esc(awayInitials)}</div>
             <div>
               <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
-                <span class="badge badge-amber" style="font-size:9.5px;padding:1px 6px;">ADVERSÁRIO</span>
-                <h3 style="font-size:18px;font-weight:700;margin:0;">Curitiba Red Fox</h3>
+                ${awayTeam.rosterId === 2 ? '<span class="badge badge-green" style="font-size:9.5px;padding:1px 6px;">VOCÊ</span>' : '<span class="badge badge-amber" style="font-size:9.5px;padding:1px 6px;">VISITANTE</span>'}
+                <h3 style="font-size:18px;font-weight:700;margin:0;">${esc(awayTeam.name)}</h3>
               </div>
               <div style="font-size:12px;opacity:0.8;margin-top:2px;">
-                @neyllon · <strong>2-3</strong> (10º Lugar) · 849.7 pts
+                ${esc(awayTeam.owner)} · <strong>${esc(awayTeam.record)}</strong> · ${awayRosterData ? awayRosterData.fpts.toFixed(1) : '—'} pts
               </div>
               <div class="mono" style="font-size:26px;font-weight:700;color:#CBD5E1;margin-top:6px;">
-                ${oppProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
+                ${awayProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Win Probability Visual Bar -->
-        <div class="yl-matchup-prob-bar" title="Probabilidade de Vitória: Gengar My Balls ${myWinProb}% | Curitiba Red Fox ${oppWinProb}%">
-          <div class="yl-matchup-prob-bar__fill" style="width: ${myWinProb}%;"></div>
+        <div class="yl-matchup-prob-bar" title="Probabilidade de Vitória: ${esc(homeTeam.name)} ${homeWinProb}% | ${esc(awayTeam.name)} ${awayWinProb}%">
+          <div class="yl-matchup-prob-bar__fill" style="width: ${homeWinProb}%;"></div>
         </div>
       </div>
 
@@ -3587,29 +3643,29 @@ window.toggleSidebarGroup=function(key){
           <table class="yl-matchup-starters-table">
             <thead>
               <tr style="font-size:11px;color:var(--text-muted);text-transform:uppercase;">
-                <th style="text-align:left;padding:6px 12px;width:45%;">Gengar My Balls (@Faraco)</th>
+                <th style="text-align:left;padding:6px 12px;width:45%;">${esc(homeTeam.name)} (${esc(homeTeam.owner)})</th>
                 <th style="text-align:center;padding:6px 4px;width:10%;">Slot</th>
-                <th style="text-align:right;padding:6px 12px;width:45%;">Curitiba Red Fox (@neyllon)</th>
+                <th style="text-align:right;padding:6px 12px;width:45%;">${esc(awayTeam.name)} (${esc(awayTeam.owner)})</th>
               </tr>
             </thead>
             <tbody>
-              ${starterPairs.map(({ slot, myP, oppP }) => `
+              ${starterPairs.map(({ slot, homeP, awayP }) => `
                 <tr class="yl-matchup-slot-row">
-                  <!-- Left: Faraco Player -->
+                  <!-- Left: Home Player -->
                   <td class="yl-matchup-slot-cell">
-                    <div class="yl-matchup-player-wrap" onclick="openPlayerDossierModal('${esc(myP.id)}')">
-                      <img class="yl-matchup-player-photo" src="${esc(myP.photo)}" alt="${esc(myP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
+                    <div class="yl-matchup-player-wrap" onclick="openPlayerDossierModal('${esc(homeP.id)}')">
+                      <img class="yl-matchup-player-photo" src="${esc(homeP.photo)}" alt="${esc(homeP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
                       <div class="yl-matchup-player-info">
                         <div class="yl-matchup-player-name">
-                          ${esc(myP.name)}
-                          ${myP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-left:4px;">${esc(myP.statusShort)}</span>` : ''}
+                          ${esc(homeP.name)}
+                          ${homeP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-left:4px;">${esc(homeP.statusShort)}</span>` : ''}
                         </div>
                         <div class="yl-matchup-player-meta">
-                          ${esc(myP.pos)} · ${esc(myP.team)} · ${esc(myP.opp)}
+                          ${esc(homeP.pos)} · ${esc(homeP.team)} · ${esc(homeP.opp)}
                         </div>
                       </div>
                       <div class="yl-matchup-player-score">
-                        <strong class="mono" style="font-size:14px;color:var(--yl-navy);">${myP.proj.toFixed(1)}</strong>
+                        <strong class="mono" style="font-size:14px;color:var(--yl-navy);">${homeP.proj.toFixed(1)}</strong>
                         <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
                       </div>
                     </div>
@@ -3620,21 +3676,21 @@ window.toggleSidebarGroup=function(key){
                     <span class="yl-matchup-slot-badge ${esc(slot.cat)}">${esc(slot.label)}</span>
                   </td>
 
-                  <!-- Right: neyllon Player -->
+                  <!-- Right: Away Player -->
                   <td class="yl-matchup-slot-cell">
-                    <div class="yl-matchup-player-wrap align-right" onclick="openPlayerDossierModal('${esc(oppP.id)}')">
-                      <img class="yl-matchup-player-photo" src="${esc(oppP.photo)}" alt="${esc(oppP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
+                    <div class="yl-matchup-player-wrap align-right" onclick="openPlayerDossierModal('${esc(awayP.id)}')">
+                      <img class="yl-matchup-player-photo" src="${esc(awayP.photo)}" alt="${esc(awayP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
                       <div class="yl-matchup-player-info">
                         <div class="yl-matchup-player-name">
-                          ${oppP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-right:4px;">${esc(oppP.statusShort)}</span>` : ''}
-                          ${esc(oppP.name)}
+                          ${awayP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-right:4px;">${esc(awayP.statusShort)}</span>` : ''}
+                          ${esc(awayP.name)}
                         </div>
                         <div class="yl-matchup-player-meta">
-                          ${esc(oppP.pos)} · ${esc(oppP.team)} · ${esc(oppP.opp)}
+                          ${esc(awayP.pos)} · ${esc(awayP.team)} · ${esc(awayP.opp)}
                         </div>
                       </div>
                       <div class="yl-matchup-player-score">
-                        <strong class="mono" style="font-size:14px;color:var(--yl-navy);">${oppP.proj.toFixed(1)}</strong>
+                        <strong class="mono" style="font-size:14px;color:var(--yl-navy);">${awayP.proj.toFixed(1)}</strong>
                         <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
                       </div>
                     </div>
@@ -3652,21 +3708,21 @@ window.toggleSidebarGroup=function(key){
           <div>
             <span class="badge badge-amber">ELENCO DE RESERVAS</span>
             <h3 style="font-size:17px;font-weight:700;color:var(--yl-navy);margin-top:4px;">
-              Banco de Reservas — Gengar My Balls (${r2Bench.length} Atletas) vs Curitiba Red Fox (${r1Bench.length} Atletas)
+              Banco de Reservas — ${esc(homeTeam.name)} (${homeBench.length} Atletas) vs ${esc(awayTeam.name)} (${awayBench.length} Atletas)
             </h3>
           </div>
           <span style="font-size:11px;color:var(--text-muted);">O banco não pontua no confronto oficial.</span>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
-          <!-- Left Bench: Faraco -->
+          <!-- Left Bench: Home Team -->
           <div style="background:#f8fafc;border:1px solid var(--border-box);border-radius:8px;padding:12px;">
             <div style="font-size:12px;font-weight:700;color:var(--yl-navy);margin-bottom:8px;display:flex;justify-content:space-between;">
-              <span>Gengar My Balls (Banco)</span>
-              <span class="badge badge-navy">${r2Bench.length} jogadores</span>
+              <span>${esc(homeTeam.name)} (Banco)</span>
+              <span class="badge badge-navy">${homeBench.length} jogadores</span>
             </div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              ${r2Bench.map(id => {
+            <div style="display:flex;flex-direction:column;gap:6px;max-height:480px;overflow-y:auto;">
+              ${homeBench.map(id => {
                 const p = resolveMatchupPlayer(id);
                 return `
                   <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;cursor:pointer;" onclick="openPlayerDossierModal('${esc(id)}')">
@@ -3687,14 +3743,14 @@ window.toggleSidebarGroup=function(key){
             </div>
           </div>
 
-          <!-- Right Bench: neyllon -->
+          <!-- Right Bench: Away Team -->
           <div style="background:#f8fafc;border:1px solid var(--border-box);border-radius:8px;padding:12px;">
             <div style="font-size:12px;font-weight:700;color:var(--yl-navy);margin-bottom:8px;display:flex;justify-content:space-between;">
-              <span>Curitiba Red Fox (Banco)</span>
-              <span class="badge badge-navy">${r1Bench.length} jogadores</span>
+              <span>${esc(awayTeam.name)} (Banco)</span>
+              <span class="badge badge-navy">${awayBench.length} jogadores</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:6px;max-height:480px;overflow-y:auto;">
-              ${r1Bench.map(id => {
+              ${awayBench.map(id => {
                 const p = resolveMatchupPlayer(id);
                 return `
                   <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;cursor:pointer;" onclick="openPlayerDossierModal('${esc(id)}')">
@@ -3725,6 +3781,9 @@ window.toggleSidebarGroup=function(key){
             <h3 style="font-size:17px;font-weight:700;color:var(--yl-navy);margin-top:4px;">
               Todos os 8 Confrontos da Liga (16 Times)
             </h3>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+              Clique em qualquer card para carregar o confronto no Game Center acima.
+            </div>
           </div>
           <div style="font-size:12px;color:var(--text-muted);">
             Auditado via <code>/v1/league/1369770282776006656/matchups/6</code>
@@ -3732,11 +3791,13 @@ window.toggleSidebarGroup=function(key){
         </div>
 
         <div class="yl-matchups-grid-8">
-          ${WEEK6_ALL_MATCHUPS.map(m => `
-            <div class="yl-matchup-mini-card ${m.isFeatured ? 'is-featured' : ''}">
+          ${WEEK6_ALL_MATCHUPS.map(m => {
+            const isSelected = (m.id === activeMatchupId);
+            return `
+            <div class="yl-matchup-mini-card ${isSelected ? 'is-selected' : ''} ${m.isFeatured ? 'is-featured' : ''}" onclick="selectLeagueMatchup(${m.id})" title="Clique para exibir o confronto #${m.id} no Game Center">
               <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted);margin-bottom:6px;">
                 <span>MATCHUP #${m.id}</span>
-                ${m.isFeatured ? '<span class="badge badge-crimson" style="font-size:8.5px;padding:1px 5px;">SEU DUELO</span>' : '<span>NFL WK 6</span>'}
+                ${isSelected ? '<span class="badge badge-crimson" style="font-size:8.5px;padding:1px 5px;">ATIVO NO GAME CENTER</span>' : (m.isFeatured ? '<span class="badge badge-navy" style="font-size:8.5px;padding:1px 5px;">SEU DUELO</span>' : '<span>NFL WK 6</span>')}
               </div>
               <div class="yl-matchup-mini-team ${m.away.proj > m.home.proj ? 'is-winner' : ''}">
                 <div>
@@ -3753,7 +3814,8 @@ window.toggleSidebarGroup=function(key){
                 <div class="mono" style="font-size:13px;">${m.home.proj.toFixed(1)}</div>
               </div>
             </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       </div>
 

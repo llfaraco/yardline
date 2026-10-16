@@ -259,6 +259,10 @@ export function createRosterDTO(raw = {}) {
 export function createMatchupDTO(raw = {}) {
   const matchupId = raw.matchupId != null ? Number(raw.matchupId) : (raw.provider_matchup_id != null ? Number(raw.provider_matchup_id) : null);
   const week = raw.week != null ? Number(raw.week) : null;
+  const rosterAId = Number(raw.rosterAId ?? raw.homeRosterId ?? raw.roster_a_id ?? 0) || null;
+  const rosterBId = Number(raw.rosterBId ?? raw.awayRosterId ?? raw.roster_b_id ?? 0) || null;
+  const scoreA = raw.scoreA != null && Number.isFinite(Number(raw.scoreA)) ? Number(Number(raw.scoreA).toFixed(2)) : (raw.homeScore != null && Number.isFinite(Number(raw.homeScore)) ? Number(Number(raw.homeScore).toFixed(2)) : (raw.score_a != null ? Number(Number(raw.score_a).toFixed(2)) : null));
+  const scoreB = raw.scoreB != null && Number.isFinite(Number(raw.scoreB)) ? Number(Number(raw.scoreB).toFixed(2)) : (raw.awayScore != null && Number.isFinite(Number(raw.awayScore)) ? Number(Number(raw.awayScore).toFixed(2)) : (raw.score_b != null ? Number(Number(raw.score_b).toFixed(2)) : null));
 
   return {
     id: raw.id ? String(raw.id) : (matchupId && week ? `matchup_${week}_${matchupId}` : null),
@@ -266,10 +270,14 @@ export function createMatchupDTO(raw = {}) {
     week,
     season: String(raw.season || '2026'),
     status: String(raw.status || 'scheduled'),
-    rosterAId: Number(raw.rosterAId ?? raw.roster_a_id ?? 0) || null,
-    rosterBId: Number(raw.rosterBId ?? raw.roster_b_id ?? 0) || null,
-    scoreA: raw.scoreA != null && Number.isFinite(Number(raw.scoreA)) ? Number(Number(raw.scoreA).toFixed(2)) : (raw.score_a != null ? Number(Number(raw.score_a).toFixed(2)) : null),
-    scoreB: raw.scoreB != null && Number.isFinite(Number(raw.scoreB)) ? Number(Number(raw.scoreB).toFixed(2)) : (raw.score_b != null ? Number(Number(raw.score_b).toFixed(2)) : null),
+    rosterAId,
+    rosterBId,
+    homeRosterId: rosterAId,
+    awayRosterId: rosterBId,
+    scoreA,
+    scoreB,
+    homeScore: scoreA,
+    awayScore: scoreB,
     customPoints: raw.customPoints || (typeof raw.custom_points_json === 'string' ? JSON.parse(raw.custom_points_json || '{}') : {}),
     players: Array.isArray(raw.players) ? raw.players : [],
     provenance: raw.provenance ? createDataStatusDTO(raw.provenance) : createDataStatusDTO({
