@@ -14,6 +14,8 @@ let currentHomeFilter = "ALL";
 let playerSearchQuery = "";
 let playerPosFilter = "ALL";
 let playerTeamFilter = "ALL";
+let playerAvailabilityFilter = "ALL";
+let playerSortFilter = "YL_INDEX";
 let playerCurrentPage = 1;
 const PLAYERS_PER_PAGE = 24;
 
@@ -59,11 +61,17 @@ function openNavTab(tabKey) {
 
 function handleGlobalSearch(query) {
   const q = (query || "").trim();
+  playerSearchQuery = q;
+  playerCurrentPage = 1;
   if (q.length >= 2) {
-    playerSearchQuery = q;
-    playerCurrentPage = 1;
-    openNavTab("players");
-    renderTeamsView(); renderPlayersView(); startLiveTickerClockEngine();
+    if (currentTab !== "players") openNavTab("players");
+    renderPlayersView();
+    const input = document.getElementById("players-view-search-input");
+    if (input && input.value !== q) input.value = q;
+  } else if (q.length === 0 && currentTab === "players") {
+    renderPlayersView();
+    const input = document.getElementById("players-view-search-input");
+    if (input) input.value = "";
   }
 }
 
@@ -1199,9 +1207,16 @@ function togglePlayerWatchlist(pid) {
 // ELENCOS NFL E CATÁLOGO CANÔNICO (Fase 6)
 // ==========================================
 function getActiveNflPlayers() {
-  const activeCanonical = (typeof YL_ACTIVE_PLAYER_MAP !== "undefined") ? Object.values(YL_ACTIVE_PLAYER_MAP) : [];
-  if (activeCanonical.length > 0) {
-    return activeCanonical.filter(player => player && (player.status === "Active" || player.status === "Unknown" || player.team));
+  const canon = window.YL_CANONICAL?.players;
+  if (canon && Object.keys(canon).length > 0) {
+    const list = [];
+    for (const [id, raw] of Object.entries(canon)) {
+      if (raw && (raw.status === "Active" || raw.active === true || raw.team)) {
+        const resolved = typeof resolveNFLPlayer === "function" ? resolveNFLPlayer(id) : null;
+        if (resolved) list.push(resolved);
+      }
+    }
+    if (list.length > 0) return list;
   }
   return typeof YL_ALL_NFL_PLAYERS !== "undefined" ? Object.values(YL_ALL_NFL_PLAYERS) : [];
 }
@@ -1213,60 +1228,122 @@ function displayPlayerTeam(player) {
   return "Free Agent";
 }
 
-// 3. BASE COMPLETA DE JOGADORES DA NFL (32 TIMES)
+// 3. BASE COMPLETA DE JOGADORES DA NFL (32 TIMES & CATÁLOGO CANÔNICO)
 function renderPlayersView() {
   const container = document.getElementById("view-players");
   if (!container) return;
 
   const allPlayers = getActiveNflPlayers();
 
-  const q = playerSearchQuery.toLowerCase().trim();
+  const q = (playerSearchQuery || "").toLowerCase().trim();
   const filtered = allPlayers.filter(p => {
     const tmDisplay = displayPlayerTeam(p).toLowerCase();
-    const matchSearch = !q || p.name.toLowerCase().includes(q) || (p.team && p.team.toLowerCase().includes(q)) || tmDisplay.includes(q) || p.pos.toLowerCase().includes(q) || (p.college && p.college.toLowerCase().includes(q));
-    const matchPos = playerPosFilter === "ALL" || p.pos === playerPosFilter;
+    const matchSearch = !q || 
+      p.name.toLowerCase().includes(q) || 
+      (p.team && p.team.toLowerCase().includes(q)) || 
+      tmDisplay.includes(q) || 
+      p.pos.toLowerCase().includes(q) || 
+      (p.college && p.college.toLowerCase().includes(q)) ||
+      (p.number && String(p.number).includes(q));
+
+    let matchPos = true;
+    if (playerPosFilter !== "ALL") {
+      if (playerPosFilter === "IDP") matchPos = ["DL", "LB", "DB", "DE", "DT", "CB", "S"].includes(p.pos);
+      else if (playerPosFilter === "DEF") matchPos = ["DEF", "DE", "DT"].includes(p.pos);
+      else matchPos = p.pos === playerPosFilter;
+    }
+
     const matchTeam = playerTeamFilter === "ALL" || p.team === playerTeamFilter;
-    return matchSearch && matchPos && matchTeam;
+
+    let matchAvail = true;
+    if (playerAvailabilityFilter !== "ALL") {
+      const st = typeof getPlayerLeagueStatus === "function" ? getPlayerLeagueStatus(p.id || p.sleeperId) : { isFreeAgent: true, isMyTeam: false, isOpponent: false };
+      if (playerAvailabilityFilter === "WAIVERS") matchAvail = st.isFreeAgent === true;
+      else if (playerAvailabilityFilter === "MINE") matchAvail = st.isMyTeam === true;
+      else if (playerAvailabilityFilter === "OPPONENT") matchAvail = st.isOpponent === true;
+      else if (playerAvailabilityFilter === "RIVALS") matchAvail = !st.isMyTeam && !st.isFreeAgent;
+    }
+
+    return matchSearch && matchPos && matchTeam && matchAvail;
+  });
+
+  // Ordenação determinística
+  filtered.sort((a, b) => {
+    if (playerSortFilter === "AVG_PPR") return (Number(b.avgPpr) || 0) - (Number(a.avgPpr) || 0);
+    if (playerSortFilter === "PROJ") return (Number(b.proj) || 0) - (Number(a.proj) || 0);
+    if (playerSortFilter === "NAME") return a.name.localeCompare(b.name);
+    return (Number(b.ylIndex) || 0) - (Number(a.ylIndex) || 0);
   });
 
   const totalPages = Math.ceil(filtered.length / PLAYERS_PER_PAGE) || 1;
   if (playerCurrentPage > totalPages) playerCurrentPage = totalPages;
+  if (playerCurrentPage < 1) playerCurrentPage = 1;
   const startIdx = (playerCurrentPage - 1) * PLAYERS_PER_PAGE;
   const pagePlayers = filtered.slice(startIdx, startIdx + PLAYERS_PER_PAGE);
   const activeWk = typeof YL_ACTIVE_WEEK !== "undefined" && YL_ACTIVE_WEEK ? YL_ACTIVE_WEEK : (typeof activeLeagueWeek !== "undefined" ? activeLeagueWeek : 6);
 
+  // Contagens para badges de filtro
+  const waiversCount = allPlayers.filter(p => typeof getPlayerLeagueStatus === "function" ? getPlayerLeagueStatus(p.id || p.sleeperId).isFreeAgent : true).length;
+  const mineCount = allPlayers.filter(p => typeof getPlayerLeagueStatus === "function" ? getPlayerLeagueStatus(p.id || p.sleeperId).isMyTeam : false).length;
+
   container.innerHTML = `
     <!-- Top Search & Filter Bar -->
     <div class="yl-card" style="margin-bottom:18px;padding:16px 20px;">
+      <!-- Search Input and Quick Actions -->
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
-        <div style="flex:1;min-width:280px;max-width:420px;">
+        <div style="flex:1;min-width:280px;max-width:440px;">
           <input
+            id="players-view-search-input"
             type="text"
-            placeholder="Buscar jogador por nome, faculdade, número (ex: Josh Allen, Gibbs, Alabama)..."
+            placeholder="Buscar jogador por nome, faculdade, time (ex: Josh Allen, Gibbs, Bills)..."
             value="${playerSearchQuery}"
-            oninput="playerSearchQuery=this.value;playerCurrentPage=1;renderTeamsView(); renderPlayersView(); startLiveTickerClockEngine();"
+            oninput="playerSearchQuery=this.value;playerCurrentPage=1;renderPlayersView();"
             style="width:100%;padding:9px 14px;border:1px solid var(--border-strong);border-radius:6px;font-size:13px;outline:none;"
           />
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <select onchange="playerTeamFilter=this.value;playerCurrentPage=1;renderTeamsView(); renderPlayersView(); startLiveTickerClockEngine();" style="padding:8px 12px;border:1px solid var(--border-strong);border-radius:6px;font-size:12.5px;outline:none;background:#FFF;">
+          <select onchange="playerTeamFilter=this.value;playerCurrentPage=1;renderPlayersView();" style="padding:8px 12px;border:1px solid var(--border-strong);border-radius:6px;font-size:12.5px;outline:none;background:#FFF;">
             <option value="ALL">Todas as 32 Franquias NFL</option>
             ${Object.keys(YL_NFL_TEAMS).sort().map(tk => `
               <option value="${tk}" ${playerTeamFilter === tk ? 'selected' : ''}>${tk} - ${YL_NFL_TEAMS[tk].name}</option>
             `).join("")}
           </select>
+
+          <select onchange="playerSortFilter=this.value;renderPlayersView();" style="padding:8px 12px;border:1px solid var(--border-strong);border-radius:6px;font-size:12.5px;outline:none;background:#FFF;">
+            <option value="YL_INDEX" ${playerSortFilter === 'YL_INDEX' ? 'selected' : ''}>Ordenar: YL Index</option>
+            <option value="PROJ" ${playerSortFilter === 'PROJ' ? 'selected' : ''}>Ordenar: Projeção Semanal</option>
+            <option value="AVG_PPR" ${playerSortFilter === 'AVG_PPR' ? 'selected' : ''}>Ordenar: Média PPR</option>
+            <option value="NAME" ${playerSortFilter === 'NAME' ? 'selected' : ''}>Ordenar: Nome (A-Z)</option>
+          </select>
+
           <button class="btn-yl btn-primary" onclick="syncSleeperPlayers().then(() => { renderPlayersView(); if(typeof showToast==='function') showToast('Catálogo oficial sincronizado com sucesso!'); })">
-            Sincronizar Base Sleeper API
+            Sincronizar Sleeper
           </button>
         </div>
       </div>
 
-      <!-- Position Filters -->
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:1px solid var(--border-box);padding-top:12px;">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          ${["ALL", "QB", "RB", "WR", "TE", "K", "DEF"].map(pos => `
-            <button class="btn-yl ${playerPosFilter === pos ? 'btn-navy' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="playerPosFilter='${pos}';playerCurrentPage=1;renderTeamsView(); renderPlayersView(); startLiveTickerClockEngine();">
-              ${pos === 'ALL' ? 'Todos (' + allPlayers.length + ')' : pos}
+      <!-- Availability Filter Tabs -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;border-top:1px solid var(--border-box);padding-top:12px;">
+        <button class="btn-yl ${playerAvailabilityFilter === 'ALL' ? 'btn-navy' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="playerAvailabilityFilter='ALL';playerCurrentPage=1;renderPlayersView();">
+          Todos (${allPlayers.length})
+        </button>
+        <button class="btn-yl ${playerAvailabilityFilter === 'WAIVERS' ? 'btn-navy' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="playerAvailabilityFilter='WAIVERS';playerCurrentPage=1;renderPlayersView();">
+          Livres no Waiver (${waiversCount})
+        </button>
+        <button class="btn-yl ${playerAvailabilityFilter === 'MINE' ? 'btn-navy' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="playerAvailabilityFilter='MINE';playerCurrentPage=1;renderPlayersView();">
+          Meu Time (@Faraco) (${mineCount})
+        </button>
+        <button class="btn-yl ${playerAvailabilityFilter === 'RIVALS' ? 'btn-navy' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="playerAvailabilityFilter='RIVALS';playerCurrentPage=1;renderPlayersView();">
+          Rivais da Liga
+        </button>
+      </div>
+
+      <!-- Position Filter Pills -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          ${["ALL", "QB", "RB", "WR", "TE", "K", "DEF", "IDP", "DL", "LB", "DB"].map(pos => `
+            <button class="btn-yl ${playerPosFilter === pos ? 'btn-crimson' : 'btn-outline'}" style="padding:3px 9px;font-size:11px;" onclick="playerPosFilter='${pos}';playerCurrentPage=1;renderPlayersView();">
+              ${pos}
             </button>
           `).join("")}
         </div>
@@ -1276,61 +1353,78 @@ function renderPlayersView() {
       </div>
     </div>
 
-    <!-- Players Cards Grid (24 per page) -->
-    <div class="grid-3">
-      ${pagePlayers.map(p => `
-        <div class="yl-card" style="cursor:pointer;" onclick="openPlayerDossierModal('${p.id}')">
-          <div style="padding:12px 16px;background:linear-gradient(135deg,#001933 0%,#0F172A 100%);color:#FFF;display:flex;justify-content:space-between;align-items:center;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="position:relative;width:48px;height:48px;border-radius:50%;background:#1E293B;overflow:hidden;border:1.5px solid rgba(255,255,255,0.3);flex-shrink:0;">
-                <img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${p.teamLogo}'" alt="">
+    <!-- Players Cards Grid (24 per page) or Empty State -->
+    ${pagePlayers.length === 0 ? `
+      <div class="yl-card" style="padding:40px 20px;text-align:center;margin:16px 0;">
+        <h3 style="font-size:16px;color:var(--yl-navy);margin-bottom:6px;">Nenhum atleta encontrado</h3>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;max-width:440px;margin-left:auto;margin-right:auto;">
+          Nenhum jogador corresponde aos critérios de pesquisa atuais ("${esc(playerSearchQuery || playerPosFilter || playerTeamFilter)}").
+        </p>
+        <button class="btn-yl btn-primary" onclick="playerSearchQuery='';playerPosFilter='ALL';playerTeamFilter='ALL';playerAvailabilityFilter='ALL';renderPlayersView();">
+          Limpar Filtros
+        </button>
+      </div>
+    ` : `
+      <div class="grid-3">
+        ${pagePlayers.map(p => {
+          const st = typeof getPlayerLeagueStatus === "function" ? getPlayerLeagueStatus(p.id || p.sleeperId) : { badge: 'badge-navy', badgeText: 'CATÁLOGO' };
+          const injClass = /out|ir|doubtful|questionable|inactive/i.test(p.injuryStatus || '') ? 'badge-crimson' : 'badge-green';
+          const injText = p.injuryStatus || 'Sem restrição';
+          return `
+            <div class="yl-card" style="cursor:pointer;" onclick="openPlayerDossierModal('${p.sleeperId || p.id}')">
+              <div style="padding:12px 16px;background:linear-gradient(135deg,#001933 0%,#0F172A 100%);color:#FFF;display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="position:relative;width:48px;height:48px;border-radius:50%;background:#1E293B;overflow:hidden;border:1.5px solid rgba(255,255,255,0.3);flex-shrink:0;">
+                    <img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${p.teamLogo}'" alt="">
+                  </div>
+                  <div>
+                    <div style="font-size:14.5px;font-weight:500;">${p.name} <span style="font-size:12px;color:#94A3B8;">${p.number || ''}</span></div>
+                    <div style="font-size:11px;color:#CBD5E1;">${p.pos} · ${displayPlayerTeam(p)}</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span class="badge ${st.badge}" style="font-size:9.5px;padding:2px 6px;">${st.badgeText}</span>
+                  <div class="mono" style="font-size:11px;color:#94A3B8;margin-top:3px;">YL ${p.ylIndex || '—'}</div>
+                </div>
               </div>
-              <div>
-                <div style="font-size:14.5px;font-weight:500;">${p.name} <span style="font-size:12px;color:#94A3B8;">${p.number}</span></div>
-                <div style="font-size:11px;color:#CBD5E1;">${p.pos} · ${displayPlayerTeam(p)}</div>
+              <div style="padding:14px 16px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;margin-bottom:10px;">
+                  <div style="background:var(--bg-subtle);padding:6px;border-radius:4px;border:1px solid var(--border-box);">
+                    <div style="font-size:9.5px;color:var(--text-muted);">MÉDIA</div>
+                    <div class="mono" style="font-size:13px;font-weight:500;color:var(--yl-navy);">${p.avgPpr || '—'}</div>
+                  </div>
+                  <div style="background:var(--bg-subtle);padding:6px;border-radius:4px;border:1px solid var(--border-box);">
+                    <div style="font-size:9.5px;color:var(--text-muted);">PROJ SEM ${activeWk}</div>
+                    <div class="mono" style="font-size:13px;font-weight:500;color:var(--yl-emerald);">${p.proj || '—'}</div>
+                  </div>
+                  <div style="background:var(--bg-subtle);padding:6px;border-radius:4px;border:1px solid var(--border-box);">
+                    <div style="font-size:9.5px;color:var(--text-muted);">STATUS</div>
+                    <div class="badge ${injClass}" style="font-size:9.5px;padding:2px 4px;margin-top:2px;">${injText}</div>
+                  </div>
+                </div>
+                <div style="font-size:11.5px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;">
+                  <span>${p.exp || 'NFL'} · ${p.college || ''}</span>
+                  <span style="color:var(--yl-crimson);font-weight:500;">Abrir Dossiê →</span>
+                </div>
               </div>
             </div>
-            <div style="text-align:right;">
-              <span class="badge badge-crimson mono">${p.pos}</span>
-              <div class="mono" style="font-size:11px;color:#94A3B8;margin-top:2px;">YL ${p.ylIndex}</div>
-            </div>
-          </div>
-          <div style="padding:14px 16px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;margin-bottom:10px;">
-              <div style="background:var(--bg-subtle);padding:6px;border-radius:4px;border:1px solid var(--border-box);">
-                <div style="font-size:9.5px;color:var(--text-muted);">MÉDIA</div>
-                <div class="mono" style="font-size:13px;font-weight:500;color:var(--yl-navy);">${p.avgPpr}</div>
-              </div>
-              <div style="background:var(--bg-subtle);padding:6px;border-radius:4px;border:1px solid var(--border-box);">
-                <div style="font-size:9.5px;color:var(--text-muted);">PROJ SEM ${activeWk}</div>
-                <div class="mono" style="font-size:13px;font-weight:500;color:var(--yl-emerald);">${p.proj}</div>
-              </div>
-              <div style="background:var(--bg-subtle);padding:6px;border-radius:4px;border:1px solid var(--border-box);">
-                <div style="font-size:9.5px;color:var(--text-muted);">STATUS</div>
-                <div style="font-size:11px;color:var(--text-main);">${p.injuryStatus}</div>
-              </div>
-            </div>
-            <div style="font-size:11.5px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;">
-              <span>${p.exp} · ${p.college}</span>
-              <span style="color:var(--yl-crimson);font-weight:500;">Abrir Dossiê →</span>
-            </div>
-          </div>
-        </div>
-      `).join("")}
-    </div>
+          `;
+        }).join("")}
+      </div>
 
-    <!-- Pagination Controls -->
-    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:22px;">
-      <button class="btn-yl btn-outline" ${playerCurrentPage <= 1 ? 'disabled style="opacity:0.5;"' : ''} onclick="playerCurrentPage--;renderTeamsView(); renderPlayersView(); startLiveTickerClockEngine();">
-        ← Página Anterior
-      </button>
-      <span style="font-size:13px;font-weight:500;color:var(--yl-navy);">
-        Página ${playerCurrentPage} de ${totalPages}
-      </span>
-      <button class="btn-yl btn-outline" ${playerCurrentPage >= totalPages ? 'disabled style="opacity:0.5;"' : ''} onclick="playerCurrentPage++;renderTeamsView(); renderPlayersView(); startLiveTickerClockEngine();">
-        Próxima Página →
-      </button>
-    </div>
+      <!-- Pagination Controls -->
+      <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:22px;">
+        <button class="btn-yl btn-outline" ${playerCurrentPage <= 1 ? 'disabled style="opacity:0.5;"' : ''} onclick="playerCurrentPage--;renderPlayersView();">
+          ← Página Anterior
+        </button>
+        <span style="font-size:13px;font-weight:500;color:var(--yl-navy);">
+          Página ${playerCurrentPage} de ${totalPages}
+        </span>
+        <button class="btn-yl btn-outline" ${playerCurrentPage >= totalPages ? 'disabled style="opacity:0.5;"' : ''} onclick="playerCurrentPage++;renderPlayersView();">
+          Próxima Página →
+        </button>
+      </div>
+    `}
   `;
 }
 
@@ -3245,10 +3339,7 @@ function toggleArticleExpand(newsId) {
     const teamRows=(r,isMe)=>{const t=LEAGUE_12_TEAMS.find(x=>Number(x.rosterId)===Number(r?.roster_id));return `<div class="yl-matchup-team ${isMe?'is-me':''}"><div class="yl-matchup-team__head"><div><strong style="font-size:14px;color:var(--yl-navy)">${esc(t?.name||`Roster #${r?.roster_id}`)}</strong><div style="font-size:10px;color:var(--text-muted)">${esc(t?.owner||'')} · ${esc(t?.record||'')}</div></div><strong class="mono" style="font-size:20px;color:var(--yl-navy)">${num(r?.points, '0.0')}</strong></div>${(r?.starters||[]).slice(0,19).map((id,i)=>{const p=getP(id);return p?`<div class="yl-matchup-row" onclick="openPlayerDossierModal('${esc(id)}')"><img src="${esc(p.photo)}" onerror="this.src='${esc(p.teamLogo)}'"><b>${esc(p.name)}</b><span>${esc(ROSTER_SLOTS_DEF?.[i]?.label||p.pos)}</span></div>`:''}).join('')}</div>`};
     c.innerHTML=`<div class="yl-card" style="padding:19px 21px;margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><span class="badge badge-green">SLEEPER · DADOS OFICIAIS</span><h2 style="font-size:21px;font-weight:700;color:var(--yl-navy);margin-top:6px">${esc(activeSleeperLeagueData?.name||'Minha Liga')}</h2><div style="font-size:12px;color:var(--text-muted)">${activeSleeperRosters?.length||LEAGUE_12_TEAMS?.length||0} times · Temporada ${esc(activeSleeperLeagueData?.season||'—')} · Semana ${esc(wk)}</div></div><button class="btn-yl btn-primary" onclick="syncRealSleeperLeagueLive()">↻ Sincronizar agora</button></div></div><div class="yl-card" style="padding:16px;margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px"><div><span class="badge badge-crimson">CONFRONTO FANTASY</span><h3 style="font-size:16px;color:var(--yl-navy);margin-top:5px">${my&&oppTeam?`${esc(my.name)} vs ${esc(oppTeam.name)}`:'Confronto ainda não disponível'}</h3></div><div class="mono" style="font-size:13px;color:var(--text-muted)">${activeRealMatchup?`${num(activeRealMatchup.myScore,'0.0')} × ${num(activeRealMatchup.oppScore,'0.0')}`:'—'}</div></div><div class="yl-matchup-shell">${activeRealMatchup?.myRoster?teamRows(activeRealMatchup.myRoster,true):'<div class="yl-dossier__panel">Sincronize a liga para carregar seu elenco.</div>'}${opp?teamRows(opp,false):'<div class="yl-dossier__panel">O adversário será exibido após a validação do matchup_id.</div>'}</div></div><div class="yl-card"><div class="yl-card-header"><div class="yl-card-title">Classificação da liga</div><span class="badge badge-navy">${LEAGUE_12_TEAMS?.length||0} times</span></div><div style="overflow:auto"><table class="yl-table"><thead><tr><th>#</th><th>Time</th><th>Manager</th><th>Campanha</th><th>Pontos</th><th>Contra</th></tr></thead><tbody>${(LEAGUE_12_TEAMS||[]).slice().sort((a,b)=>(b.wins-a.wins)||(b.fpts-a.fpts)).map((t,i)=>`<tr style="${t.isMyTeam?'background:#f0fdf4':''}"><td>${i+1}</td><td><strong>${esc(t.name)}</strong>${t.isMyTeam?' <span class="badge badge-green">VOCÊ</span>':''}</td><td>${esc(t.owner)}</td><td class="mono">${esc(t.record)}</td><td class="mono">${esc(t.fpts)}</td><td class="mono">${esc(t.fptsAgainst)}</td></tr>`).join('')}</tbody></table></div></div>`;
   };
-  window.renderPlayersView=function(){
-    const c=document.getElementById('view-players'); if(!c)return; const source=Object.keys(window.YL_CANONICAL?.players||{}).filter(id=>{const raw=window.YL_CANONICAL.players[id];return raw&&(raw.status==='Active'||(raw.active===true&&raw.team));}).slice(0,48).map(id=>getP(id)).filter(Boolean); const fallback=Object.keys(typeof YL_PLAYER_DOSSIERS!=='undefined'?YL_PLAYER_DOSSIERS:{ }).slice(0,48).map(id=>getP(id)).filter(Boolean); const ps=source.length?source:fallback;
-    c.innerHTML=`<div class="yl-card" style="padding:18px;margin-bottom:16px"><span class="badge badge-blue">RESEARCH HUB</span><h2 style="font-size:21px;font-weight:700;color:var(--yl-navy);margin-top:6px">Jogadores</h2><p style="font-size:12px;color:var(--text-muted);margin-top:4px">Identidade, time e status vêm do catálogo canônico do Sleeper. Abra qualquer card para ver o dossiê completo.</p></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">${ps.map(p=>card(p)).join('')}</div>`;
-  };
+  window.renderPlayersView = typeof renderPlayersView === 'function' ? renderPlayersView : null;
 })();
 
 
@@ -3266,8 +3357,42 @@ window.YL_V2 = { openPlayerDossierModal: window.openPlayerDossierModal, renderPl
   const sourceLabel=()=>window.YL_CANONICAL?.fetchedAt?`Sleeper · atualizado ${new Date(window.YL_CANONICAL.fetchedAt).toLocaleString('pt-BR')}`:'Catálogo local · desatualizado';
   function rosterIds(r){return new Set([...(r?.players||[]),...(r?.starters||[]),...(r?.reserve||[]),...(r?.taxi||[])].map(String).filter(x=>x&&x!=='0'));}
   function renderTeams(){const c=document.getElementById('view-teams');if(!c)return;const list=canonical();const groups={};list.forEach(({id,raw})=>(groups[raw.team]??=[]).push(player(id)));const t=teams();c.innerHTML=`<div class="yl-card" style="padding:18px;margin-bottom:16px"><span class="badge badge-blue">CATÁLOGO CANÔNICO</span><h2 style="font-size:21px;color:var(--yl-navy);margin-top:6px">Elencos NFL</h2><p style="font-size:12px;color:var(--text-muted);margin-top:4px">${esc(sourceLabel())}. Apenas jogadores Active com franquia atual são exibidos; status de lesão permanece separado.</p></div><div class="yl-team-grid">${Object.entries(groups).sort(([a],[b])=>String(a).localeCompare(String(b))).map(([code,ps])=>`<section class="yl-card yl-team-block"><header class="yl-team-block__head"><img src="${esc(t[code]?.logo||`https://a.espncdn.com/i/teamlogos/nfl/500/${String(code).toLowerCase()}.png`)}" alt="Logo ${esc(code)}" onerror="this.classList.add('photo-error')"><div><strong>${esc(t[code]?.name||code)}</strong><small>${ps.length} atletas · status Active</small></div></header><div class="yl-team-block__players">${ps.sort((a,b)=>String(a?.pos||'').localeCompare(String(b?.pos||''))||String(a?.name||'').localeCompare(String(b?.name||''))).slice(0,80).map(p=>p?`<button class="yl-roster-player" onclick="openPlayerDossierModal('${esc(p.sleeperId||p.id)}')"><img src="${esc(p.photo||'')}" alt="${esc(p.name)}" loading="lazy" onerror="this.classList.add('photo-error')"><span><b>${esc(p.name)}</b><small>${esc(p.pos||'—')} · ${esc(p.depth_chart_position||'sem depth chart')}</small></span></button>`:'').join('')}</div></section>`).join('')}</div>`;}
-  function renderRankings(){const c=document.getElementById('view-rankings');if(!c)return;const q=(c.querySelector('[data-rank-search]')?.value||'').toLowerCase();const pos=c.querySelector('[data-rank-pos]')?.value||'ALL';const rows=canonical().map(({id})=>player(id)).filter(Boolean).filter(p=>(pos==='ALL'||p.pos===pos)&&(!q||p.name.toLowerCase().includes(q)||String(p.team).toLowerCase().includes(q))).sort((a,b)=>(Number(b.ylIndex??-Infinity)-Number(a.ylIndex??-Infinity))||a.name.localeCompare(b.name));const posCount={};rows.forEach(p=>{posCount[p.pos]=(posCount[p.pos]||0)+1;p._posRank=posCount[p.pos];});c.innerHTML=`<div class="yl-card" style="padding:18px;margin-bottom:16px"><span class="badge badge-blue">YARDLINE MODEL</span><h2 style="font-size:21px;color:var(--yl-navy);margin-top:6px">Rankings atuais</h2><p style="font-size:12px;color:var(--text-muted);margin-top:4px">Sem ECR externo sem licença. Ordenação por YL Index quando calculado; campos ausentes aparecem como indisponíveis.</p><div class="yl-ranking-filters"><input data-rank-search class="yl-search-input" placeholder="Buscar atleta ou time" value="${esc(q)}"><select data-rank-pos><option value="ALL">Todas</option>${['QB','RB','WR','TE','K','DEF','DL','LB','DB'].map(x=>`<option ${pos===x?'selected':''}>${x}</option>`).join('')}</select><button class="btn-yl btn-outline" onclick="renderRankingsView()">Filtrar</button></div></div><div class="yl-card" style="overflow:auto"><table class="yl-table"><thead><tr><th>#</th><th>Atleta</th><th>Pos</th><th>Time</th><th>Pos rank</th><th>YL Index</th><th>Fonte</th></tr></thead><tbody>${rows.slice(0,200).map((p,i)=>`<tr onclick="openPlayerDossierModal('${esc(p.sleeperId||p.id)}')" style="cursor:pointer"><td class="mono">${i+1}</td><td><div class="yl-rank-player"><img src="${esc(p.photo||'')}" alt="${esc(p.name)}" loading="lazy" onerror="this.classList.add('photo-error')"><b>${esc(p.name)}</b></div></td><td>${esc(p.pos||'—')}</td><td>${esc(p.team||'—')}</td><td class="mono">${p._posRank}</td><td class="mono">${p.ylIndex==null?'—':esc(p.ylIndex)}</td><td><span class="badge badge-navy">${p.ylIndex==null?'indisponível':'modelo local'}</span></td></tr>`).join('')}</tbody></table></div>`;}
-  function renderWaivers(){const c=document.getElementById('view-waivers');if(!c)return;const w=waiverConfig();const status=!w.known?'UNKNOWN':w.isFaab?'FAAB':'PRIORIDADE';const mine=userRealRoster?.settings||{};const used=Number(mine.waiver_budget_used||0);const balance=w.isFaab&&w.budget!=null?Math.max(0,w.budget-used):null;const faabBox=w.isFaab?`<div class="yl-waiver-mode is-faab"><b>FAAB ativo nesta liga</b><span>Saldo real: ${balance}/${w.budget} · mínimo: ${w.minBid??0}</span><label><input type="checkbox" checked onchange="showToast(this.checked?'Modo FAAB ativado':'Modo FAAB desativado apenas na visualização')"> Mostrar controles de lance</label></div>`:w.known?`<div class="yl-waiver-mode"><b>Waivers por prioridade</b><span>Esta liga não está configurada como FAAB. Saldo e lance ficam ocultos.</span><label><input type="checkbox" onchange="this.closest('.yl-waiver-mode').classList.toggle('compact',!this.checked)"> Mostrar detalhes de prioridade</label></div>`:`<div class="yl-waiver-mode is-unknown"><b>Formato de waiver não identificado</b><span>Sincronize a liga para liberar controles; nenhum lance será inventado.</span></div>`;const free=(activeLeagueFreeAgents||[]).slice(0,80);c.innerHTML=`<div class="yl-card" style="padding:18px;margin-bottom:16px"><span class="badge badge-blue">WAIVER WIRE</span><h2 style="font-size:21px;color:var(--yl-navy);margin-top:6px">Jogadores não rosterizados</h2><p style="font-size:12px;color:var(--text-muted);margin-top:4px">Modo: ${status} · sem afirmar disponibilidade imediata quando a fonte não informa.</p>${faabBox}</div><div class="yl-card" style="overflow:auto"><table class="yl-table"><thead><tr><th>Atleta</th><th>Pos</th><th>Time</th><th>Status</th><th>Ação</th></tr></thead><tbody>${free.map(p=>`<tr><td><div class="yl-rank-player"><img src="${esc(p.photo||'')}" alt="${esc(p.name)}" loading="lazy" onerror="this.classList.add('photo-error')"><b>${esc(p.name)}</b></div></td><td>${esc(p.pos||'—')}</td><td>${esc(p.team||'—')}</td><td>${esc(p.injuryStatus||p.status||'—')}</td><td>${typeof openSmartWaiverClaimModal==='function'?`<button class="btn-yl btn-primary" onclick="openSmartWaiverClaimModal('${esc(p.sleeperId||p.id)}')">Ver jogador</button>`:'—'}</td></tr>`).join('')}</tbody></table></div>`;}
+  function renderRankings(){
+    const c=document.getElementById('view-rankings');if(!c)return;
+    const q=(c.dataset.rankSearch??c.querySelector('[data-rank-search]')?.value??'').toLowerCase();
+    const pos=c.dataset.rankPos??c.querySelector('[data-rank-pos]')?.value??'ALL';
+    const rows=canonical().map(({id})=>player(id)).filter(Boolean).filter(p=>(pos==='ALL'||p.pos===pos)&&(!q||p.name.toLowerCase().includes(q)||String(p.team).toLowerCase().includes(q))).sort((a,b)=>(Number(b.ylIndex??-Infinity)-Number(a.ylIndex??-Infinity))||a.name.localeCompare(b.name));
+    const posCount={};rows.forEach(p=>{posCount[p.pos]=(posCount[p.pos]||0)+1;p._posRank=posCount[p.pos];});
+    c.innerHTML=`<div class="yl-card" style="padding:18px;margin-bottom:16px"><span class="badge badge-blue">YARDLINE MODEL · ${rows.length} CLASSIFICADOS</span><h2 style="font-size:21px;color:var(--yl-navy);margin-top:6px">Rankings atuais</h2><p style="font-size:12px;color:var(--text-muted);margin-top:4px">Ordenação matemática por YL Index. Filtro em tempo real por atleta, franquia e posição.</p><div class="yl-ranking-filters"><input data-rank-search class="yl-search-input" placeholder="Buscar atleta ou time (ex: Allen, SF)..." value="${esc(q)}" oninput="const el=document.getElementById('view-rankings');el.dataset.rankSearch=this.value;renderRankingsView();"><select data-rank-pos onchange="const el=document.getElementById('view-rankings');el.dataset.rankPos=this.value;renderRankingsView();"><option value="ALL">Todas as posições</option>${['QB','RB','WR','TE','K','DEF','DL','LB','DB'].map(x=>`<option value="${x}" ${pos===x?'selected':''}>${x}</option>`).join('')}</select><button class="btn-yl btn-primary" onclick="const el=document.getElementById('view-rankings');el.dataset.rankSearch='';el.dataset.rankPos='ALL';renderRankingsView();">Limpar</button></div></div><div class="yl-card" style="overflow:auto"><table class="yl-table"><thead><tr><th>#</th><th>Atleta</th><th>Pos</th><th>Time</th><th>Pos rank</th><th>YL Index</th><th>Status Liga</th></tr></thead><tbody>${rows.length===0?'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum atleta encontrado para estes critérios.</td></tr>':rows.slice(0,200).map((p,i)=>{const st=typeof getPlayerLeagueStatus==='function'?getPlayerLeagueStatus(p.sleeperId||p.id):{badge:'badge-navy',badgeText:'CATÁLOGO'};return `<tr onclick="openPlayerDossierModal('${esc(p.sleeperId||p.id)}')" style="cursor:pointer"><td class="mono">${i+1}</td><td><div class="yl-rank-player"><img src="${esc(p.photo||'')}" alt="${esc(p.name)}" loading="lazy" onerror="this.classList.add('photo-error')"><b>${esc(p.name)}</b></div></td><td>${esc(p.pos||'—')}</td><td>${esc(p.team||'—')}</td><td class="mono">${p._posRank}</td><td class="mono"><strong>${p.ylIndex==null?'—':esc(p.ylIndex)}</strong></td><td><span class="badge ${st.badge}">${st.badgeText}</span></td></tr>`;}).join('')}</tbody></table></div>`;
+  }
+  function renderWaivers(){
+    const c=document.getElementById('view-waivers');if(!c)return;
+    const w=waiverConfig();
+    const status=!w.known?'UNKNOWN':w.isFaab?'FAAB':'PRIORIDADE';
+    const mine=userRealRoster?.settings||{};
+    const used=Number(mine.waiver_budget_used||0);
+    const balance=w.isFaab&&w.budget!=null?Math.max(0,w.budget-used):null;
+    const faabBox=w.isFaab?`<div class="yl-waiver-mode is-faab"><b>FAAB ativo nesta liga</b><span>Saldo real: ${balance}/${w.budget} · mínimo: ${w.minBid??0}</span><label><input type="checkbox" checked onchange="showToast(this.checked?'Modo FAAB ativado':'Modo FAAB desativado apenas na visualização')"> Mostrar controles de lance</label></div>`:w.known?`<div class="yl-waiver-mode"><b>Waivers por prioridade</b><span>Esta liga não está configurada como FAAB. Saldo e lance ficam ocultos.</span><label><input type="checkbox" onchange="this.closest('.yl-waiver-mode').classList.toggle('compact',!this.checked)"> Mostrar detalhes de prioridade</label></div>`:`<div class="yl-waiver-mode is-unknown"><b>Formato de waiver não identificado</b><span>Sincronize a liga para liberar controles; nenhum lance será inventado.</span></div>`;
+    
+    const posFilter = c.dataset.waiverPos || 'TODOS';
+    const query = (c.dataset.waiverQuery || '').toLowerCase().trim();
+    const positions = ['TODOS', 'QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'IDP'];
+    
+    let free = (activeLeagueFreeAgents || []).slice();
+    if (posFilter !== 'TODOS') {
+      if (posFilter === 'DEF') free = free.filter(p => ['DEF', 'DE', 'DT'].includes(p.pos));
+      else if (posFilter === 'IDP') free = free.filter(p => ['DL', 'LB', 'DB', 'DE', 'DT', 'CB', 'S'].includes(p.pos));
+      else free = free.filter(p => p.pos === posFilter);
+    }
+    if (query) {
+      free = free.filter(p => (p.name && p.name.toLowerCase().includes(query)) || (p.team && p.team.toLowerCase().includes(query)));
+    }
+    
+    const countTotal = free.length;
+    const displayed = free.slice(0, 80);
+
+    c.innerHTML=`<div class="yl-card" style="padding:18px;margin-bottom:16px"><span class="badge badge-blue">WAIVER WIRE</span><h2 style="font-size:21px;color:var(--yl-navy);margin-top:6px">Jogadores não rosterizados</h2><p style="font-size:12px;color:var(--text-muted);margin-top:4px">Modo: ${status} · ${countTotal} atletas disponíveis após exclusão estrita dos 16 elencos oficiais.</p>${faabBox}<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:14px;border-top:1px solid var(--border-box);padding-top:12px;"><div style="display:flex;gap:5px;flex-wrap:wrap;">${positions.map(p=>`<button class="btn-yl ${posFilter===p?'btn-navy':'btn-outline'}" style="padding:3px 9px;font-size:11px;" onclick="const el=document.getElementById('view-waivers');el.dataset.waiverPos='${p}';renderWaiversView();">${p}</button>`).join('')}</div><div style="flex:1;max-width:280px;"><input type="text" placeholder="Buscar no waiver..." value="${esc(query)}" oninput="const el=document.getElementById('view-waivers');el.dataset.waiverQuery=this.value;renderWaiversView();" style="width:100%;padding:6px 10px;font-size:12px;border:1px solid var(--border-strong);border-radius:6px;outline:none;"></div></div></div><div class="yl-card" style="overflow:auto"><table class="yl-table"><thead><tr><th>Atleta</th><th>Pos</th><th>Time</th><th>Status</th><th>Ação</th></tr></thead><tbody>${displayed.length===0?'<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum jogador livre encontrado para este filtro.</td></tr>':displayed.map(p=>`<tr><td><div class="yl-rank-player" onclick="openPlayerDossierModal('${esc(p.sleeperId||p.id)}')" style="cursor:pointer;"><img src="${esc(p.photo||'')}" alt="${esc(p.name)}" loading="lazy" onerror="this.classList.add('photo-error')"><b>${esc(p.name)}</b></div></td><td>${esc(p.pos||'—')}</td><td>${esc(p.team||'—')}</td><td>${esc(p.injuryStatus||p.status||'Sem restrição')}</td><td>${typeof openSmartWaiverClaimModal==='function'?`<button class="btn-yl btn-primary" onclick="openSmartWaiverClaimModal('${esc(p.sleeperId||p.id)}')">Reivindicar</button>`:'—'}</td></tr>`).join('')}</tbody></table></div>`;
+  }
   function renderLeague(){if(typeof window.YL_V2?.renderLeagueView==='function')window.YL_V2.renderLeagueView();const c=document.getElementById('view-league');if(!c)return;const m=activeRealMatchup, my=m?.myRoster, opp=m?.oppRoster, mp=m?.myScore??my?.custom_points??my?.points, op=m?.oppScore??opp?.custom_points??opp?.points;const mt=LEAGUE_12_TEAMS?.find(x=>Number(x.rosterId)===Number(my?.roster_id)),ot=LEAGUE_12_TEAMS?.find(x=>Number(x.rosterId)===Number(opp?.roster_id));const delta=(Number(mp)||0)-(Number(op)||0);const preview=m?`O confronto está ${mp==null||op==null?'sem placar disponível':`com ${Number(mp).toFixed(1)} a ${Number(op).toFixed(1)}`}. ${delta===0?'Não há vantagem observada no placar atual.':delta>0?`${mt?.name||'Seu time'} lidera por ${delta.toFixed(1)} ponto(s) no momento.`:`${ot?.name||'O adversário'} lidera por ${Math.abs(delta).toFixed(1)} ponto(s) no momento.`} Projeções futuras não foram inventadas porque não estão no payload oficial do Sleeper.`:'Sincronize a liga para gerar o preview a partir do matchup real.';const el=document.createElement('div');el.className='yl-card yl-matchup-preview';el.innerHTML=`<span class="badge badge-crimson">PREVIEW DO CONFRONTO</span><p>${esc(preview)}</p><small>Fonte: Sleeper · Semana ${esc(activeLeagueWeek??'—')} · placar ${mp==null||op==null?'indisponível':'ao vivo/atual'}</small>`;c.prepend(el);}
   function renderPlaybook(){if(typeof window.YL_V2?.renderPlaybookView==='function')window.YL_V2.renderPlaybookView();const c=document.getElementById('view-playbook');if(!c)return;c.querySelectorAll('.yl-player-card-v2').forEach(card=>{const id=card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1],p=player(id);if(!p)return;const top=card.querySelector('.yl-player-card-v2__top');if(top&&!top.querySelector('.yl-player-card-v2__teamlogo')){const img=document.createElement('img');img.className='yl-player-card-v2__teamlogo';img.src=p.teamLogo||'';img.alt=p.team||'';top.prepend(img);}const body=card.querySelector('.yl-player-card-v2__body');if(body&&!body.querySelector('.yl-player-card-v2__bio')){const bio=document.createElement('div');bio.className='yl-player-card-v2__bio';bio.textContent=[p.age&&`${p.age} anos`,p.height&&`Alt. ${p.height}`,p.weight&&`Peso ${p.weight}`,p.college].filter(Boolean).join(' · ')||'Ficha técnica não disponível';body.appendChild(bio);}});}
   const oldHome=window.renderHomeView;window.renderHomeView=function(){if(typeof oldHome==='function')oldHome();const c=document.getElementById('view-home');if(c&&!c.querySelector('.yl-news-source-note')){const n=document.createElement('div');n.className='yl-news-source-note';n.textContent='Jornalismo YARDLINE: priorização por roster ativo. Artigos locais sem URL verificável permanecem marcados como conteúdo não verificado; feeds externos exigem ingestão autorizada no backend.';c.prepend(n);}};

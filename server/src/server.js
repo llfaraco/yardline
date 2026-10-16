@@ -10,6 +10,7 @@ import { calculateLeagueBaselines, computeVBD } from './modules/engines/vbd.engi
 import { scorePlayerStats, normalizeScoringSettings } from './modules/engines/scoring.engine.js';
 import { billingService } from './modules/billing/billing.service.js';
 import { newsService } from './modules/news/news.service.js';
+import { playersService } from './modules/players/players.service.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -147,6 +148,26 @@ app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
     if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
     const result = await sleeperSyncService.syncLeagueDetails(leagueId, week == null ? null : parseInt(week, 10));
     res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Busca e Filtros Canônicos de Atletas (Etapa 9: Advanced Search & Filters)
+app.get('/api/players/search', (req, res) => {
+  try {
+    const result = playersService.searchPlayers(req.query);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Listagem de Franquias NFL com Contagem de Atletas
+app.get('/api/players/teams', (req, res) => {
+  try {
+    const teams = playersService.getActiveTeams();
+    res.json({ teams, total: teams.length });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

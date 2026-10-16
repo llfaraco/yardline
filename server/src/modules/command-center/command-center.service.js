@@ -25,8 +25,8 @@ class CommandCenterService {
     this.lastYahooFeed = new Date(Date.now() - 1000 * 60 * 30).toISOString();
     this.lastBuild = {
       timestamp: new Date().toISOString(),
-      commit: '2804217',
-      branch: 'feature/agent-command-center',
+      commit: '3b7ef92',
+      branch: 'main',
       status: 'SUCCESS'
     };
   }
@@ -747,6 +747,57 @@ class CommandCenterService {
         severity: 'P0',
         testedAt: '2026-10-16T13:48:00Z',
         regressionTest: 'Daemon Health Check'
+      }),
+      createQATestDTO({
+        id: 'QA-NEWS-007',
+        title: 'Pipeline Canônico de Deduplicação e Filtros de Notícias por Roster',
+        area: 'News / Content Deduplication',
+        assignedAgent: 'NFL News Reference Agent',
+        priority: 'P0',
+        route: '/api/news',
+        viewport: 'API Integration & Web',
+        authState: 'Autenticado (@Faraco)',
+        preconditions: ['Ingestão de notícias de múltiplas fontes (NFL.com, Yahoo, ESPN)'],
+        steps: [
+          '1. Ingerir artigo com parâmetros de rastreamento UTM na URL',
+          '2. Tentar ingerir novamente a mesma URL normalizada',
+          '3. Filtrar feed por my_roster, waivers e opponent',
+          '4. Abrir card de notícia e validar chip dinâmico do atleta'
+        ],
+        expectedResult: 'Segunda ingestão deve retornar isDuplicate: true. Filtros por elenco devem isolar atletas correspondentes. Status da liga exibido com precisão.',
+        observedResult: '6/6 testes de notícias aprovados em server/test/news-canonical.test.js. 100% deduplicação determinística.',
+        evidence: '32/32 testes backend aprovados. SHA-256 content hashes persistidos no SQLite.',
+        affectedFile: 'server/src/modules/news/news.service.js',
+        status: QA_STATUS.PASS,
+        severity: 'P0',
+        testedAt: '2026-10-16T14:15:00Z',
+        regressionTest: 'server/test/news-canonical.test.js'
+      }),
+      createQATestDTO({
+        id: 'QA-SRCH-008',
+        title: 'Busca Canônica Paginada e Filtros Avançados (Ofensivo, IDP e Franquias)',
+        area: 'Search & Filters',
+        assignedAgent: 'Senior QA / E2E Tester',
+        priority: 'P0',
+        route: '/api/players/search',
+        viewport: 'API Integration & 1440x900 / 390x844',
+        authState: 'Autenticado',
+        preconditions: ['Catálogo SQLite com 10.484 atletas', '16 elencos mapeados'],
+        steps: [
+          '1. Buscar "Josh Allen" via parâmetro q',
+          '2. Filtrar por posição IDP e verificar se retorna DL/LB/DB',
+          '3. Filtrar por franquia BUF e verificar se todos são do Bills',
+          '4. Filtrar por disponibilidade "waivers" e verificar se nenhum pertence ao meu time',
+          '5. Validar que injuryStatus para atleta saudável retorna null e nunca o texto "Saudável"'
+        ],
+        expectedResult: 'Consulta responde em <5ms. Paginação determinística. Regra Zero Mock rigorosamente preservada.',
+        observedResult: '8/8 testes aprovados em server/test/player-search.test.js. 40/40 testes verdes no backend.',
+        evidence: 'HTTP 200 em /api/players/search e /api/players/teams.',
+        affectedFile: 'server/src/modules/players/players.service.js',
+        status: QA_STATUS.PASS,
+        severity: 'P0',
+        testedAt: '2026-10-16T14:55:00Z',
+        regressionTest: 'server/test/player-search.test.js'
       })
     ];
   }

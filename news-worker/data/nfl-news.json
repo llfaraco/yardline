@@ -1,6 +1,6 @@
 {
   "source": "https://www.nfl.com/news",
-  "updatedAt": "2026-10-16T14:31:07.176Z",
+  "updatedAt": "2026-10-16T14:56:06.936Z",
   "items": [
     {
       "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC1uZXdzLXJvdW5kdXAtbGF0ZXN0LWxlYWd1ZS11cGRhdGVzLWZyb20tZnJpZGF5LW9jdC05",
@@ -11,7 +11,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.165Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -24,20 +24,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.165Z",
-      "playerIds": [],
-      "teamCodes": []
-    },
-    {
-      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25vdGFibGUtaW5qdXJpZXMtbmV3cy1zdW5kYXktd2Vlay01LWdhbWVzLTIwMjY",
-      "source": "NFL.com",
-      "sourceUrl": "https://www.nfl.com/news/notable-injuries-news-sunday-week-5-games-2026",
-      "title": "Notable injuries, news from Sunday: Packers believe DT Hargrave tore Achilles",
-      "summary": "Here are the injuries and news developments we're monitoring around the league on this Week 5 Sunday.",
-      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
-      "section": "latest",
-      "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.164Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -50,7 +37,20 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.164Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
+      "playerIds": [],
+      "teamCodes": []
+    },
+    {
+      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25vdGFibGUtaW5qdXJpZXMtbmV3cy1zdW5kYXktd2Vlay01LWdhbWVzLTIwMjY",
+      "source": "NFL.com",
+      "sourceUrl": "https://www.nfl.com/news/notable-injuries-news-sunday-week-5-games-2026",
+      "title": "Notable injuries, news from Sunday: Packers believe DT Hargrave tore Achilles",
+      "summary": "Here are the injuries and news developments we're monitoring around the league on this Week 5 Sunday.",
+      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
+      "section": "latest",
+      "publishedAt": null,
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -63,7 +63,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.164Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -76,7 +76,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.164Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -89,7 +89,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.163Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -102,7 +102,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/mjnwss8kagxkldkvcxom",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.163Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -115,7 +115,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ktgwfnyvxujwoc5dhqeb",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.163Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -128,7 +128,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/wj4vl3txj22pic52pk5t",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.163Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -141,7 +141,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.161Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -154,7 +154,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/tdgrmnfxheshkssc3cno",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.161Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -167,7 +167,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/co6rggbui2rrmejvkjp3",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.161Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -180,7 +180,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/nwsosnba6p0xhcddylfd",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.161Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -193,7 +193,7 @@
       "heroImg": "https://static.www.nfl.com/image/private/f_auto,q_auto,dpr_2.0/league/kxla0jtsn1rzu1izmqsb",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.161Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -206,7 +206,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/nn4p3ozuspadoyxsvvsv",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.152Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -219,7 +219,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/arugvq5c6lijdg4ufr9u",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.151Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -232,7 +232,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ey68bdtbhghifrnwk0ac",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.151Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -245,7 +245,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.151Z",
+      "fetchedAt": "2026-10-16T14:56:06.932Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -258,7 +258,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/et8h9esacdi8flindqxs",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.151Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -271,7 +271,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/lw85r6hhxn0npsrqubqz",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -284,7 +284,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/lx1vdick6wqr4cv5z9lw",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -297,7 +297,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/z8sxx6gl8ftzwmpupxyw",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -310,7 +310,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/njy8xg1ozwroe7yk3onk",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -323,7 +323,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/d8gf6t9ahfqfmjbobqxq",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -336,7 +336,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/xmhjza0wni4clwmigoqc",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -349,7 +349,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ecrd37h4a2iuqzwfuol4",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -362,7 +362,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ytdtsxk34bcmofjays3j",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -375,7 +375,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/r2w8d49ubcjowotuidmc",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.145Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -388,7 +388,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.144Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -401,7 +401,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/pmmzcmvpguv3vbvinkir",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.144Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -414,7 +414,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/sjxgwo7hz61grfc7psez",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.144Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -422,12 +422,12 @@
       "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC1uZXdzLXJvdW5kdXAtbGF0ZXN0LWxlYWd1ZS11cGRhdGVzLWZyb20tZnJpZGF5LW9jdC0xNg",
       "source": "NFL.com",
       "sourceUrl": "https://www.nfl.com/news/nfl-news-roundup-latest-league-updates-from-friday-oct-16",
-      "title": "Roundup: Colts release veteran WR; Jags injury updates from London News roundup: Latest signings, cuts, injury updates",
+      "title": "Roundup: Colts release veteran receiver; Jets RB, WR ruled out again News roundup: Latest signings, cuts, injury updates",
       "summary": "",
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.144Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -440,7 +440,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.144Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -453,7 +453,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.143Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -466,7 +466,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.143Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -479,7 +479,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.143Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -492,7 +492,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.143Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -505,7 +505,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/qequ7rrt1yoydryjvt5i",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.143Z",
+      "fetchedAt": "2026-10-16T14:56:06.931Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -518,7 +518,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T14:31:07.142Z",
+      "fetchedAt": "2026-10-16T14:56:06.930Z",
       "playerIds": [],
       "teamCodes": []
     },
