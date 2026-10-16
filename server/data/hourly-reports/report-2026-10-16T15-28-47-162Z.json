@@ -1,0 +1,168 @@
+{
+  "timestamp": "2026-10-16T15:28:47.162Z",
+  "branch": "main",
+  "commit": "8257011",
+  "build": "node v24.14.0 (Windows x64)",
+  "backendStatus": "ONLINE",
+  "databaseStatus": "CONNECTED (10500 atletas)",
+  "liveServerStatus": "ONLINE (200 OK)",
+  "sleeperSync": {
+    "status": "PASS",
+    "httpStatus": 200,
+    "beforeCount": 10500,
+    "afterCount": 10500,
+    "preservedCount": 10500,
+    "rosterStartersCount": 19,
+    "emptyResponseProtection": "PASS",
+    "zeroMockRulePassed": true,
+    "error": null
+  },
+  "modals": {
+    "player-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": false,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "FAIL"
+    },
+    "article-reader-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": false,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "FAIL"
+    },
+    "onboarding-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": false,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "FAIL"
+    },
+    "lineup-swap-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": false,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "FAIL"
+    },
+    "waiver-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": false,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "FAIL"
+    },
+    "checkout-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": false,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "FAIL"
+    },
+    "manager-dna-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": false,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "FAIL"
+    }
+  },
+  "navigationTabs": {},
+  "searchAndFilters": {
+    "joshAllenSearch": "PASS",
+    "idpPositionFilter": "PASS"
+  },
+  "newsDeduplication": {
+    "feedStatus": "PASS"
+  },
+  "testSummary": {
+    "passed": 4,
+    "failed": 7,
+    "blocked": 0,
+    "total": 11
+  },
+  "newBugs": [
+    {
+      "id": "BUG-player-modal-closure-fail",
+      "severity": "P1",
+      "title": "Falha no ciclo de fechamento/reabertura do modal #player-modal",
+      "evidence": "{\"exists\":true,\"roleDialog\":true,\"ariaModal\":true,\"openSuccess\":true,\"closeViaButtonSuccess\":false,\"reopenSuccess\":true,\"closeViaEscapeSuccess\":true,\"closeViaBackdropSuccess\":true,\"overlayBlocksAfterClose\":false,\"status\":\"FAIL\"}"
+    },
+    {
+      "id": "BUG-article-reader-modal-closure-fail",
+      "severity": "P1",
+      "title": "Falha no ciclo de fechamento/reabertura do modal #article-reader-modal",
+      "evidence": "{\"exists\":true,\"roleDialog\":true,\"ariaModal\":true,\"openSuccess\":true,\"closeViaButtonSuccess\":false,\"reopenSuccess\":true,\"closeViaEscapeSuccess\":true,\"closeViaBackdropSuccess\":true,\"overlayBlocksAfterClose\":false,\"status\":\"FAIL\"}"
+    },
+    {
+      "id": "BUG-onboarding-modal-closure-fail",
+      "severity": "P1",
+      "title": "Falha no ciclo de fechamento/reabertura do modal #onboarding-modal",
+      "evidence": "{\"exists\":true,\"roleDialog\":true,\"ariaModal\":true,\"openSuccess\":true,\"closeViaButtonSuccess\":false,\"reopenSuccess\":true,\"closeViaEscapeSuccess\":true,\"closeViaBackdropSuccess\":true,\"overlayBlocksAfterClose\":false,\"status\":\"FAIL\"}"
+    },
+    {
+      "id": "BUG-lineup-swap-modal-closure-fail",
+      "severity": "P1",
+      "title": "Falha no ciclo de fechamento/reabertura do modal #lineup-swap-modal",
+      "evidence": "{\"exists\":true,\"roleDialog\":true,\"ariaModal\":true,\"openSuccess\":true,\"closeViaButtonSuccess\":false,\"reopenSuccess\":true,\"closeViaEscapeSuccess\":true,\"closeViaBackdropSuccess\":true,\"overlayBlocksAfterClose\":false,\"status\":\"FAIL\"}"
+    },
+    {
+      "id": "BUG-waiver-modal-closure-fail",
+      "severity": "P1",
+      "title": "Falha no ciclo de fechamento/reabertura do modal #waiver-modal",
+      "evidence": "{\"exists\":true,\"roleDialog\":true,\"ariaModal\":true,\"openSuccess\":true,\"closeViaButtonSuccess\":false,\"reopenSuccess\":true,\"closeViaEscapeSuccess\":true,\"closeViaBackdropSuccess\":true,\"overlayBlocksAfterClose\":false,\"status\":\"FAIL\"}"
+    },
+    {
+      "id": "BUG-checkout-modal-closure-fail",
+      "severity": "P1",
+      "title": "Falha no ciclo de fechamento/reabertura do modal #checkout-modal",
+      "evidence": "{\"exists\":true,\"roleDialog\":true,\"ariaModal\":true,\"openSuccess\":true,\"closeViaButtonSuccess\":false,\"reopenSuccess\":true,\"closeViaEscapeSuccess\":true,\"closeViaBackdropSuccess\":true,\"overlayBlocksAfterClose\":false,\"status\":\"FAIL\"}"
+    },
+    {
+      "id": "BUG-manager-dna-modal-closure-fail",
+      "severity": "P1",
+      "title": "Falha no ciclo de fechamento/reabertura do modal #manager-dna-modal",
+      "evidence": "{\"exists\":true,\"roleDialog\":true,\"ariaModal\":true,\"openSuccess\":true,\"closeViaButtonSuccess\":false,\"reopenSuccess\":true,\"closeViaEscapeSuccess\":true,\"closeViaBackdropSuccess\":true,\"overlayBlocksAfterClose\":false,\"status\":\"FAIL\"}"
+    }
+  ],
+  "reopenedBugs": [],
+  "p0p1BugsCount": 7,
+  "releaseStatus": "🛑 RELEASE BLOQUEADA",
+  "nextAction": "Corrigir 7 falhas P0/P1 antes de prosseguir com liberação."
+}

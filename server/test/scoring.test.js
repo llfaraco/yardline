@@ -22,3 +22,20 @@ test('Scoring de roster soma apenas titulares', () => {
   assert.equal(result.players.find(player => player.playerId === 'b').points, 32);
   assert.equal(result.players.find(player => player.playerId === 'b').isStarter, false);
 });
+
+test('Scoring Engine — Estatísticas vazias retornam status unavailable e points null', () => {
+  const result = scorePlayerStats({}, { rec: 1, rec_yd: 0.1 });
+  assert.equal(result.points, null, 'Pontuação deve ser null quando stats estiverem ausentes');
+  assert.equal(result.status, 'unavailable');
+  assert.equal(result.breakdown.length, 0);
+});
+
+test('Scoring Engine — Regra não suportada com multiplicador ativo retorna status unsupported', () => {
+  const result = scorePlayerStats(
+    { rec: 5, rec_yd: 50 },
+    { rec: 1, rec_yd: 0.1, bonus_pass_cmp_25: 3.0 }
+  );
+  assert.equal(result.points, null, 'Nunca deve retornar zero silenciosamente quando regra for unsupported');
+  assert.equal(result.status, 'unsupported');
+  assert.equal(result.reason, 'bonus_pass_cmp_25');
+});

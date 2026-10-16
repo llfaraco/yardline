@@ -2,16 +2,33 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { loadPersistedCatalog, buildPlayerData, buildPlayerCards, leagueCardContext, buildPlayerHistory } from './modules/players/player-card.service.js';
+import { loadPersistedCatalog, buildPlayerData, buildPlayerCards, leagueCardContext, buildPlayerHistory, numberOrNull } from './modules/players/player-card.service.js';
 import { initDatabase, db } from './db/database.js';
 import { authService } from './modules/auth/auth.service.js';
-import { sleeperSyncService, normalizeSleeperPlayer, normalizeLeague, normalizeManager, normalizeRoster, normalizeMatchup, getPlayerPhoto, calculateManagerDna } from './modules/sleeper/sleeper.sync.js';
+import { sleeperSyncService, normalizeSleeperPlayer, normalizeLeague, normalizeManager, normalizeRoster, normalizeMatchup, getPlayerPhoto, calculateManagerDna, CANONICAL_SLEEPER_TO_ESPN } from './modules/sleeper/sleeper.sync.js';
 import { sleeperConnector } from './modules/sleeper/sleeper.connector.js';
 import { solveOptimalLineupAssignment } from './modules/engines/lineup.solver.js';
 import { calculateLeagueBaselines, computeVBD } from './modules/engines/vbd.engine.js';
 import { scorePlayerStats, normalizeScoringSettings } from './modules/engines/scoring.engine.js';
 import { billingService } from './modules/billing/billing.service.js';
 import { newsService } from './modules/news/news.service.js';
+import { playersService } from './modules/players/players.service.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  DATA_STATUS,
+  INJURY_STATUS,
+  createDataStatusDTO,
+  createMetricDTO,
+  createPlayerCardDTO,
+  createRosterDTO,
+  createMatchupDTO,
+  createLeagueShellDTO
+} from './contracts/dtos.js';
+import { commandCenterRouter } from './modules/command-center/command-center.routes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Inicializar banco de dados
 initDatabase();
@@ -21,7 +38,17 @@ const PORT = process.env.PORT || 3001;
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+// Security Headers Middleware (OWASP Top 10 - Etapa 11: Security & Privacy Agent)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  next();
+});
 
 // Correlation ID & Logger Middleware
 app.use((req, res, next) => {
@@ -138,6 +165,26 @@ app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
   }
 });
 
+// Busca e Filtros Canônicos de Atletas (Etapa 9: Advanced Search & Filters)
+app.get('/api/players/search', (req, res) => {
+  try {
+    const result = playersService.searchPlayers(req.query);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Listagem de Franquias NFL com Contagem de Atletas
+app.get('/api/players/teams', (req, res) => {
+  try {
+    const teams = playersService.getActiveTeams();
+    res.json({ teams, total: teams.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Catálogo Canônico de Jogadores da NFL (24h Cache)
 app.get('/api/players/catalog', async (req, res) => {
   try {
@@ -147,6 +194,130 @@ app.get('/api/players/catalog', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+function formatHeight(h) {
+  if (!h || h === '—') return '—';
+  const str = String(h).trim();
+  if (str.includes("'") || str.includes('m')) return str;
+  const num = Number(str);
+  if (!isNaN(num) && num >= 55 && num <= 90) {
+    const feet = Math.floor(num / 12);
+    const inches = num % 12;
+    const meters = (num * 0.0254).toFixed(2);
+    return `${feet}'${inches}" (${meters}m)`;
+  }
+  return str;
+}
+
+function formatWeight(w) {
+  if (!w || w === '—') return '—';
+  const str = String(w).trim();
+  if (str.toLowerCase().includes('lb') || str.toLowerCase().includes('kg')) return str;
+  const num = Number(str);
+  if (!isNaN(num) && num >= 100 && num <= 450) {
+    const kg = Math.round(num * 0.453592);
+    return `${num} lbs (${kg}kg)`;
+  }
+  return str;
+}
+
+// DTO Canônico: Ficha individual do jogador
+app.get('/api/players/:playerId', (req, res) => {
+  try {
+    const { playerId } = req.params;
+    let player = db.prepare('SELECT * FROM players WHERE id = ?').get(playerId);
+    if (!player) {
+      const crosswalk = db.prepare('SELECT player_id FROM player_identities WHERE provider_player_id = ?').get(playerId);
+      if (crosswalk) {
+        player = db.prepare('SELECT * FROM players WHERE id = ?').get(crosswalk.player_id);
+      }
+    }
+
+    if (!player) {
+      return res.status(404).json({
+        error: 'Jogador não encontrado no catálogo canônico.',
+        dataStatus: DATA_STATUS.UNAVAILABLE
+      });
+    }
+
+    const identities = db.prepare('SELECT provider, provider_player_id FROM player_identities WHERE player_id = ?').all(player.id);
+    const sleeperIdentity = identities.find(i => i.provider === 'sleeper');
+    const espnIdentity = identities.find(i => i.provider === 'espn');
+    const catalogPlayer = loadPersistedCatalog(db)[player.id];
+    const resolvedEspnId = espnIdentity?.provider_player_id || catalogPlayer?.espnId || null;
+    const resolvedSleeperId = sleeperIdentity?.provider_player_id || catalogPlayer?.sleeperId || (player.id.length <= 6 ? player.id : null);
+
+    const latestProjection = db.prepare('SELECT projection FROM projections WHERE player_id = ? ORDER BY season DESC, week DESC, created_at DESC LIMIT 1').get(player.id);
+
+    const safePhoto = (!player.photo_url || player.photo_url.includes('/teamlogos/'))
+      ? (catalogPlayer?.photoUrl || getPlayerPhoto({ espnId: resolvedEspnId, sleeperId: resolvedSleeperId, team: player.team }))
+      : player.photo_url;
+
+    const card = createPlayerCardDTO({
+      id: player.id,
+      sleeperId: resolvedSleeperId,
+      espnId: resolvedEspnId,
+      name: player.canonical_name || catalogPlayer?.name,
+      position: player.position || catalogPlayer?.position,
+      team: player.team || catalogPlayer?.team,
+      jersey: player.number ?? catalogPlayer?.number,
+      injuryStatus: catalogPlayer?.injuryStatus ?? player.injury_status ?? null,
+      photoUrl: safePhoto,
+      height: formatHeight(catalogPlayer?.height || player.height),
+      weight: formatWeight(catalogPlayer?.weight || player.weight),
+      yearsExp: catalogPlayer?.yearsExp ?? player.years_exp ?? null,
+      college: catalogPlayer?.college || player.college || null,
+      age: catalogPlayer?.age ?? player.age ?? null,
+      depthChartOrder: catalogPlayer?.depthChartOrder ?? null,
+      metrics: createMetricDTO({
+        projectedPoints: latestProjection?.projection != null ? Number(latestProjection.projection) : null,
+        provenance: createDataStatusDTO({
+          status: latestProjection ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE,
+          source: 'projections_db'
+        })
+      }),
+      provenance: createDataStatusDTO({
+        status: DATA_STATUS.OFFICIAL,
+        source: 'canonical_players_db',
+        syncedAt: player.updated_at
+      })
+    });
+
+    res.json(card);
+  } catch (err) {
+    res.status(500).json({ error: err.message, dataStatus: DATA_STATUS.UNAVAILABLE });
+  }
+});
+
+// Histórico de pontuação e estatísticas do jogador
+app.get('/api/players/:playerId/history', (req, res) => {
+  try {
+    let player = db.prepare('SELECT id, canonical_name FROM players WHERE id=?').get(req.params.playerId);
+    if (!player) {
+      const identity = db.prepare('SELECT player_id FROM player_identities WHERE provider_player_id=? AND valid_to IS NULL').get(req.params.playerId);
+      if (identity) player = db.prepare('SELECT id, canonical_name FROM players WHERE id=?').get(identity.player_id);
+    }
+    if (!player) return res.status(404).json({ error: 'Jogador não encontrado.', dataStatus: DATA_STATUS.UNAVAILABLE });
+    const league = req.query.leagueId ? db.prepare('SELECT * FROM leagues WHERE id=? OR provider_league_id=?').get(req.query.leagueId, req.query.leagueId) : null;
+    if (req.query.leagueId && !league) return res.status(404).json({ error: 'Liga não encontrada.' });
+    const seasons = req.query.season ? [String(req.query.season)] : [...new Set([
+      ...db.prepare('SELECT DISTINCT season FROM player_stats WHERE player_id=?').all(player.id).map(row => row.season),
+      ...db.prepare('SELECT DISTINCT season FROM projections WHERE player_id=?').all(player.id).map(row => row.season)
+    ])].sort().reverse();
+    const rows = seasons.flatMap(season => buildPlayerHistory(db, { playerId: player.id, season, league }).map(row => {
+      const stored = db.prepare("SELECT stats_json, source, captured_at FROM player_stats WHERE player_id=? AND season=? AND week=? AND source='sleeper' ORDER BY captured_at DESC LIMIT 1").get(player.id, season, row.week);
+      let stats = {}; try { stats = JSON.parse(stored?.stats_json || '{}'); } catch {}
+      // Public raw-history alias remains available, but league FPTS always uses the canonical scoring engine.
+      const presetPoints = ['pts_ppr','pts_half_ppr','pts_std'].map(key => numberOrNull(stats?.[key])).find(value => value !== null) ?? null;
+      return { ...row, season, points: league ? row.fpts : presetPoints, stats,
+        provenance: createDataStatusDTO({ status: stored ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE, source: stored?.source || 'sleeper_stats', syncedAt: stored?.captured_at }) };
+    }));
+    res.json({ playerId: player.id, name: player.canonical_name, season: req.query.season ? String(req.query.season) : null,
+      totalGames: rows.filter(row => Object.keys(row.stats).length).length, history: rows, rows, scoringFormat: league ? 'LEAGUE' : null,
+      dataStatus: rows.some(row => row.proj !== null || row.fpts !== null || row.points !== null) ? 'partial' : 'unavailable' });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 
 app.post('/api/integrations/sleeper/connect', requireAuth, async (req, res) => {
   try {
@@ -247,14 +418,19 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
     owner: r.display_name, teamName: r.team_name, avatar: r.avatar, players: parse(r.players_json, []),
     starters: parse(r.starters_json, []), reserve: parse(r.reserve_json, []), taxi: parse(r.taxi_json, null), settings: parse(r.settings_json, {}) }));
   const playerCards = buildPlayerCards(catalog, playerData, cardContext, shellRosters);
-  res.json({
-    dataStatus, syncError: latestRun?.status === 'ERROR' ? latestRun.error_message : null,
-    syncedAt: league.last_synced_at,
-    league: { id: league.id, providerLeagueId: league.provider_league_id, name: league.name, season: league.season, status: league.status, settings, scoringSettings: parse(league.scoring_settings_json, {}), rosterPositions: parse(league.roster_positions_json, []) },
-    state: { ...(state || {}), week },
-    rosters: shellRosters,
-    standings, matchups, transactions, tradedPicks, playerData, playerCards, cardContext
+  const shellDto = createLeagueShellDTO({
+    league: { ...league, settings, scoringSettings: parse(league.scoring_settings_json, {}), rosterPositions: parse(league.roster_positions_json, []) },
+    state: { ...(state || {}), week }, rosters: shellRosters, standings, matchups,
+    transactions, tradedPicks, playerData,
+    provenance: createDataStatusDTO({ status: dataStatus === 'stale' ? DATA_STATUS.STALE : league.last_synced_at ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE,
+      source: 'sleeper_sync', syncedAt: league.last_synced_at, staleReason: latestRun?.status === 'ERROR' ? latestRun.error_message : null })
   });
+  // DTO normalization must not erase unknown ownership/taxi or local metric diagnostics.
+  Object.assign(shellDto, { dataStatus, syncError: latestRun?.status === 'ERROR' ? latestRun.error_message : null,
+    syncedAt: league.last_synced_at, playerCards, cardContext });
+  shellDto.league.seasonType = league.season_type;
+  shellDto.rosters = shellDto.rosters.map((roster, index) => ({ ...roster, ownerName: shellRosters[index].ownerName, taxi: shellRosters[index].taxi }));
+  res.json(shellDto);
 });
 
 app.get('/api/leagues/:leagueId/rosters', (req, res) => {
@@ -544,19 +720,90 @@ app.post('/api/lineups/simulate', (req, res) => {
 // 5. NOTÍCIAS (/api/news)
 // ==========================================
 app.get('/api/news', (req, res) => {
-  const { category, limit = 20, offset = 0 } = req.query;
-  const news = newsService.getNewsFeed({ category, limit: parseInt(limit, 10), offset: parseInt(offset, 10) });
-  res.json(news);
+  try {
+    const {
+      category,
+      source,
+      playerId,
+      filter,
+      leagueId = '1369770282776006656',
+      rosterId = 2,
+      week = 6,
+      limit = 20,
+      offset = 0
+    } = req.query;
+
+    let rosterPlayerIds = null;
+
+    if (filter === 'my_roster' || filter === 'MY_ROSTER') {
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (league) {
+        const roster = db.prepare('SELECT players_json FROM rosters WHERE league_id = ? AND provider_roster_id = ?').get(league.id, Number(rosterId));
+        if (roster) {
+          try { rosterPlayerIds = JSON.parse(roster.players_json || '[]'); } catch {}
+        }
+      }
+    } else if (filter === 'opponent' || filter === 'OPPONENT') {
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (league) {
+        const matchup = db.prepare('SELECT roster_a_id, roster_b_id FROM matchups WHERE league_id = ? AND week = ? AND (roster_a_id = ? OR roster_b_id = ?)').get(league.id, Number(week), Number(rosterId), Number(rosterId));
+        if (matchup) {
+          const oppId = matchup.roster_a_id === Number(rosterId) ? matchup.roster_b_id : matchup.roster_a_id;
+          const oppRoster = db.prepare('SELECT players_json FROM rosters WHERE league_id = ? AND provider_roster_id = ?').get(league.id, oppId);
+          if (oppRoster) {
+            try { rosterPlayerIds = JSON.parse(oppRoster.players_json || '[]'); } catch {}
+          }
+        }
+      }
+    } else if (filter === 'waivers' || filter === 'WAIVERS') {
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (league) {
+        const allRosters = db.prepare('SELECT players_json FROM rosters WHERE league_id = ?').all(league.id);
+        const owned = new Set();
+        for (const r of allRosters) {
+          try { JSON.parse(r.players_json || '[]').forEach(pid => owned.add(String(pid))); } catch {}
+        }
+        const allPlayers = db.prepare('SELECT id FROM players LIMIT 500').all();
+        rosterPlayerIds = allPlayers.filter(p => !owned.has(String(p.id))).map(p => String(p.id));
+      }
+    }
+
+    const news = newsService.getNewsFeed({
+      category: category || null,
+      source: source || null,
+      playerId: playerId || null,
+      rosterPlayerIds,
+      limit: parseInt(limit, 10) || 20,
+      offset: parseInt(offset, 10) || 0,
+      includeAthletes: true
+    });
+
+    res.json(news);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get('/api/players/:playerId/history', (req, res) => {
-  const season = String(req.query.season || new Date().getUTCFullYear());
-  const league = req.query.leagueId ? db.prepare('SELECT * FROM leagues WHERE id=? OR provider_league_id=?').get(req.query.leagueId, req.query.leagueId) : null;
-  if (req.query.leagueId && !league) return res.status(404).json({ error: 'Liga não encontrada.' });
-  const rows = buildPlayerHistory(db, { playerId: req.params.playerId, season, league });
-  res.json({ playerId: String(req.params.playerId), season, rows, scoringFormat: league ? 'LEAGUE' : null,
-    dataStatus: rows.some(row => row.proj !== null || row.fpts !== null) ? 'partial' : 'unavailable' });
+app.post('/api/news/sync-worker', (req, res) => {
+  try {
+    const workerJsonPath = path.resolve(__dirname, '../../news-worker/data/nfl-news.json');
+    const result = newsService.syncFromWorkerFile(workerJsonPath);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+app.post('/api/news/ingest', (req, res) => {
+  try {
+    const result = newsService.ingestNewsItem(req.body);
+    res.status(result.isDuplicate ? 200 : 201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+
 
 app.get('/api/leagues/:leagueId/messages', (req, res) => {
   const league = db.prepare('SELECT id FROM leagues WHERE id=? OR provider_league_id=?').get(req.params.leagueId, req.params.leagueId);
@@ -612,20 +859,40 @@ app.post('/api/webhooks/payment/:provider', async (req, res) => {
   }
 });
 
-// Health Check
-app.get('/api/health', (req, res) => {
+// ==========================================
+// 8. COMMAND CENTER OPERATIONAL API & STATIC
+// ==========================================
+app.use('/api/command-center', commandCenterRouter);
+const commandCenterStaticPath = path.resolve(__dirname, '../../yardline-app/agent-command-center');
+app.use('/agent-command-center', express.static(commandCenterStaticPath));
+app.get('/agent-command-center', (req, res) => {
+  res.sendFile(path.join(commandCenterStaticPath, 'index.html'));
+});
+
+// Health Check (/health & /api/health)
+const healthHandler = (req, res) => {
   res.json({
     status: 'ONLINE',
     version: '1.0.0',
     platform: 'YARDLINE NFL Production Core',
+    database: 'CONNECTED',
     timestamp: new Date().toISOString()
   });
-});
+};
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
 
 // Iniciar servidor
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  app.listen(PORT, () => {
-    console.log(`🚀 [YARDLINE API] Servidor de produção ativo na porta ${PORT}`);
-    console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
-  });
+app.listen(PORT, () => {
+  console.log(`🚀 [YARDLINE API] Servidor de produção ativo na porta ${PORT}`);
+  console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+  try {
+    const workerJsonPath = path.resolve(__dirname, '../../news-worker/data/nfl-news.json');
+    const syncRes = newsService.syncFromWorkerFile(workerJsonPath);
+    console.log(`📰 [NEWS SYNC] Ingestão inicial concluída: ${syncRes.ingested} novas, ${syncRes.duplicates} existentes (Total: ${syncRes.total})`);
+  } catch (e) {
+    console.warn(`📰 [NEWS SYNC] Aviso ao sincronizar notícias iniciais:`, e.message);
+  }
+});
 }

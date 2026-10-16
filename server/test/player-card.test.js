@@ -235,6 +235,8 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   t.mock.method(sleeperConnector, 'getLeagueMatchups', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueTransactions', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueTradedPicks', async () => []);
+  t.mock.method(sleeperConnector, 'getLeagueDrafts', async () => [{ draft_id: 'fixture-draft', season: '2025', type: 'snake', status: 'complete' }]);
+  t.mock.method(sleeperConnector, 'getDraftPicks', async () => [{ player_id: '4984', picked_by: 'fixture-owner', roster_id: 1, round: 1, pick_no: 1 }]);
   t.mock.method(sleeperSyncService, 'getNflPlayers', async () => Object.fromEntries(Object.entries(fixture.players).map(([id, raw]) => [id, contract.normalizeSleeperPlayer(id, raw)])));
   t.mock.method(sleeperConnector, 'getNflStats', async () => fixture.emptyStats);
   t.mock.method(sleeperConnector, 'getNflProjections', async () => fixture.emptyProjections);
@@ -242,11 +244,16 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   let shell = await (await request('/api/leagues/fixture-league/shell?week=1')).json();
   assert.equal(shell.playerCards['4984'].metrics.points, null);
   assert.equal(shell.cardContext.metricAvailability.stats.status, 'empty');
+  assert.equal(db.prepare("SELECT count(*) n FROM drafts WHERE provider_draft_id='fixture-draft'").get().n, 1);
+  assert.equal(db.prepare("SELECT player_id FROM draft_picks WHERE pick_no=1").get().player_id, '4984');
   t.mock.method(sleeperConnector, 'getNflStats', async () => { throw new Error('fixture upstream failure'); });
   await sleeperSyncService.syncLeagueDetails('fixture-league', 1);
   shell = await (await request('/api/leagues/fixture-league/shell?week=1')).json();
   assert.equal(shell.cardContext.metricAvailability.stats.status, 'failed');
   assert.equal(shell.playerCards['4984'].context.pointsUnavailableReason, 'stats_fetch_failed');
+  assert.equal(db.prepare("SELECT count(*) n FROM drafts WHERE provider_draft_id='fixture-draft'").get().n, 1);
+  assert.equal(db.prepare("SELECT count(*) n FROM draft_picks").get().n, 1);
+  assert.ok(db.prepare("SELECT count(*) n FROM source_provenance WHERE entity_type='league'").get().n >= 2);
   league.season_type = 'post';
   await sleeperSyncService.syncLeagueDetails('fixture-league', 1);
   assert.equal(db.prepare("SELECT season_type FROM leagues WHERE id=? OR provider_league_id=?").get('fixture-league', 'fixture-league').season_type, 'post');
@@ -293,4 +300,47 @@ test('catalog sync button delegates to the canonical syncLiveSleeperApiPlayers e
   sandbox.syncRealSleeperLeagueLive = async () => { calls += 1; return { success: true }; };
   await sandbox.syncLiveSleeperApiPlayers();
   assert.equal(calls, 1);
+});
+
+test('closeModal/openModal preserve global accessibility and allow every modal to reopen', () => {
+  const { sandbox, elements } = frontend({});
+  for (const id of ['player-modal','article-reader-modal','onboarding-modal','lineup-swap-modal','waiver-modal','checkout-modal','manager-dna-modal']) {
+    const modal = elements.get(id);
+    assert.equal(sandbox.closeModal(id), true);
+    sandbox.openModal(id);
+    assert.equal(modal.classList.contains('open'), true, id);
+    assert.notEqual(modal.style.display, 'none', id);
+    assert.equal(modal.getAttribute('aria-hidden'), 'false', id);
+    assert.equal(modal.getAttribute('aria-modal'), 'true', id);
+    sandbox.closeModal(id);
+  }
+});
+
+test('merged dossier keeps remote tabs, summary layout and verified ESPN resolution without metric fabrication', async () => {
+  reset();
+  const { catalog, data } = seedData(fixture.emptyStats, { '4984': { pts_ppr: 0 } });
+  const cards = service.buildPlayerCards(catalog, data, { season: fixture.season, week: 1 }, [fixture.roster]);
+  const { sandbox, elements } = frontend(cards);
+  assert.strictEqual(sandbox.resolveNFLPlayer('3918298'), cards['4984']);
+  assert.equal(sandbox.resolveNFLPlayer('unverified-provider-id'), null);
+  await sandbox.openPlayerDossierModal('3918298');
+  const html = elements.get('player-modal-content').innerHTML;
+  for (const label of ['fp-stat-box','GAME LOGS','NEWS','COACH AI','PPG OBSERVADO','TOTAL OBSERVADO']) assert.ok(html.includes(label), label);
+  assert.match(html, />0\.0<\/strong>/);
+  assert.ok(!html.includes('★★★★★'));
+  assert.ok(!html.includes('342.4'));
+  assert.ok(!html.includes('96%'));
+});
+
+test('merged history route keeps league-scored rows and raw official stats/provenance aliases', async () => {
+  reset(); seedData(); seedLeague();
+  const response = await request(`/api/players/4984/history?season=${fixture.season}&leagueId=fixture-league`);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.rows, body.history);
+  const observed = body.rows.find(row => row.week === 1);
+  assert.equal(observed.points, observed.fpts);
+  assert.deepEqual(observed.stats, fixture.stats['4984']);
+  assert.equal(observed.provenance.status, 'official');
+  assert.equal(observed.provenance.source, 'sleeper');
 });

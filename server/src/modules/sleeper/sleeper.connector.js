@@ -127,6 +127,22 @@ class SleeperConnector {
     return this.request(`/league/${leagueId}/traded_picks`);
   }
 
+  getLeagueDrafts(leagueId) {
+    return this.request(`/league/${leagueId}/drafts`);
+  }
+
+  getDraft(draftId) {
+    return this.request(`/draft/${draftId}`);
+  }
+
+  getDraftPicks(draftId) {
+    return this.request(`/draft/${draftId}/picks`);
+  }
+
+  getTrendingPlayers(type = 'add', lookbackHours = 24, limit = 25) {
+    return this.request(`/players/nfl/trending/${encodeURIComponent(type)}?lookback_hours=${encodeURIComponent(lookbackHours)}&limit=${encodeURIComponent(limit)}`);
+  }
+
   getWinnersBracket(leagueId) {
     return this.request(`/league/${leagueId}/winners_bracket`);
   }

@@ -66,7 +66,15 @@ function bonus(stats, settings, statAliases, threshold, settingKey) {
 
 function addBreakdown(breakdown, key, stat, multiplier) {
   const points = Number((stat * multiplier).toFixed(4));
-  if (stat !== 0 && points !== 0) breakdown.push({ key, stat, points, multiplier });
+  if (stat !== 0 && points !== 0) {
+    breakdown.push({
+      rule: key,
+      key,
+      stat,
+      multiplier,
+      points: Number(points.toFixed(2))
+    });
+  }
   return points;
 }
 
@@ -80,10 +88,15 @@ export function scoringUnavailableReason(scoringSettings) {
 }
 
 export function scorePlayerStats(stats = {}, scoringSettings = {}) {
-  const reason = scoringUnavailableReason(scoringSettings)
+  const unavailableReason = scoringUnavailableReason(scoringSettings)
     || (!stats || typeof stats !== 'object' || Array.isArray(stats) || !Object.keys(stats).length ? 'stats_unavailable'
       : !Object.values(STAT_ALIASES).flat().some(key => numberOrNull(stats[key]) !== null) ? 'scorable_stats_unavailable' : null);
-  if (reason) return { points: null, reason, breakdown: [], stats, scoringSettings };
+  if (unavailableReason) {
+    const unsupported = unavailableReason.startsWith('unsupported_scoring:');
+    return { points: null, status: unsupported ? 'unsupported' : 'unavailable',
+      reason: unsupported ? unavailableReason.slice('unsupported_scoring:'.length) : unavailableReason,
+      unavailableReason, breakdown: [], stats, scoringSettings };
+  }
   const breakdown = [];
   let total = 0;
   const add = (key, aliases, settingKey) => {
@@ -128,6 +141,7 @@ export function scorePlayerStats(stats = {}, scoringSettings = {}) {
   return {
     points: Number(total.toFixed(2)),
     reason: null,
+    status: 'calculated',
     breakdown,
     stats: { ...stats },
     scoringSettings: { ...scoringSettings }

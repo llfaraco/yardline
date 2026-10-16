@@ -342,3 +342,51 @@ CREATE INDEX IF NOT EXISTS idx_transactions_league_week ON transactions(league_i
 CREATE INDEX IF NOT EXISTS idx_traded_picks_league ON traded_picks(league_id, season);
 CREATE INDEX IF NOT EXISTS idx_sync_payloads_resource ON sync_payloads(resource, resource_key);
 CREATE INDEX IF NOT EXISTS idx_league_messages_feed ON league_messages(league_id, created_at);
+
+-- ========================================================
+-- Drafts, Draft Picks & Proveniência de Dados
+-- ========================================================
+
+CREATE TABLE IF NOT EXISTS drafts (
+  id TEXT PRIMARY KEY,
+  league_id TEXT NOT NULL,
+  provider_draft_id TEXT UNIQUE NOT NULL,
+  season TEXT NOT NULL,
+  type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  settings_json TEXT,
+  metadata_json TEXT,
+  captured_at TEXT NOT NULL,
+  FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS draft_picks (
+  id TEXT PRIMARY KEY,
+  draft_id TEXT NOT NULL,
+  player_id TEXT,
+  picked_by TEXT,
+  roster_id INTEGER NOT NULL,
+  round INTEGER NOT NULL,
+  pick_no INTEGER NOT NULL,
+  metadata_json TEXT,
+  captured_at TEXT NOT NULL,
+  FOREIGN KEY (draft_id) REFERENCES drafts(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS source_provenance (
+  id TEXT PRIMARY KEY,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  source TEXT NOT NULL,
+  status TEXT NOT NULL CHECK(status IN ('official', 'derived', 'cached', 'stale', 'unavailable', 'simulation')),
+  is_estimate INTEGER DEFAULT 0,
+  confidence REAL DEFAULT 1.0,
+  fetched_at TEXT,
+  valid_until TEXT,
+  metadata_json TEXT,
+  captured_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_drafts_league ON drafts(league_id);
+CREATE INDEX IF NOT EXISTS idx_draft_picks_draft ON draft_picks(draft_id);
+CREATE INDEX IF NOT EXISTS idx_source_provenance_lookup ON source_provenance(entity_type, entity_id);
