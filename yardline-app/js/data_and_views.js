@@ -1,3 +1,21 @@
+// ==========================================
+// SANITIZADOR UNIVERSAL ANTI-XSS (ETAPA 11: SECURITY AGENT)
+// ==========================================
+var esc = (typeof window !== "undefined" && typeof window.esc === "function")
+  ? window.esc
+  : function(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[c]));
+    };
+if (typeof window !== "undefined" && !window.esc) {
+  window.esc = esc;
+}
+
 const YL_API_BASE = (typeof window !== "undefined" && (window.YL_API_BASE || (window.YL_CONFIG && window.YL_CONFIG.apiBaseUrl)))
   || (typeof YL_BACKEND_URL !== "undefined" && YL_BACKEND_URL)
   || ((typeof window !== "undefined" && window.location && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) ? "http://localhost:3001/api" : "/api");
@@ -95,6 +113,20 @@ function openModal(id) {
   m.setAttribute("aria-modal", "true");
   m.setAttribute("role", "dialog");
 
+  // Garante que o modal possui um botão fechar acessível caso ainda não tenha conteúdo renderizado
+  const card = m.querySelector('.yl-modal-card') || m;
+  let closeBtn = m.querySelector('button[onclick*="closeModal"]') || m.querySelector('.yl-modal-close-btn');
+  if (!closeBtn) {
+    const defaultClose = document.createElement('button');
+    defaultClose.type = 'button';
+    defaultClose.className = 'yl-modal-close-btn';
+    defaultClose.setAttribute('aria-label', 'Fechar modal');
+    defaultClose.onclick = function() { closeModal(id); };
+    defaultClose.innerHTML = '&times;';
+    defaultClose.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.12);border:none;color:#FFF;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:16px;font-weight:700;line-height:1;z-index:99;';
+    card.insertBefore(defaultClose, card.firstChild);
+  }
+
   // Trava foco no primeiro elemento interativo do modal
   setTimeout(() => {
     const focusable = m.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
@@ -115,6 +147,11 @@ function closeModal(id) {
     _ylLastFocusedElement.focus();
     _ylLastFocusedElement = null;
   }
+}
+
+if (typeof window !== "undefined") {
+  window.openModal = openModal;
+  window.closeModal = closeModal;
 }
 
 // Trap de foco e fechamento por Escape para WCAG 2.1 AA

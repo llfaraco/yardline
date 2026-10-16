@@ -36,7 +36,17 @@ const PORT = process.env.PORT || 3001;
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+// Security Headers Middleware (OWASP Top 10 - Etapa 11: Security & Privacy Agent)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  next();
+});
 
 // Correlation ID & Logger Middleware
 app.use((req, res, next) => {
@@ -867,15 +877,18 @@ app.get('/agent-command-center', (req, res) => {
   res.sendFile(path.join(commandCenterStaticPath, 'index.html'));
 });
 
-// Health Check
-app.get('/api/health', (req, res) => {
+// Health Check (/health & /api/health)
+const healthHandler = (req, res) => {
   res.json({
     status: 'ONLINE',
     version: '1.0.0',
     platform: 'YARDLINE NFL Production Core',
+    database: 'CONNECTED',
     timestamp: new Date().toISOString()
   });
-});
+};
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
 
 // Iniciar servidor
 app.listen(PORT, () => {

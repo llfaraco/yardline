@@ -10,6 +10,20 @@ const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'yardline.db')
 
 export const db = new DatabaseSync(DB_PATH);
 
+if (typeof db.transaction !== 'function') {
+  db.transaction = (fn) => (...args) => {
+    db.exec('BEGIN');
+    try {
+      const res = fn(...args);
+      db.exec('COMMIT');
+      return res;
+    } catch (err) {
+      try { db.exec('ROLLBACK'); } catch {}
+      throw err;
+    }
+  };
+}
+
 // Ativar busy_timeout imediatamente, chaves estrangeiras e modo WAL
 db.exec('PRAGMA busy_timeout = 5000;');
 db.exec('PRAGMA foreign_keys = ON;');

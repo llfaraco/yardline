@@ -1,4 +1,22 @@
 // ==========================================
+//  SANITIZADOR UNIVERSAL ANTI-XSS (ETAPA 11: SECURITY AGENT)
+// ==========================================
+var esc = (typeof window !== "undefined" && typeof window.esc === "function")
+  ? window.esc
+  : function(v) {
+      return String(v ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[c]));
+    };
+if (typeof window !== "undefined" && !window.esc) {
+  window.esc = esc;
+}
+
+// ==========================================
 //  CAMADA DE DOMÍNIO: ESTRUTURA DE ELENCO & REGRAS
 // ==========================================
 let ROSTER_SLOTS_DEF = [

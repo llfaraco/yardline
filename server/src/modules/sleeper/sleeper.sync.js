@@ -254,16 +254,19 @@ function persistCatalog(catalog, capturedAt) {
       number=excluded.number, college=excluded.college, height=excluded.height, weight=excluded.weight,
       photo_url=excluded.photo_url, team_logo_url=excluded.team_logo_url, updated_at=excluded.updated_at
   `);
-  for (const player of Object.values(catalog || {})) {
-    const name = player.name || `Jogador #${player.id}`;
-    statement.run(
-      String(player.id), name, player.firstName || null, player.lastName || null, player.position || 'NFL',
-      player.team || null, player.status || 'Active', player.age ?? null, player.number != null ? String(player.number) : null,
-      player.college || null, player.height || null, player.weight || null, player.photoUrl || null,
-      player.team ? `https://a.espncdn.com/i/teamlogos/nfl/500/${String(player.team).toLowerCase()}.png` : null,
-      capturedAt, capturedAt
-    );
-  }
+  const insertMany = db.transaction((players) => {
+    for (const player of players) {
+      const name = player.name || `Jogador #${player.id}`;
+      statement.run(
+        String(player.id), name, player.firstName || null, player.lastName || null, player.position || 'NFL',
+        player.team || null, player.status || 'Active', player.age ?? null, player.number != null ? String(player.number) : null,
+        player.college || null, player.height || null, player.weight || null, player.photoUrl || null,
+        player.team ? `https://a.espncdn.com/i/teamlogos/nfl/500/${String(player.team).toLowerCase()}.png` : null,
+        capturedAt, capturedAt
+      );
+    }
+  });
+  insertMany(Object.values(catalog || {}));
 }
 
 function persistPlayerStats({ leagueId, season, week, stats, projections, capturedAt }) {
@@ -277,21 +280,25 @@ function persistPlayerStats({ leagueId, season, week, stats, projections, captur
     VALUES (?, ?, ?, ?, ?, ?, 'sleeper', 'sleeper-api', ?)
     ON CONFLICT(id) DO UPDATE SET projection=excluded.projection, created_at=excluded.created_at
   `);
-  const ids = new Set([...Object.keys(stats || {}), ...Object.keys(projections || {})]);
-  for (const playerId of ids) {
-    const pid = String(playerId);
-    if (!db.prepare('SELECT id FROM players WHERE id = ?').get(pid)) {
-      db.prepare(`INSERT INTO players (id, canonical_name, position, status, created_at, updated_at) VALUES (?, ?, 'NFL', 'Unknown', ?, ?)`)
-        .run(pid, `Jogador #${pid}`, capturedAt, capturedAt);
+  const checkPlayerStatement = db.prepare('SELECT id FROM players WHERE id = ?');
+  const insertMissingPlayerStatement = db.prepare(`INSERT INTO players (id, canonical_name, position, status, created_at, updated_at) VALUES (?, ?, 'NFL', 'Unknown', ?, ?)`);
+
+  const saveStatsTx = db.transaction((ids) => {
+    for (const playerId of ids) {
+      const pid = String(playerId);
+      if (!checkPlayerStatement.get(pid)) {
+        insertMissingPlayerStatement.run(pid, `Jogador #${pid}`, capturedAt, capturedAt);
+      }
+      const playerStats = stats?.[pid] || {};
+      const playerProjection = projections?.[pid] || {};
+      statsStatement.run(`stat_${leagueId}_${season}_${week}_${pid}`, pid, String(season), Number(week), JSON.stringify(playerStats), capturedAt);
+      const projection = playerProjection.pts_ppr ?? playerProjection.pts_half_ppr ?? playerProjection.pts_std ?? playerProjection.pts;
+      if (projection != null && Number.isFinite(Number(projection))) {
+        projectionStatement.run(`proj_${pid}_${season}_${week}_PPR`, pid, String(season), Number(week), 'PPR', Number(projection), capturedAt);
+      }
     }
-    const playerStats = stats?.[pid] || {};
-    const playerProjection = projections?.[pid] || {};
-    statsStatement.run(`stat_${leagueId}_${season}_${week}_${pid}`, pid, String(season), Number(week), JSON.stringify(playerStats), capturedAt);
-    const projection = playerProjection.pts_ppr ?? playerProjection.pts_half_ppr ?? playerProjection.pts_std ?? playerProjection.pts;
-    if (projection != null && Number.isFinite(Number(projection))) {
-      projectionStatement.run(`proj_${pid}_${season}_${week}_PPR`, pid, String(season), Number(week), 'PPR', Number(projection), capturedAt);
-    }
-  }
+  });
+  saveStatsTx(new Set([...Object.keys(stats || {}), ...Object.keys(projections || {})]));
 }
 
 function persistTransactions({ leagueId, season, week, transactions, capturedAt }) {
