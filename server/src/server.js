@@ -690,9 +690,87 @@ app.post('/api/lineups/simulate', (req, res) => {
 // 5. NOTÍCIAS (/api/news)
 // ==========================================
 app.get('/api/news', (req, res) => {
-  const { category, limit = 20, offset = 0 } = req.query;
-  const news = newsService.getNewsFeed({ category, limit: parseInt(limit, 10), offset: parseInt(offset, 10) });
-  res.json(news);
+  try {
+    const {
+      category,
+      source,
+      playerId,
+      filter,
+      leagueId = '1369770282776006656',
+      rosterId = 2,
+      week = 6,
+      limit = 20,
+      offset = 0
+    } = req.query;
+
+    let rosterPlayerIds = null;
+
+    if (filter === 'my_roster' || filter === 'MY_ROSTER') {
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (league) {
+        const roster = db.prepare('SELECT players_json FROM rosters WHERE league_id = ? AND provider_roster_id = ?').get(league.id, Number(rosterId));
+        if (roster) {
+          try { rosterPlayerIds = JSON.parse(roster.players_json || '[]'); } catch {}
+        }
+      }
+    } else if (filter === 'opponent' || filter === 'OPPONENT') {
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (league) {
+        const matchup = db.prepare('SELECT roster_a_id, roster_b_id FROM matchups WHERE league_id = ? AND week = ? AND (roster_a_id = ? OR roster_b_id = ?)').get(league.id, Number(week), Number(rosterId), Number(rosterId));
+        if (matchup) {
+          const oppId = matchup.roster_a_id === Number(rosterId) ? matchup.roster_b_id : matchup.roster_a_id;
+          const oppRoster = db.prepare('SELECT players_json FROM rosters WHERE league_id = ? AND provider_roster_id = ?').get(league.id, oppId);
+          if (oppRoster) {
+            try { rosterPlayerIds = JSON.parse(oppRoster.players_json || '[]'); } catch {}
+          }
+        }
+      }
+    } else if (filter === 'waivers' || filter === 'WAIVERS') {
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (league) {
+        const allRosters = db.prepare('SELECT players_json FROM rosters WHERE league_id = ?').all(league.id);
+        const owned = new Set();
+        for (const r of allRosters) {
+          try { JSON.parse(r.players_json || '[]').forEach(pid => owned.add(String(pid))); } catch {}
+        }
+        const allPlayers = db.prepare('SELECT id FROM players LIMIT 500').all();
+        rosterPlayerIds = allPlayers.filter(p => !owned.has(String(p.id))).map(p => String(p.id));
+      }
+    }
+
+    const news = newsService.getNewsFeed({
+      category: category || null,
+      source: source || null,
+      playerId: playerId || null,
+      rosterPlayerIds,
+      limit: parseInt(limit, 10) || 20,
+      offset: parseInt(offset, 10) || 0,
+      includeAthletes: true
+    });
+
+    res.json(news);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/news/sync-worker', (req, res) => {
+  try {
+    const workerJsonPath = path.resolve(__dirname, '../../news-worker/data/nfl-news.json');
+    const result = newsService.syncFromWorkerFile(workerJsonPath);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/news/ingest', (req, res) => {
+  try {
+    const result = newsService.ingestNewsItem(req.body);
+    res.status(result.isDuplicate ? 200 : 201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 app.get('/api/players/:playerId/history', (req, res) => {
@@ -782,4 +860,11 @@ app.get('/api/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 [YARDLINE API] Servidor de produção ativo na porta ${PORT}`);
   console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+  try {
+    const workerJsonPath = path.resolve(__dirname, '../../news-worker/data/nfl-news.json');
+    const syncRes = newsService.syncFromWorkerFile(workerJsonPath);
+    console.log(`📰 [NEWS SYNC] Ingestão inicial concluída: ${syncRes.ingested} novas, ${syncRes.duplicates} existentes (Total: ${syncRes.total})`);
+  } catch (e) {
+    console.warn(`📰 [NEWS SYNC] Aviso ao sincronizar notícias iniciais:`, e.message);
+  }
 });

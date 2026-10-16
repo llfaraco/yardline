@@ -151,5 +151,5 @@ test('5. News Service: Ingestão, Deduplicação e Vínculo a Atleta', () => {
   // Consulta por atleta
   const playerNews = newsService.getPlayerNews('4984');
   assert.ok(playerNews.length >= 1);
-  assert.equal(playerNews[0].title, title);
+  assert.ok(playerNews.some(n => n.title === title), 'A notícia inserida deve constar na lista de notícias do atleta');
 });

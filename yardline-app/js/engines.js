@@ -1,5 +1,5 @@
 // ==========================================
-// ⚙️ CAMADA DE DOMÍNIO: ESTRUTURA DE ELENCO & REGRAS
+//  CAMADA DE DOMÍNIO: ESTRUTURA DE ELENCO & REGRAS
 // ==========================================
 let ROSTER_SLOTS_DEF = [
   { key: "QB", label: "QB", allowed: ["QB"], required: true },
@@ -96,7 +96,7 @@ function saveLineupState() {
 }
 
 // ==========================================
-// 📊 MOTOR DE CÁLCULO DE PROJEÇÃO PARAMETRIZADA (ROSTER & SCORING)
+//  MOTOR DE CÁLCULO DE PROJEÇÃO PARAMETRIZADA (ROSTER & SCORING)
 // ==========================================
 function calculateLineupProjection(lineup, fmt = (typeof activeScoringFormat !== "undefined" ? activeScoringFormat : "PPR")) {
   if (!lineup || typeof lineup !== "object") return "0.0";
@@ -115,7 +115,7 @@ function calculateLineupTotalProjection() {
 }
 
 // ==========================================
-// 🔄 MOTOR DE SUBSTITUIÇÃO GUIADA (PLAYBOOK)
+//  MOTOR DE SUBSTITUIÇÃO GUIADA (PLAYBOOK)
 // ==========================================
 let activeSwapTarget = null; // { type: 'starter' | 'bench', slotKey: string, playerId: string }
 
@@ -157,7 +157,7 @@ function renderLineupSwapModal() {
           <span class="badge badge-crimson">SUBSTITUIÇÃO GUIADA DE ESCALAÇÃO</span>
           <h2 style="font-size:19px;font-weight:500;color:var(--yl-navy);margin:4px 0 0;">Substituir Titular no Slot ${slotKey} (${slotDef.label})</h2>
         </div>
-        <button class="btn-yl btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeModal('lineup-swap-modal')">✕ Fechar</button>
+        <button class="btn-yl btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeModal('lineup-swap-modal')">Fechar</button>
       </div>
 
       <!-- Current Starter Card -->
@@ -234,7 +234,7 @@ function renderLineupSwapModal() {
           <span class="badge badge-green">PROMOVER RESERVA A TITULAR</span>
           <h2 style="font-size:19px;font-weight:500;color:var(--yl-navy);margin:4px 0 0;">Promover ${benchPlayer.name} (${benchPlayer.pos})</h2>
         </div>
-        <button class="btn-yl btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeModal('lineup-swap-modal')">✕ Fechar</button>
+        <button class="btn-yl btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeModal('lineup-swap-modal')">Fechar</button>
       </div>
 
       <div style="display:flex;align-items:center;gap:14px;background:#F8FAFC;border:1px solid var(--border-light);border-radius:10px;padding:14px;margin-bottom:18px;">
@@ -367,7 +367,7 @@ function optimizeLineupEngine() {
 }
 
 // ==========================================
-// ⚖️ MOTOR ANALÍTICO: SCORING FORMAT, VBD, SIMULAÇÃO DE TITULARES & TRADE ANALYZER
+//  MOTOR ANALÍTICO: SCORING FORMAT, VBD, SIMULAÇÃO DE TITULARES & TRADE ANALYZER
 // ==========================================
 let activeScoringFormat = "PPR"; // "PPR", "HALF_PPR", "STANDARD", "TE_PREMIUM"
 try {
@@ -540,13 +540,13 @@ function copyFormattedTradeProposal() {
   const oppTeamObj = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS : []).find(t => t.rosterId === tradeTargetRosterId);
   const oppName = oppTeamObj?.name || `Time ${tradeTargetRosterId}`;
 
-  const text = `🏈 *[YARDLINE ANALYTICS] PROPOSTA DE TROCA OFICIAL*\n\n` +
-    `👤 *De:* Gengar My Balls (@Faraco)\n` +
-    `🎯 *Para:* ${oppName} (${oppTeamObj?.owner || ''})\n` +
-    `⚙️ *Formato de Pontuação:* ${activeScoringFormat.replace('_', ' ')}\n\n` +
-    `📤 *Meu Time Envia:*\n  • ${userP || 'Nenhum atleta selecionado'}\n\n` +
-    `📥 *Meu Time Recebe:*\n  • ${targetP || 'Nenhum atleta selecionado'}\n\n` +
-    `📊 *Diagnóstico Técnico YARDLINE:*\n` +
+  const text = `*[YARDLINE ANALYTICS] PROPOSTA DE TROCA OFICIAL*\n\n` +
+    `*De:* Gengar My Balls (@Faraco)\n` +
+    `*Para:* ${oppName} (${oppTeamObj?.owner || ''})\n` +
+    `*Formato de Pontuação:* ${activeScoringFormat.replace('_', ' ')}\n\n` +
+    `*Meu Time Envia:*\n  • ${userP || 'Nenhum atleta selecionado'}\n\n` +
+    `*Meu Time Recebe:*\n  • ${targetP || 'Nenhum atleta selecionado'}\n\n` +
+    `*Diagnóstico Técnico YARDLINE:*\n` +
     `• Avaliação posicional VBD e projeções da Semana ${activeLeagueWeek || 6}.\n` +
     `• O que você acha? Podemos fechar na plataforma Sleeper?`;
 
@@ -784,7 +784,7 @@ function renderTradeView() {
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
                   <span class="badge badge-navy" style="font-size:11px;padding:3px 8px;">${val} pts</span>
-                  <button onclick="event.stopPropagation();removeTradeUserPick('${p.id}')" title="Remover jogador" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:15px;padding:2px 6px;">✕</button>
+                  <button onclick="event.stopPropagation();removeTradeUserPick('${p.id}')" title="Remover jogador" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:15px;padding:2px 6px;"></button>
                 </div>
               </div>
             `;
@@ -860,7 +860,7 @@ function renderTradeView() {
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
                   <span class="badge badge-green" style="font-size:11px;padding:3px 8px;">${val} pts</span>
-                  <button onclick="event.stopPropagation();removeTradeTargetPick('${p.id}')" title="Remover jogador" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:15px;padding:2px 6px;">✕</button>
+                  <button onclick="event.stopPropagation();removeTradeTargetPick('${p.id}')" title="Remover jogador" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:15px;padding:2px 6px;"></button>
                 </div>
               </div>
             `;
@@ -890,7 +890,7 @@ function renderTradeView() {
 }
 
 // ==========================================
-// 💡 CORREÇÃO DO WAIVERS & DROP
+//  CORREÇÃO DO WAIVERS & DROP
 // ==========================================
 function simulateWaiverAddition(claimedPlayerId) {
   const dropSelect = document.getElementById("waiver-drop-select");
@@ -930,7 +930,7 @@ function simulateWaiverAddition(claimedPlayerId) {
 
 
 // ==========================================
-// 🏈 CONEXÃO DIRETA COM A LIGA REAL DO SLEEPER
+//  CONEXÃO DIRETA COM A LIGA REAL DO SLEEPER
 // League ID: 1369770282776006656 · Time: Gengar My Balls (@Faraco)
 // ==========================================
 const REAL_SLEEPER_LEAGUE_ID = "1369770282776006656";
@@ -948,7 +948,7 @@ let activeWaiverPosFilter = "TODOS";
 let activeWaiverSearchQuery = "";
 
 // ==========================================
-// ⚡ MOTOR DE WAIVERS: DERIVAÇÃO REAL POR DIFERENÇA DE CONJUNTOS (SPEC.md)
+//  MOTOR DE WAIVERS: DERIVAÇÃO REAL POR DIFERENÇA DE CONJUNTOS (SPEC.md)
 // Todos os atletas ativos da NFL (QB, RB, WR, TE, K, DEF, IDP) MENOS todos os player_id dos 12+ rosters
 // ==========================================
 function deriveLeagueFreeAgents() {
@@ -1012,7 +1012,7 @@ function deriveLeagueFreeAgents() {
 }
 
 // ==========================================
-// 💾 INDEXEDDB ENGINE: CACHE DE ALTA CAPACIDADE (PLAYERS NFL ~35MB)
+//  INDEXEDDB ENGINE: CACHE DE ALTA CAPACIDADE (PLAYERS NFL ~35MB)
 // Banco: YardlinePlayersCacheDB · Store: players_cache · TTL: 24 Horas
 // ==========================================
 const YL_IDB_NAME = "YardlinePlayersCacheDB";
@@ -1102,7 +1102,7 @@ function saveSleeperPlayersToIDB(data) {
 }
 
 // ==========================================
-// 🔗 MAPA OFICIAL DE EQUIVALÊNCIA SLEEPER <-> ESPN & DEFESAS
+//  MAPA OFICIAL DE EQUIVALÊNCIA SLEEPER <-> ESPN & DEFESAS
 // ==========================================
 const SLEEPER_TO_ESPN_MAP = {"4984": "3918298", "4040": "3139477", "4881": "3916387", "6904": "4040715", "8183": "4361741", "3163": "3046779", "6770": "3915511", "9229": "4432577", "2449": "2577417", "4981": "3912547", "96": "8439", "6797": "4241479", "11626": "4431452", "6790": "4035676", "11628": "4431456", "11625": "4431611", "11627": "4426348", "6804": "4036378", "1234": "14880", "4892": "3052587", "5849": "3917315", "138": "12483", "1387": "15864", "4866": "3929630", "3198": "3043078", "9226": "4430736", "8138": "4426515", "6813": "4035686", "4034": "3117251", "8155": "4426516", "3969": "3116385", "8150": "4430743", "9509": "4430746", "7561": "4361528", "8136": "4430745", "3164": "3128720", "7528": "4241457", "8129": "4426518", "6806": "4242335", "7588": "4241458", "9221": "4430750", "5927": "4035681", "9497": "4430751", "7543": "4361525", "5850": "4035680", "6801": "4239993", "8161": "4035684", "6820": "4430752", "8144": "4241460", "5848": "4035675", "9225": "4430758", "7567": "4241463", "4035": "3054850", "11632": "4431463", "8151": "4426511", "4199": "3045147", "8132": "4430761", "8154": "4430762", "9224": "4430763", "4144": "3051890", "7591": "4035685", "9494": "4430739", "11635": "4430737", "7553": "4374302", "6794": "4262921", "6803": "4241478", "7564": "4362628", "5859": "4040761", "7569": "4258173", "2374": "3116406", "2133": "16800", "7525": "4241478", "5872": "4035687", "8152": "4430735", "9493": "4430734", "2216": "2976212", "9492": "4430738", "6819": "4035687", "9488": "4430742", "8146": "4430744", "7526": "4372016", "9511": "4430747", "8139": "4426519", "6826": "4035682", "9484": "4430749", "11631": "4431454", "5001": "3116405", "5012": "3128429", "5987": "4035679", "11634": "4431458", "11630": "4431459", "8130": "4430753", "5916": "4035677", "4983": "3915416", "1479": "15795", "11629": "4431460", "9228": "4430754", "8137": "4430755", "7571": "4430756", "8131": "4426513", "6845": "4241462", "5846": "4035674", "8121": "4426512", "8205": "4430760", "2197": "16733", "4037": "3116165", "11633": "4431464", "4039": "2977644", "9482": "4426507", "5844": "4035683", "9227": "4430764", "4217": "3040151", "1466": "15847", "9223": "4426514", "5022": "3121422", "4985": "3915510", "8134": "4426517", "5009": "3917796", "8153": "4430740", "11636": "4431457", "6824": "4241461", "9508": "4430757", "7559": "4360311", "8160": "4426508", "9510": "4430741", "1264": "15683", "4227": "4035691", "4220": "4035692", "6947": "4035690", "6786": "4241389"};
 const ESPN_TO_SLEEPER_MAP = {};
@@ -1368,7 +1368,7 @@ async function syncRealSleeperLeagueLiveLegacy() {
     return true;
   } catch (err) {
     console.error("Sleeper live API sync notice:", err);
-    showToast("ℹ️ Base local de 'Gengar My Balls' ativa. Clique em 'Auditar' na aba Liga para recarregar.");
+    showToast("ℹ Base local de 'Gengar My Balls' ativa. Clique em 'Auditar' na aba Liga para recarregar.");
     return false;
   }
 }
@@ -1511,7 +1511,7 @@ function resolveNFLPlayer(playerId) {
 
 
 // ==========================================
-// 🦉 MOTOR HOOTFF v16: COMMAND CENTER, SELETOR DE TIME & PROJEÇÕES EDITÁVEIS
+//  MOTOR HOOTFF v16: COMMAND CENTER, SELETOR DE TIME & PROJEÇÕES EDITÁVEIS
 // ==========================================
 let selectedActiveRosterId = 2; // Roster ID oficial de Gengar My Balls
 
@@ -1544,7 +1544,7 @@ let LEAGUE_12_TEAMS = [
   { rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "973.1", fptsAgainst: "831.3", projTotal: 138.4, isMyTeam: false },
   { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "940.3", fptsAgainst: "905.0", projTotal: 135.2, isMyTeam: false },
   { rosterId: 9, name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "917.1", fptsAgainst: "847.1", projTotal: 133.0, isMyTeam: false },
-  { rosterId: 8, name: "Paranaguá Rat Crew 🏆🏆", owner: "@cauexavier", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "893.4", fptsAgainst: "845.7", projTotal: 131.5, isMyTeam: false },
+  { rosterId: 8, name: "Paranaguá Rat Crew", owner: "@cauexavier", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "893.4", fptsAgainst: "845.7", projTotal: 131.5, isMyTeam: false },
   { rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2", wins: 3, losses: 2, ties: 0, fpts: "849.5", fptsAgainst: "770.5", projTotal: 128.0, isMyTeam: false },
   { rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "977.0", fptsAgainst: "923.7", projTotal: 134.5, isMyTeam: false },
   { rosterId: 6, name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "863.5", fptsAgainst: "881.4", projTotal: 127.8, isMyTeam: false },
@@ -1659,7 +1659,7 @@ function renderPlaybookView() {
       </div>
     </div>
 
-    <!-- 🚨 HOOTFF COMMAND CENTER (4 BLOCOS TÁTICOS) -->
+    <!--  HOOTFF COMMAND CENTER (4 BLOCOS TÁTICOS) -->
     <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:20px;">
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid var(--yl-emerald);">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Eficiência da Escalação</div>
@@ -1731,7 +1731,7 @@ function renderPlaybookView() {
                       <input type="number" step="0.1" value="${effectiveProj}" 
                              style="width:58px;padding:3px 6px;border:1px solid ${isCustom ? 'var(--yl-crimson)' : 'var(--border-light)'};border-radius:4px;font-family:monospace;font-size:12px;font-weight:500;color:${isCustom ? 'var(--yl-crimson)' : 'var(--yl-navy)'};background:${isCustom ? '#FEF2F2' : '#FFF'};"
                              onchange="updateCustomProjection('${p.id}', this.value)">
-                      ${isCustom ? '<span style="font-size:10px;color:var(--yl-crimson);">✎</span>' : ''}
+                      ${isCustom ? '<span style="font-size:10px;color:var(--yl-crimson);"></span>' : ''}
                     </div>
                   </td>
                   <td>
@@ -1811,7 +1811,7 @@ function renderPlaybookView() {
 }
 
 // ==========================================
-// 🏆 ABA LIGA: AUDITORIA SLEEPER, DUELO SEMANA 6 & CLASSIFICAÇÃO
+//  ABA LIGA: AUDITORIA SLEEPER, DUELO SEMANA 6 & CLASSIFICAÇÃO
 // ==========================================
 isSleeperAuditing = false;
 
@@ -1930,7 +1930,7 @@ function renderLeagueView() {
           <div id="sleeper-audit-progress-bar" style="width:100%;height:100%;background:var(--yl-emerald);transition:width 0.2s;"></div>
         </div>
         <div id="sleeper-audit-live-logs" style="max-height:85px;overflow-y:auto;font-size:11.5px;line-height:1.5;">
-          <div style="color:#047857;font-family:monospace;">✓ Sincronização oficial concluída com sucesso. ${LEAGUE_12_TEAMS.length} elencos, catálogo IndexedDB (YardlinePlayersCacheDB) e Duelo da Semana ${currentWeek} carregados.</div>
+          <div style="color:#047857;font-family:monospace;"> Sincronização oficial concluída com sucesso. ${LEAGUE_12_TEAMS.length} elencos, catálogo IndexedDB (YardlinePlayersCacheDB) e Duelo da Semana ${currentWeek} carregados.</div>
         </div>
       </div>
     </div>
@@ -2006,7 +2006,7 @@ function renderLeagueView() {
 }
 
 // ==========================================
-// ⚡ ABA WAIVERS: JOGADORES LIVRES DERIVADOS DA NFL
+//  ABA WAIVERS: JOGADORES LIVRES DERIVADOS DA NFL
 // ==========================================
 function filterWaiverPos(pos) {
   activeWaiverPosFilter = pos;
@@ -2209,7 +2209,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.resolveNFLPlayer=function(id){const sid=String(id||''),raw=window.YL_CANONICAL.players[sid];if(raw){const p=Object.assign({},raw,{id:sid,sleeperId:sid,name:raw.full_name||raw.name||[raw.first_name,raw.last_name].filter(Boolean).join(' ')||`Jogador #${sid}`,pos:raw.position||raw.pos||raw.fantasy_positions?.[0]||'FLEX',team:raw.team||'FA',teamName:raw.team||'Free Agent',teamLogo:raw.teamLogo||teamLogo(raw.team),photo:raw.photoUrl||raw.photo||`https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`,injuryStatus:raw.injury_status||raw.injuryStatus||(raw.status==='Active'?'Sem restrição':raw.status)||'Sem restrição'});const old=oldBySleeper(sid);return Object.assign({},old||{},p); }return oldBySleeper(sid)||(typeof originalResolve==='function'?originalResolve(sid):null);};
   window.syncRealSleeperLeagueLive=async function(){
     showToast(`⏳ Carregando liga Sleeper #${REAL_SLEEPER_LEAGUE_ID}...`);
-    try{const [lr,ur,rr]=await Promise.all([timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/users`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/rosters`,9000)]);if(!lr.ok||!ur.ok||!rr.ok)throw Error('Sleeper indisponível');activeSleeperLeagueData=await lr.json();activeSleeperUsers=await ur.json();activeSleeperRosters=await rr.json();activeLeagueWeek=Number(activeSleeperLeagueData.settings?.leg||activeSleeperLeagueData.settings?.last_scored_leg||1);const me=activeSleeperUsers.find(u=>String(u.display_name||u.username||'').toLowerCase()==='faraco');const mine=activeSleeperRosters.find(r=>String(r.owner_id)===String(me?.user_id))||null;userRealRoster=mine;selectedActiveRosterId=mine?.roster_id||null;userStarters=(mine?.starters||[]).map(String);userBenchList=(mine?.players||[]).map(String).filter(x=>!userStarters.includes(x));userBench=userBenchList.slice();userLineup={};(ROSTER_SLOTS_DEF||[]).forEach((s,i)=>{if(userStarters[i])userLineup[s.key]=userStarters[i];});LEAGUE_12_TEAMS=activeSleeperRosters.map(r=>{const u=activeSleeperUsers.find(x=>String(x.user_id)===String(r.owner_id)),m=u?.metadata||{};return{rosterId:r.roster_id,name:m.team_name||u?.display_name||`Roster #${r.roster_id}`,owner:u?.display_name?`@${u.display_name}`:'',record:`${r.settings?.wins||0}-${r.settings?.losses||0}`,wins:r.settings?.wins||0,losses:r.settings?.losses||0,ties:r.settings?.ties||0,fpts:String(r.settings?.fpts||0),fptsAgainst:String(r.settings?.fpts_against||0),isMyTeam:Boolean(mine && Number(r.roster_id)===Number(mine.roster_id)),roster:r};});let matchup=[];try{const mr=await timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/matchups/${activeLeagueWeek}`,7000);if(mr.ok)matchup=await mr.json();}catch(e){}const mm=mine?matchup.find(x=>Number(x.roster_id)===Number(mine.roster_id)):null,opp=mm?.matchup_id!=null?matchup.find(x=>x.matchup_id===mm.matchup_id&&Number(x.roster_id)!==Number(mine?.roster_id)):null;activeRealMatchup={week:activeLeagueWeek,matchupId:mm?.matchup_id||null,myRoster:mine,oppRoster:opp,myScore:mm?.points||0,oppScore:opp?.points||0};activeRealMatchupWeek6=activeRealMatchup;if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();showToast(`✅ Liga carregada: ${activeSleeperRosters.length} times · Semana ${activeLeagueWeek}`);timeout(`${API}/players/nfl`,12000).then(async r=>{if(!r.ok)return;window.YL_CANONICAL.players=await r.json();window.YL_CANONICAL.fetchedAt=Date.now();if(typeof indexSleeperPlayersCatalog==='function')indexSleeperPlayersCatalog(window.YL_CANONICAL.players);if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();if(typeof renderPlayersView==='function')renderPlayersView();}).catch(e=>console.warn('Catálogo em segundo plano indisponível',e));}catch(e){console.error(e);showToast('⚠️ Não foi possível atualizar os dados da liga.');}
+    try{const [lr,ur,rr]=await Promise.all([timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/users`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/rosters`,9000)]);if(!lr.ok||!ur.ok||!rr.ok)throw Error('Sleeper indisponível');activeSleeperLeagueData=await lr.json();activeSleeperUsers=await ur.json();activeSleeperRosters=await rr.json();activeLeagueWeek=Number(activeSleeperLeagueData.settings?.leg||activeSleeperLeagueData.settings?.last_scored_leg||1);const me=activeSleeperUsers.find(u=>String(u.display_name||u.username||'').toLowerCase()==='faraco');const mine=activeSleeperRosters.find(r=>String(r.owner_id)===String(me?.user_id))||null;userRealRoster=mine;selectedActiveRosterId=mine?.roster_id||null;userStarters=(mine?.starters||[]).map(String);userBenchList=(mine?.players||[]).map(String).filter(x=>!userStarters.includes(x));userBench=userBenchList.slice();userLineup={};(ROSTER_SLOTS_DEF||[]).forEach((s,i)=>{if(userStarters[i])userLineup[s.key]=userStarters[i];});LEAGUE_12_TEAMS=activeSleeperRosters.map(r=>{const u=activeSleeperUsers.find(x=>String(x.user_id)===String(r.owner_id)),m=u?.metadata||{};return{rosterId:r.roster_id,name:m.team_name||u?.display_name||`Roster #${r.roster_id}`,owner:u?.display_name?`@${u.display_name}`:'',record:`${r.settings?.wins||0}-${r.settings?.losses||0}`,wins:r.settings?.wins||0,losses:r.settings?.losses||0,ties:r.settings?.ties||0,fpts:String(r.settings?.fpts||0),fptsAgainst:String(r.settings?.fpts_against||0),isMyTeam:Boolean(mine && Number(r.roster_id)===Number(mine.roster_id)),roster:r};});let matchup=[];try{const mr=await timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/matchups/${activeLeagueWeek}`,7000);if(mr.ok)matchup=await mr.json();}catch(e){}const mm=mine?matchup.find(x=>Number(x.roster_id)===Number(mine.roster_id)):null,opp=mm?.matchup_id!=null?matchup.find(x=>x.matchup_id===mm.matchup_id&&Number(x.roster_id)!==Number(mine?.roster_id)):null;activeRealMatchup={week:activeLeagueWeek,matchupId:mm?.matchup_id||null,myRoster:mine,oppRoster:opp,myScore:mm?.points||0,oppScore:opp?.points||0};activeRealMatchupWeek6=activeRealMatchup;if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();showToast(` Liga carregada: ${activeSleeperRosters.length} times · Semana ${activeLeagueWeek}`);timeout(`${API}/players/nfl`,12000).then(async r=>{if(!r.ok)return;window.YL_CANONICAL.players=await r.json();window.YL_CANONICAL.fetchedAt=Date.now();if(typeof indexSleeperPlayersCatalog==='function')indexSleeperPlayersCatalog(window.YL_CANONICAL.players);if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();if(typeof renderPlayersView==='function')renderPlayersView();}).catch(e=>console.warn('Catálogo em segundo plano indisponível',e));}catch(e){console.error(e);showToast(' Não foi possível atualizar os dados da liga.');}
   };
 })();
 
@@ -2302,7 +2302,7 @@ if (typeof window !== 'undefined') {
       userStarters = (userRealRoster?.starters || []).map(String).filter(Boolean); const reserve = new Set((userRealRoster?.reserve || []).map(String)); const starters = new Set(userStarters); userBenchList = (userRealRoster?.players || []).map(String).filter(pid => pid && !starters.has(pid) && !reserve.has(pid)); userBench = userBenchList.slice(); userReserveList = [...reserve]; userLineup = {}; (ROSTER_SLOTS_DEF || []).forEach((slot, index) => { if (userStarters[index]) userLineup[slot.key] = userStarters[index]; });
       LEAGUE_12_TEAMS = (snapshot.standings || []).map(team => ({ ...team, name: team.teamName, owner: team.manager, rosterId: team.rosterId, isMyTeam: Number(team.rosterId) === Number(userRealRoster?.roster_id) }));
       const current = (snapshot.matchups || []).find(m => Number(m.roster_a_id) === Number(userRealRoster?.roster_id) || Number(m.roster_b_id) === Number(userRealRoster?.roster_id)); const isA = current && Number(current.roster_a_id) === Number(userRealRoster?.roster_id); const opponentRosterId = current ? (isA ? current.roster_b_id : current.roster_a_id) : null; const opponentRoster = activeSleeperRosters.find(r => Number(r.roster_id) === Number(opponentRosterId)); activeRealMatchup = current ? { week: activeLeagueWeek, matchupId: current.provider_matchup_id, myRoster: userRealRoster, oppRoster: opponentRoster, myScore: isA ? current.score_a : current.score_b, oppScore: isA ? current.score_b : current.score_a, snapshot: current } : null; activeRealMatchupWeek6 = activeRealMatchup;
-      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); if (typeof renderTradeView === 'function') renderTradeView(); showToast(`✅ Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
+      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); if (typeof renderTradeView === 'function') renderTradeView(); showToast(` Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
     } catch (e) { console.error('[Yardline sync]', e); showToast(`${e.message || 'Não foi possível atualizar os dados.'}`); throw e; }
   };
 }
@@ -2476,7 +2476,7 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
 
 
 // ==========================================
-// ⚙️ SLEEPER AUDIT SCORING ENGINE (PILLAR 2)
+//  SLEEPER AUDIT SCORING ENGINE (PILLAR 2)
 // Liga: Neilo Pistola League (16 times, Keeper PPR com IDP)
 // ==========================================
 (function() {
