@@ -1,17 +1,17 @@
 {
-  "timestamp": "2026-10-16T15:31:15.508Z",
+  "timestamp": "2026-10-16T17:01:13.485Z",
   "branch": "main",
-  "commit": "8257011",
+  "commit": "60b2725",
   "build": "node v24.14.0 (Windows x64)",
   "backendStatus": "ONLINE",
-  "databaseStatus": "CONNECTED (10500 atletas)",
+  "databaseStatus": "CONNECTED (10504 atletas)",
   "liveServerStatus": "ONLINE (200 OK)",
   "sleeperSync": {
     "status": "PASS",
     "httpStatus": 200,
-    "beforeCount": 10500,
-    "afterCount": 10500,
-    "preservedCount": 10500,
+    "beforeCount": 10504,
+    "afterCount": 10504,
+    "preservedCount": 10504,
     "rosterStartersCount": 19,
     "emptyResponseProtection": "PASS",
     "zeroMockRulePassed": true,
@@ -101,6 +101,18 @@
       "closeViaBackdropSuccess": true,
       "overlayBlocksAfterClose": false,
       "status": "PASS"
+    },
+    "start-sit-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
     }
   },
   "navigationTabs": {},
@@ -112,10 +124,10 @@
     "feedStatus": "PASS"
   },
   "testSummary": {
-    "passed": 11,
+    "passed": 12,
     "failed": 0,
     "blocked": 0,
-    "total": 11
+    "total": 12
   },
   "newBugs": [],
   "reopenedBugs": [],

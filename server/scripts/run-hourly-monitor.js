@@ -167,7 +167,8 @@ async function runMonitor() {
       'lineup-swap-modal',
       'waiver-modal',
       'checkout-modal',
-      'manager-dna-modal'
+      'manager-dna-modal',
+      'start-sit-modal'
     ];
 
     for (const modalId of targetModals) {

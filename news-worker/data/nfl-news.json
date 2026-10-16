@@ -1,6 +1,6 @@
 {
   "source": "https://www.nfl.com/news",
-  "updatedAt": "2026-10-16T15:31:06.990Z",
+  "updatedAt": "2026-10-16T17:01:07.130Z",
   "items": [
     {
       "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC1uZXdzLXJvdW5kdXAtbGF0ZXN0LWxlYWd1ZS11cGRhdGVzLWZyb20tZnJpZGF5LW9jdC05",
@@ -11,7 +11,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.125Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -24,7 +24,20 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.125Z",
+      "playerIds": [],
+      "teamCodes": []
+    },
+    {
+      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC1uZXdzLXJvdW5kdXAtbGF0ZXN0LWxlYWd1ZS11cGRhdGVzLWZyb20tdGh1cnNkYXktb2N0LTg",
+      "source": "NFL.com",
+      "sourceUrl": "https://www.nfl.com/news/nfl-news-roundup-latest-league-updates-from-thursday-oct-8",
+      "title": "Roundup: Raiders RB downgraded; Ladd one of 8 Chargers DNPs",
+      "summary": "NFL.com keeps you up to date with all of the latest league news from around the NFL. Visit NFL.com's transaction hub for a daily breakdown.",
+      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
+      "section": "latest",
+      "publishedAt": null,
+      "fetchedAt": "2026-10-16T17:01:07.125Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -37,7 +50,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.124Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -50,7 +63,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.124Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -63,7 +76,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.124Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -76,7 +89,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.124Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -89,20 +102,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
-      "playerIds": [],
-      "teamCodes": []
-    },
-    {
-      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL3NlYWhhd2tzLXZzLWJyb25jb3MtdGhyZWUtbXVzdC1rbm93LXN0b3J5bGluZXMtZm9yLXRodXJzZGF5LXMtd2Vlay02LXByaW1lLXRpbWUtZ2FtZQ",
-      "source": "NFL.com",
-      "sourceUrl": "https://www.nfl.com/news/seahawks-vs-broncos-three-must-know-storylines-for-thursday-s-week-6-prime-time-game",
-      "title": "3 must-know subplots for SEA-DEN: Will Darnold or Nix step up?",
-      "summary": "Can Sam Darnold leave his turnover woes behind? Will Bo Nix rise to the occasion on the national stage? In advance of Thursday's game between the Seahawks and Broncos, Dan Parr provides three storylines you need to know.",
-      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ktgwfnyvxujwoc5dhqeb",
-      "section": "latest",
-      "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.122Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -115,7 +115,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/wj4vl3txj22pic52pk5t",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.982Z",
+      "fetchedAt": "2026-10-16T17:01:07.122Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -128,20 +128,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
-      "playerIds": [],
-      "teamCodes": []
-    },
-    {
-      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL3JhbXMtcmVsZWFzaW5nLWtpY2tlci1oYXJyaXNvbi1tZXZpcy1zaWduaW5nLWstYmxha2UtZ3J1cGUtb2ZmLWpldHMtcHJhY3RpY2Utc3F1YWQ",
-      "source": "NFL.com",
-      "sourceUrl": "https://www.nfl.com/news/rams-releasing-kicker-harrison-mevis-signing-k-blake-grupe-off-jets-practice-squad",
-      "title": "Rams release kicker Mevis, sign Grupe after OT loss to Bills",
-      "summary": "The Los Angeles Rams are releasing kicker Harrison Mevis following their Monday night loss to the Buffalo Bills and signing Blake Grupe off the New York Jets' practice squad.",
-      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/tdgrmnfxheshkssc3cno",
-      "section": "latest",
-      "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.122Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -154,7 +141,20 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/co6rggbui2rrmejvkjp3",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.122Z",
+      "playerIds": [],
+      "teamCodes": []
+    },
+    {
+      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC1xYi1yYW5raW5ncy13ZWVrLTYtMjAyNi1uZmwtc2Vhc29u",
+      "source": "NFL.com",
+      "sourceUrl": "https://www.nfl.com/news/nfl-qb-rankings-week-6-2026-nfl-season",
+      "title": "QB rankings, 1-32: Allen back at No. 1; Love, Winston biggest risers",
+      "summary": "Who leapfrogs Brock Purdy at the top of Nick Shook's QB rankings? Where does Jordan Love land after a huge performance? Check out the updated pecking order, 1-32, heading into Week 4 of the 2026 NFL season.",
+      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/zkd98y8rypx4xsz0svvb",
+      "section": "latest",
+      "publishedAt": null,
+      "fetchedAt": "2026-10-16T17:01:07.122Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -167,7 +167,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/nwsosnba6p0xhcddylfd",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.121Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -180,7 +180,7 @@
       "heroImg": "https://static.www.nfl.com/image/private/f_auto,q_auto,dpr_2.0/league/kxla0jtsn1rzu1izmqsb",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.121Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -193,7 +193,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/nn4p3ozuspadoyxsvvsv",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.121Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -206,7 +206,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/arugvq5c6lijdg4ufr9u",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.121Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -219,7 +219,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ey68bdtbhghifrnwk0ac",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.121Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -232,7 +232,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.121Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -245,7 +245,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/et8h9esacdi8flindqxs",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -258,7 +258,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/lw85r6hhxn0npsrqubqz",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -271,7 +271,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/lx1vdick6wqr4cv5z9lw",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -284,7 +284,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/z8sxx6gl8ftzwmpupxyw",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -297,7 +297,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/njy8xg1ozwroe7yk3onk",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -310,7 +310,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/d8gf6t9ahfqfmjbobqxq",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -323,7 +323,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/xmhjza0wni4clwmigoqc",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -336,7 +336,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ecrd37h4a2iuqzwfuol4",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.118Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -349,7 +349,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ytdtsxk34bcmofjays3j",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -362,7 +362,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/r2w8d49ubcjowotuidmc",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -375,7 +375,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -388,7 +388,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/pmmzcmvpguv3vbvinkir",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -401,20 +401,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/sjxgwo7hz61grfc7psez",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.981Z",
-      "playerIds": [],
-      "teamCodes": []
-    },
-    {
-      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC13ZWVrLTYtYm9sZC1wcmVkaWN0aW9ucy1kYXZpZC1iYWlsZXktZG91Ymxlcy1kb3duLWdpYW50cy1yYi1jYW0tc2thdHRlYm8tZW5qb3lzLWNhcmVlci1kYXk",
-      "source": "NFL.com",
-      "sourceUrl": "https://www.nfl.com/news/nfl-week-6-bold-predictions-david-bailey-doubles-down-giants-rb-cam-skattebo-enjoys-career-day",
-      "title": "Bold predictions: Surging rookie provides encore; career day from second-year RB Bold predictions: Another big day from surging rookie",
-      "summary": "",
-      "heroImg": "",
-      "section": "latest",
-      "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -427,7 +414,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -440,20 +427,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
-      "playerIds": [],
-      "teamCodes": []
-    },
-    {
-      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC1xYi1yYW5raW5ncy13ZWVrLTYtMjAyNi1uZmwtc2Vhc29u",
-      "source": "NFL.com",
-      "sourceUrl": "https://www.nfl.com/news/nfl-qb-rankings-week-6-2026-nfl-season",
-      "title": "QB rankings, 1-32: Allen back at No. 1; Love, Winston biggest risers QB rankings, 1-32: Allen back at No. 1; Love rising",
-      "summary": "",
-      "heroImg": "",
-      "section": "latest",
-      "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -466,7 +440,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -479,7 +453,7 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -492,7 +466,33 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
+      "playerIds": [],
+      "teamCodes": []
+    },
+    {
+      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL3RleGFucy12cy1qYWd1YXJzLXByZXZpZXctd2Vlay02LWxvbmRvbi1nYW1l",
+      "source": "NFL.com",
+      "sourceUrl": "https://www.nfl.com/news/texans-vs-jaguars-preview-week-6-london-game",
+      "title": "Texans vs. Jaguars: Three must-know storylines for Sunday's game in London Texans vs. Jags: Must-know storylines for London tilt",
+      "summary": "",
+      "heroImg": "",
+      "section": "latest",
+      "publishedAt": null,
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
+      "playerIds": [],
+      "teamCodes": []
+    },
+    {
+      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC13ZWVrLTYtYm9sZC1wcmVkaWN0aW9ucy1kYXZpZC1iYWlsZXktZG91Ymxlcy1kb3duLWdpYW50cy1yYi1jYW0tc2thdHRlYm8tZW5qb3lzLWNhcmVlci1kYXk",
+      "source": "NFL.com",
+      "sourceUrl": "https://www.nfl.com/news/nfl-week-6-bold-predictions-david-bailey-doubles-down-giants-rb-cam-skattebo-enjoys-career-day",
+      "title": "Bold predictions: Surging rookie provides encore; career day from second-year RB Bold predictions: Another big day from surging rookie",
+      "summary": "",
+      "heroImg": "",
+      "section": "latest",
+      "publishedAt": null,
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -505,7 +505,7 @@
       "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/qequ7rrt1yoydryjvt5i",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.117Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -518,7 +518,33 @@
       "heroImg": "",
       "section": "latest",
       "publishedAt": null,
-      "fetchedAt": "2026-10-16T15:31:06.980Z",
+      "fetchedAt": "2026-10-16T17:01:07.116Z",
+      "playerIds": [],
+      "teamCodes": []
+    },
+    {
+      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL3NlYWhhd2tzLXZzLWJyb25jb3MtdGhyZWUtbXVzdC1rbm93LXN0b3J5bGluZXMtZm9yLXRodXJzZGF5LXMtd2Vlay02LXByaW1lLXRpbWUtZ2FtZQ",
+      "source": "NFL.com",
+      "sourceUrl": "https://www.nfl.com/news/seahawks-vs-broncos-three-must-know-storylines-for-thursday-s-week-6-prime-time-game",
+      "title": "3 must-know subplots for SEA-DEN: Will Darnold or Nix step up?",
+      "summary": "Can Sam Darnold leave his turnover woes behind? Will Bo Nix rise to the occasion on the national stage? In advance of Thursday's game between the Seahawks and Broncos, Dan Parr provides three storylines you need to know.",
+      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ktgwfnyvxujwoc5dhqeb",
+      "section": "latest",
+      "publishedAt": null,
+      "fetchedAt": "2026-10-16T16:26:07.049Z",
+      "playerIds": [],
+      "teamCodes": []
+    },
+    {
+      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL3JhbXMtcmVsZWFzaW5nLWtpY2tlci1oYXJyaXNvbi1tZXZpcy1zaWduaW5nLWstYmxha2UtZ3J1cGUtb2ZmLWpldHMtcHJhY3RpY2Utc3F1YWQ",
+      "source": "NFL.com",
+      "sourceUrl": "https://www.nfl.com/news/rams-releasing-kicker-harrison-mevis-signing-k-blake-grupe-off-jets-practice-squad",
+      "title": "Rams release kicker Mevis, sign Grupe after OT loss to Bills",
+      "summary": "The Los Angeles Rams are releasing kicker Harrison Mevis following their Monday night loss to the Buffalo Bills and signing Blake Grupe off the New York Jets' practice squad.",
+      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/tdgrmnfxheshkssc3cno",
+      "section": "latest",
+      "publishedAt": null,
+      "fetchedAt": "2026-10-16T16:26:07.048Z",
       "playerIds": [],
       "teamCodes": []
     },
@@ -532,19 +558,6 @@
       "section": "latest",
       "publishedAt": null,
       "fetchedAt": "2026-10-16T14:56:06.932Z",
-      "playerIds": [],
-      "teamCodes": []
-    },
-    {
-      "id": "aHR0cHM6Ly93d3cubmZsLmNvbS9uZXdzL25mbC1uZXdzLXJvdW5kdXAtbGF0ZXN0LWxlYWd1ZS11cGRhdGVzLWZyb20tdGh1cnNkYXktb2N0LTg",
-      "source": "NFL.com",
-      "sourceUrl": "https://www.nfl.com/news/nfl-news-roundup-latest-league-updates-from-thursday-oct-8",
-      "title": "Roundup: Raiders RB downgraded; Ladd one of 8 Chargers DNPs",
-      "summary": "NFL.com keeps you up to date with all of the latest league news from around the NFL. Visit NFL.com's transaction hub for a daily breakdown.",
-      "heroImg": "https://static.www.nfl.com/image/upload/f_auto,q_auto,dpr_2.0/league/ouxb0efeljeylsbyapbj",
-      "section": "latest",
-      "publishedAt": null,
-      "fetchedAt": "2026-10-16T13:46:06.906Z",
       "playerIds": [],
       "teamCodes": []
     },

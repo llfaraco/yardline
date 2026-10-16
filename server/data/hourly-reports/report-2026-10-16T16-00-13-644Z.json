@@ -1,0 +1,125 @@
+{
+  "timestamp": "2026-10-16T16:00:13.644Z",
+  "branch": "main",
+  "commit": "60b2725",
+  "build": "node v24.14.0 (Windows x64)",
+  "backendStatus": "ONLINE",
+  "databaseStatus": "CONNECTED (10502 atletas)",
+  "liveServerStatus": "ONLINE (200 OK)",
+  "sleeperSync": {
+    "status": "PASS",
+    "httpStatus": 200,
+    "beforeCount": 10502,
+    "afterCount": 10502,
+    "preservedCount": 10502,
+    "rosterStartersCount": 19,
+    "emptyResponseProtection": "PASS",
+    "zeroMockRulePassed": true,
+    "error": null
+  },
+  "modals": {
+    "player-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
+    },
+    "article-reader-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
+    },
+    "onboarding-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
+    },
+    "lineup-swap-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
+    },
+    "waiver-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
+    },
+    "checkout-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
+    },
+    "manager-dna-modal": {
+      "exists": true,
+      "roleDialog": true,
+      "ariaModal": true,
+      "openSuccess": true,
+      "closeViaButtonSuccess": true,
+      "reopenSuccess": true,
+      "closeViaEscapeSuccess": true,
+      "closeViaBackdropSuccess": true,
+      "overlayBlocksAfterClose": false,
+      "status": "PASS"
+    }
+  },
+  "navigationTabs": {},
+  "searchAndFilters": {
+    "joshAllenSearch": "PASS",
+    "idpPositionFilter": "PASS"
+  },
+  "newsDeduplication": {
+    "feedStatus": "PASS"
+  },
+  "testSummary": {
+    "passed": 11,
+    "failed": 0,
+    "blocked": 0,
+    "total": 11
+  },
+  "newBugs": [],
+  "reopenedBugs": [],
+  "p0p1BugsCount": 0,
+  "releaseStatus": "✅ RELEASE APROVADA",
+  "nextAction": "Manter monitoramento contínuo horário e observabilidade de produção."
+}

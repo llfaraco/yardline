@@ -871,3 +871,60 @@ textarea:focus-visible,
   }
 }
 
+/* ==========================================
+   START/SIT ASSISTANT & FANTASYPROS PARITY STYLES
+   ========================================== */
+.yl-tier-header {
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border-box);
+  border-bottom: 1px solid var(--border-box);
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--yl-navy);
+  text-transform: uppercase;
+}
+.yl-fairness-meter {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  background: #E2E8F0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.yl-fairness-indicator {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+.yl-trade-selector-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-box);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.yl-trade-player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: #F8FAFC;
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.yl-trade-player-row:hover {
+  background: #F1F5F9;
+}
+.yl-trade-player-row.selected {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+}
+
