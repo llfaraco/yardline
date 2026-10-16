@@ -152,4 +152,16 @@ test('5. News Service: Ingestão, Deduplicação e Vínculo a Atleta', () => {
   const playerNews = newsService.getPlayerNews('4984');
   assert.ok(playerNews.length >= 1);
   assert.ok(playerNews.some(n => n.title === title), 'A notícia inserida deve constar na lista de notícias do atleta');
+
+  // Teardown: Limpar artefatos efêmeros do teste para não poluir o banco de produção
+  try {
+    if (ingest1?.id) {
+      db.prepare('DELETE FROM news_player_links WHERE news_id = ?').run(ingest1.id);
+      db.prepare('DELETE FROM news_items WHERE id = ?').run(ingest1.id);
+    }
+    db.prepare("DELETE FROM users WHERE email LIKE '%@yardline.com.br'").run();
+  } catch (err) {
+    console.warn('Erro ao limpar fixtures de teste:', err.message);
+  }
 });
+

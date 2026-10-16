@@ -213,14 +213,19 @@ function renderTopTicker() {
 // ==========================================
 function getActiveRosterPlayerIds() {
   const ids = new Set();
-  if (typeof YL_ACTIVE_ROSTERS !== "undefined" && Array.isArray(YL_ACTIVE_ROSTERS) && YL_ACTIVE_ROSTERS.length > 0) {
-    YL_ACTIVE_ROSTERS.forEach(roster => {
-      const isMine = String(roster.roster_id) === String(typeof YL_MY_ROSTER_ID !== "undefined" ? YL_MY_ROSTER_ID : 2);
-      if (!isMine) return;
-      [...(roster.players || []), ...(roster.starters || []), ...(roster.reserve || [])]
-        .forEach(id => { if (id) ids.add(String(id)); });
-    });
+  const rosters = (typeof YL_ACTIVE_ROSTERS !== "undefined" && Array.isArray(YL_ACTIVE_ROSTERS) && YL_ACTIVE_ROSTERS.length > 0)
+    ? YL_ACTIVE_ROSTERS
+    : (typeof activeSleeperRosters !== "undefined" && Array.isArray(activeSleeperRosters) ? activeSleeperRosters : []);
+
+  const myRoster = (typeof userRealRoster !== "undefined" && userRealRoster) ||
+    rosters.find(r => String(r.roster_id) === String(typeof YL_MY_ROSTER_ID !== "undefined" ? YL_MY_ROSTER_ID : (typeof selectedActiveRosterId !== "undefined" ? selectedActiveRosterId : 2))) ||
+    rosters[0];
+
+  if (myRoster) {
+    [...(myRoster.players || []), ...(myRoster.starters || []), ...(myRoster.reserve || []), ...(myRoster.taxi || [])]
+      .forEach(id => { if (id && id !== '0') ids.add(String(id)); });
   }
+
   if (ids.size === 0) {
     if (typeof userLineup !== "undefined" && userLineup) {
       Object.values(userLineup).forEach(id => { if (id) ids.add(String(id)); });
@@ -240,24 +245,38 @@ function getActiveRosterPlayerIds() {
 
 function getOpponentRosterPlayerIds() {
   const opponent = typeof getActiveOpponentRoster === "function" ? getActiveOpponentRoster() : null;
-  if (!opponent) {
-    if (typeof activeRealMatchup !== "undefined" && activeRealMatchup && activeRealMatchup.oppRosterId && typeof YL_ACTIVE_ROSTERS !== "undefined" && Array.isArray(YL_ACTIVE_ROSTERS)) {
-      const oppRoster = YL_ACTIVE_ROSTERS.find(r => String(r.roster_id) === String(activeRealMatchup.oppRosterId));
-      if (oppRoster) {
-        return new Set([...(oppRoster.players || []), ...(oppRoster.starters || [])].map(String));
-      }
-    }
-    return new Set();
+  if (opponent) {
+    return new Set([...(opponent.players || []), ...(opponent.starters || [])].map(String));
   }
-  return new Set([...(opponent.players || []), ...(opponent.starters || [])].map(String));
+
+  const oppRoster = (typeof activeRealMatchup !== "undefined" && activeRealMatchup?.oppRoster) || null;
+  if (oppRoster) {
+    return new Set([...(oppRoster.players || []), ...(oppRoster.starters || []), ...(oppRoster.reserve || [])].map(String));
+  }
+
+  const oppId = typeof activeRealMatchup !== "undefined" && (activeRealMatchup?.oppRosterId || activeRealMatchup?.oppRoster?.roster_id);
+  const rosters = (typeof YL_ACTIVE_ROSTERS !== "undefined" && Array.isArray(YL_ACTIVE_ROSTERS)) ? YL_ACTIVE_ROSTERS : (typeof activeSleeperRosters !== "undefined" && Array.isArray(activeSleeperRosters) ? activeSleeperRosters : []);
+  if (oppId && rosters.length > 0) {
+    const found = rosters.find(r => String(r.roster_id) === String(oppId));
+    if (found) {
+      return new Set([...(found.players || []), ...(found.starters || [])].map(String));
+    }
+  }
+  return new Set();
 }
 
 function getFreeAgentIds() {
   const owned = new Set();
-  if (typeof YL_ACTIVE_ROSTERS !== "undefined" && Array.isArray(YL_ACTIVE_ROSTERS) && YL_ACTIVE_ROSTERS.length > 0) {
-    YL_ACTIVE_ROSTERS.forEach(roster => {
-      (roster.players || []).forEach(pid => { if (pid) owned.add(String(pid)); });
-      (roster.starters || []).forEach(pid => { if (pid) owned.add(String(pid)); });
+  const rosters = (typeof YL_ACTIVE_ROSTERS !== "undefined" && Array.isArray(YL_ACTIVE_ROSTERS) && YL_ACTIVE_ROSTERS.length > 0)
+    ? YL_ACTIVE_ROSTERS
+    : (typeof activeSleeperRosters !== "undefined" && Array.isArray(activeSleeperRosters) ? activeSleeperRosters : []);
+
+  if (rosters.length > 0) {
+    rosters.forEach(roster => {
+      (roster.players || []).forEach(pid => { if (pid && pid !== '0') owned.add(String(pid)); });
+      (roster.starters || []).forEach(pid => { if (pid && pid !== '0') owned.add(String(pid)); });
+      (roster.reserve || []).forEach(pid => { if (pid && pid !== '0') owned.add(String(pid)); });
+      (roster.taxi || []).forEach(pid => { if (pid && pid !== '0') owned.add(String(pid)); });
     });
   } else {
     getActiveRosterPlayerIds().forEach(id => owned.add(id));
@@ -265,10 +284,13 @@ function getFreeAgentIds() {
 
   const allKnownIds = (typeof YL_ACTIVE_PLAYER_MAP !== "undefined" && Object.keys(YL_ACTIVE_PLAYER_MAP).length > 0)
     ? Object.keys(YL_ACTIVE_PLAYER_MAP)
-    : (typeof YL_ALL_NFL_PLAYERS !== "undefined" ? Object.keys(YL_ALL_NFL_PLAYERS) : []);
+    : (typeof YL_CANONICAL !== "undefined" && YL_CANONICAL.players && Object.keys(YL_CANONICAL.players).length > 0
+      ? Object.keys(YL_CANONICAL.players)
+      : (typeof YL_ALL_NFL_PLAYERS !== "undefined" ? Object.keys(YL_ALL_NFL_PLAYERS) : []));
 
   return new Set(allKnownIds.filter(id => !owned.has(String(id))));
 }
+
 
 function getPlayerNews(playerId) {
   if (!playerId) return [];

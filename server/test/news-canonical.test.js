@@ -131,6 +131,14 @@ test('News & Deduplicação — Resolução de Identidade e Crosswalk de Atletas
   assert.equal(newsByEspn[0].canonical_url, testUrl);
   assert.ok(newsByEspn[0].provenance);
   assert.equal(newsByEspn[0].provenance.status, 'official');
+
+  // TEARDOWN: Limpar dados efêmeros de teste 1
+  try {
+    db.prepare('DELETE FROM news_player_links WHERE player_id = ?').run(testPlayerId);
+    db.prepare('DELETE FROM news_items WHERE canonical_url = ?').run(testUrl);
+    db.prepare('DELETE FROM player_identities WHERE player_id = ? OR provider_player_id IN (?, ?)').run(testPlayerId, sleeperId, espnId);
+    db.prepare('DELETE FROM players WHERE id = ?').run(testPlayerId);
+  } catch {}
 });
 
 test('News & Deduplicação — Filtros de Roster (Meu Time, Waivers, Adversário)', () => {
@@ -171,6 +179,14 @@ test('News & Deduplicação — Filtros de Roster (Meu Time, Waivers, Adversári
   const item = feedMine.find(n => n.canonical_url === url1);
   assert.ok(Array.isArray(item.linkedPlayers));
   assert.ok(item.linkedPlayers.some(p => p.id === pid1 && p.name === 'Roster Player One'));
+
+  // TEARDOWN: Limpar dados efêmeros de teste para não poluir o banco de produção
+  try {
+    db.prepare('DELETE FROM news_player_links WHERE player_id IN (?, ?)').run(pid1, pid2);
+    db.prepare('DELETE FROM news_items WHERE canonical_url IN (?, ?)').run(url1, url2);
+    db.prepare('DELETE FROM player_identities WHERE player_id IN (?, ?) OR provider_player_id IN (?, ?)').run(pid1, pid2, pid1, pid2);
+    db.prepare('DELETE FROM players WHERE id IN (?, ?)').run(pid1, pid2);
+  } catch {}
 });
 
 test('News & Deduplicação — Sincronização do Worker Local (nfl-news.json)', () => {

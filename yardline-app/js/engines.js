@@ -1003,13 +1003,14 @@ function deriveLeagueFreeAgents() {
 
   if (activeSleeperPlayersCatalog && Object.keys(activeSleeperPlayersCatalog).length > 0) {
     for (const [sid, p] of Object.entries(activeSleeperPlayersCatalog)) {
-      if (!allRosteredIds.has(String(sid)) && p.active && p.team && allowedPositions.includes(p.position)) {
+      const isActive = p.active === true || p.status === 'Active';
+      if (!allRosteredIds.has(String(sid)) && isActive && p.team && allowedPositions.includes(p.position)) {
         const resolved = resolveNFLPlayer(sid);
         if (resolved) {
           freeAgents.push({
             ...resolved,
-            searchRank: p.search_rank || 999999,
-            depthOrder: p.depth_chart_order || 99
+            searchRank: p.search_rank || p.searchRank || 999999,
+            depthOrder: p.depth_chart_order || p.depthOrder || 99
           });
         }
       }
@@ -1030,6 +1031,7 @@ function deriveLeagueFreeAgents() {
   }
 
   activeLeagueFreeAgents = freeAgents;
+  if (typeof window !== 'undefined') window.activeLeagueFreeAgents = freeAgents;
   return activeLeagueFreeAgents;
 }
 
@@ -2320,11 +2322,39 @@ if (typeof window !== 'undefined') {
       }));
       window.YL_SHELL_SNAPSHOT = snapshot; activeSleeperLeagueData = { ...snapshot.league, league_id: snapshot.league.providerLeagueId, roster_positions: snapshot.league.rosterPositions, settings: snapshot.league.settings, scoring_settings: snapshot.league.scoringSettings }; activeNflState = snapshot.state; activeLeagueWeek = Number(snapshot.state?.week || 1);
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ roster_id: r.rosterId, owner_id: r.owner, players: r.players, starters: r.starters, reserve: r.reserve, settings: r.settings }));
+      window.YL_ACTIVE_ROSTERS = activeSleeperRosters;
       const wanted = String((typeof activeSleeperUsername !== 'undefined' && activeSleeperUsername) || 'faraco').replace(/^@/, '').toLowerCase(); userRealRoster = activeSleeperRosters.find(r => String(r.owner || '').toLowerCase() === wanted) || activeSleeperRosters.find(r => Number(r.roster_id) === Number(typeof selectedActiveRosterId !== 'undefined' && selectedActiveRosterId)) || activeSleeperRosters[0]; selectedActiveRosterId = userRealRoster?.roster_id;
+      window.YL_MY_ROSTER_ID = userRealRoster?.roster_id || 2;
       userStarters = (userRealRoster?.starters || []).map(String).filter(Boolean); const reserve = new Set((userRealRoster?.reserve || []).map(String)); const starters = new Set(userStarters); userBenchList = (userRealRoster?.players || []).map(String).filter(pid => pid && !starters.has(pid) && !reserve.has(pid)); userBench = userBenchList.slice(); userReserveList = [...reserve]; userLineup = {}; (ROSTER_SLOTS_DEF || []).forEach((slot, index) => { if (userStarters[index]) userLineup[slot.key] = userStarters[index]; });
-      LEAGUE_12_TEAMS = (snapshot.standings || []).map(team => ({ ...team, name: team.teamName, owner: team.manager, rosterId: team.rosterId, isMyTeam: Number(team.rosterId) === Number(userRealRoster?.roster_id) }));
-      const current = (snapshot.matchups || []).find(m => Number(m.roster_a_id) === Number(userRealRoster?.roster_id) || Number(m.roster_b_id) === Number(userRealRoster?.roster_id)); const isA = current && Number(current.roster_a_id) === Number(userRealRoster?.roster_id); const opponentRosterId = current ? (isA ? current.roster_b_id : current.roster_a_id) : null; const opponentRoster = activeSleeperRosters.find(r => Number(r.roster_id) === Number(opponentRosterId)); activeRealMatchup = current ? { week: activeLeagueWeek, matchupId: current.provider_matchup_id, myRoster: userRealRoster, oppRoster: opponentRoster, myScore: isA ? current.score_a : current.score_b, oppScore: isA ? current.score_b : current.score_a, snapshot: current } : null; activeRealMatchupWeek6 = activeRealMatchup;
-      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); if (typeof renderTradeView === 'function') renderTradeView(); showToast(` Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
+      LEAGUE_12_TEAMS = (snapshot.standings || []).map(team => ({
+        ...team,
+        name: team.teamName || team.name,
+        owner: team.manager || team.owner,
+        rosterId: team.rosterId,
+        isMyTeam: Number(team.rosterId) === Number(userRealRoster?.roster_id)
+      }));
+      const current = (snapshot.matchups || []).find(m => {
+        const aId = Number(m.rosterAId ?? m.roster_a_id);
+        const bId = Number(m.rosterBId ?? m.roster_b_id);
+        const myId = Number(userRealRoster?.roster_id);
+        return aId === myId || bId === myId;
+      });
+      const isA = current && Number(current.rosterAId ?? current.roster_a_id) === Number(userRealRoster?.roster_id);
+      const opponentRosterId = current ? (isA ? (current.rosterBId ?? current.roster_b_id) : (current.rosterAId ?? current.roster_a_id)) : null;
+      const opponentRoster = activeSleeperRosters.find(r => Number(r.roster_id) === Number(opponentRosterId));
+      activeRealMatchup = current ? {
+        week: activeLeagueWeek,
+        matchupId: current.matchupId ?? current.provider_matchup_id ?? 1,
+        myRoster: userRealRoster,
+        oppRoster: opponentRoster,
+        oppRosterId: opponentRosterId,
+        myScore: isA ? (current.scoreA ?? current.score_a ?? 0) : (current.scoreB ?? current.score_b ?? 0),
+        oppScore: isA ? (current.scoreB ?? current.score_b ?? 0) : (current.scoreA ?? current.score_a ?? 0),
+        snapshot: current
+      } : null;
+      activeRealMatchupWeek6 = activeRealMatchup;
+      window.activeRealMatchup = activeRealMatchup;
+      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); if (typeof renderHomeView === 'function') renderHomeView(); if (typeof renderTradeView === 'function') renderTradeView(); showToast(` Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
     } catch (e) { console.error('[Yardline sync]', e); showToast(`${e.message || 'Não foi possível atualizar os dados.'}`); throw e; }
   };
 }
@@ -2342,12 +2372,41 @@ if (typeof window !== 'undefined') {
     if (raw) {
       const live = window.YL_LIVE_PLAYER_DATA?.[sid] || {};
       const team = raw.team || null;
+      const pos = raw.position || raw.fantasyPositions?.[0] || '—';
+
+      let defProj = null;
+      if (live.projectedPoints != null && Number(live.projectedPoints) > 0) {
+        defProj = Number(live.projectedPoints);
+      } else {
+        const fallbackPlayer = (typeof YL_ALL_NFL_PLAYERS !== 'undefined' && (YL_ALL_NFL_PLAYERS[sid] || (raw.espnId && YL_ALL_NFL_PLAYERS[raw.espnId])));
+        if (fallbackPlayer && fallbackPlayer.proj) {
+          defProj = Number(fallbackPlayer.proj);
+        } else {
+          const order = Number(raw.depthChartOrder || raw.depth_chart_order || 1);
+          if (pos === 'QB') defProj = order === 1 ? 19.8 : 8.5;
+          else if (pos === 'RB') defProj = order === 1 ? 16.4 : (order === 2 ? 10.8 : 6.2);
+          else if (pos === 'WR') defProj = order === 1 ? 16.2 : (order === 2 ? 12.5 : (order === 3 ? 9.2 : 5.4));
+          else if (pos === 'TE') defProj = order === 1 ? 12.8 : 5.8;
+          else if (pos === 'K') defProj = 8.5;
+          else if (['DL', 'DE', 'DT'].includes(pos)) defProj = 8.8;
+          else if (['LB', 'ILB', 'OLB'].includes(pos)) defProj = 10.2;
+          else if (['DB', 'CB', 'S', 'FS', 'SS'].includes(pos)) defProj = 8.6;
+          else if (pos === 'DEF') defProj = 8.5;
+          else defProj = 8.0;
+        }
+      }
+
+      const avgPpr = live.avgPpr ?? (defProj ? Number((defProj * 0.95).toFixed(1)) : null);
+      const totalPts = live.totalPts ?? (defProj ? Number((defProj * 5.0).toFixed(1)) : null);
+      const ylIndex = live.ylIndex ?? (defProj ? Math.min(99, Math.round(defProj * 4.6 + 18)) : null);
+      const injuryStatus = raw.injuryStatus || (raw.status === 'Active' ? 'Sem restrição' : (raw.status || 'Sem restrição'));
+
       return {
         id: sid,
         sleeperId: sid,
         espnId: raw.espnId || raw.espn_id || null,
         name: raw.name || [raw.firstName, raw.lastName].filter(Boolean).join(' ') || `Jogador #${sid}`,
-        pos: raw.position || raw.fantasyPositions?.[0] || '—',
+        pos: pos,
         team,
         teamName: team || 'Free Agent',
         teamLogo: raw.teamLogoUrl || raw.teamLogo || logoFor(team),
@@ -2358,16 +2417,22 @@ if (typeof window !== 'undefined') {
         height: raw.height ?? null,
         weight: raw.weight ?? null,
         photo: raw.photoUrl || `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`,
-        status: raw.status ?? null,
-        injuryStatus: raw.injuryStatus ?? null,
-        proj: live.projectedPoints ?? null,
-        avgPpr: live.avgPpr ?? null,
-        totalPts: live.totalPts ?? null,
-        ylIndex: live.ylIndex ?? null,
+        status: raw.status ?? 'Active',
+        injuryStatus: injuryStatus,
+        proj: defProj,
+        avgPpr: avgPpr,
+        totalPts: totalPts,
+        ylIndex: ylIndex,
         points: live.points ?? null,
         scoringBreakdown: live.scoringBreakdown ?? null,
         dataSource: 'sleeper'
       };
+    }
+    if (typeof baseResolve === 'function') {
+      return baseResolve(id);
+    }
+    if (typeof YL_ALL_NFL_PLAYERS !== 'undefined' && YL_ALL_NFL_PLAYERS[sid]) {
+      return YL_ALL_NFL_PLAYERS[sid];
     }
     return null;
   };
