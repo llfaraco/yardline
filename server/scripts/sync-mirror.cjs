@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const srcDir = 'c:\\Users\\png__\\OneDrive\\Área de Trabalho\\YARDLINE\\yardline_app_unificado';
 const dstDir = 'C:\\Users\\png__\\OneDrive\\Área de Trabalho\\live-yardline';
 
-const filesToCopy = [
+const baseFiles = [
   'yardline-app/css/styles.css',
   'yardline-app/js/data_and_views.js',
   'yardline-app/js/engines.js',
@@ -16,13 +16,26 @@ const filesToCopy = [
   'server/scripts/sync-historical-stats.cjs',
   'server/scripts/test-card-news-dossier.cjs',
   'server/scripts/test-parity-modal-matchup.cjs',
+  'server/scripts/sync-mirror.cjs',
   'server/src/db/yardline.db',
   'server/data/hourly-reports/latest-report.json',
   'server/data/hourly-reports/MONITOR_LOG.md',
-  'server/data/hourly-reports/report-2026-10-16T19-41-22-141Z.json',
   'news-worker/data/nfl-news.json',
   'sleeper-snapshot.json'
 ];
+
+// Add all hourly report files dynamically
+const reportsDir = path.join(srcDir, 'server/data/hourly-reports');
+if (fs.existsSync(reportsDir)) {
+  for (const f of fs.readdirSync(reportsDir)) {
+    if (f.startsWith('report-') && f.endsWith('.json')) {
+      const rel = 'server/data/hourly-reports/' + f;
+      if (!baseFiles.includes(rel)) baseFiles.push(rel);
+    }
+  }
+}
+
+const filesToCopy = baseFiles;
 
 try {
   const { DatabaseSync } = require('node:sqlite');
