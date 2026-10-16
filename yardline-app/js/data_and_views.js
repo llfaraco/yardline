@@ -604,7 +604,7 @@ function openPlayerDossierModal(playerId, activeTab = "news") {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
             <img src="${p.teamLogo}" style="width:20px;height:20px;object-fit:contain;" alt="">
             <span class="badge badge-crimson">${p.pos} · ${p.number || ''}</span>
-            <span class="badge" style="background:rgba(255,255,255,0.14);color:#FFF;">${p.injuryStatus || 'Saudável'}</span>
+            <span class="badge" style="background:rgba(255,255,255,0.14);color:#FFF;">${p.injuryStatus ? esc(p.injuryStatus) : 'Sem restrição'}</span>
             <span class="badge ${leagueStatus.badge}">${leagueStatus.badgeText}</span>
           </div>
           <h2 style="font-size:22px;font-weight:600;margin:0;">${p.name} <span style="font-size:15px;color:#94A3B8;font-weight:400;">${p.teamName || p.team}</span></h2>
@@ -711,7 +711,7 @@ function openPlayerDossierModal(playerId, activeTab = "news") {
           <div style="background:#FFF;border:1px solid var(--border-box);border-left:4px solid ${p.injuryStatus === 'Questionável' ? 'var(--yl-amber)' : 'var(--yl-emerald)'};border-radius:8px;padding:16px;">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
               <span class="badge ${p.injuryStatus === 'Questionável' ? 'badge-amber' : 'badge-green'}" style="font-size:12px;padding:4px 10px;">
-                STATUS OFICIAL: ${p.injuryStatus || 'Saudável (Ativo)'}
+                STATUS OFICIAL: ${p.injuryStatus ? esc(p.injuryStatus) : 'Sem restrição (Ativo)'}
               </span>
               <span style="font-size:11.5px;color:var(--text-muted);">Relatório Médico Oficial NFL · Semana ${currentWk}</span>
             </div>
@@ -1092,7 +1092,7 @@ function sharePlayerCardWhatsApp(playerId) {
     `📊 *Projeção Semana ${typeof activeLeagueWeek !== "undefined" ? activeLeagueWeek : 6}:* ${proj} pts (${fmt})\n` +
     `📈 *VBD Posicional:* ${vbd > 0 ? '+' : ''}${vbd} pts vs Baseline\n` +
     `⭐ *Índice YARDLINE:* ${p.ylIndex || 85.0} / 100\n` +
-    `🏥 *Status Clínico:* ${p.injuryStatus || 'Saudável'}\n\n` +
+    `🏥 *Status Clínico:* ${p.injuryStatus || 'Sem restrição'}\n\n` +
     `💡 *Análise:* Monitorado pelo motor analítico da YARDLINE na Neilo Pistola League (#1369770282776006656).`;
 
   navigator.clipboard.writeText(text).then(() => {
@@ -1287,7 +1287,7 @@ try {
             proj: 10.5,
             avgPpr: 10.2,
             ylIndex: 80.0,
-            injuryStatus: p.injury_status || "Saudável"
+            injuryStatus: p.injury_status || (p.status === 'Active' ? 'Sem restrição' : p.status) || 'Sem restrição'
           };
           count++;
         }
@@ -3127,7 +3127,8 @@ function toggleArticleExpand(newsId) {
   function card(p,slot=''){
     if(!p)return '';
     const d=dataFor(p), proj=d.proj??(typeof getEffectiveProjection==='function'?getEffectiveProjection(d):null), avg=d.avgPpr??d.avgPPR;
-    const status=d.injuryStatus||d.status||'Não informado', danger=/out|ir|doubtful|questionable|inactive/i.test(status);
+    const injury=d.injuryStatus||(d.status==='Active'?null:d.status)||null;
+    const status=injury||'Sem restrição', danger=/out|ir|doubtful|questionable|inactive/i.test(status);
     return `<article class="yl-player-card-v2" onclick="openPlayerDossierModal('${esc(d.sleeperId||d.id)}')">
       <div class="yl-player-card-v2__top"><div class="yl-player-card-v2__identity"><div class="yl-player-card-v2__name">${esc(d.name)}</div><div class="yl-player-card-v2__meta"><span>${esc(slot||d.pos)}</span><span>·</span><span>${esc(d.team||'FA')}</span>${d.number?`<span>· ${esc(d.number)}</span>`:''}</div></div><img class="yl-player-card-v2__photo" src="${esc(d.photo||d.teamLogo)}" onerror="this.onerror=null;this.src='${esc(d.teamLogo)}'" alt=""></div>
       <div class="yl-player-card-v2__body"><div class="yl-player-card-v2__metrics"><div class="yl-player-card-v2__metric"><b>${num(proj)}</b><span>Proj.</span></div><div class="yl-player-card-v2__metric"><b>${num(avg)}</b><span>PPG</span></div><div class="yl-player-card-v2__metric"><b>${num(d.totalPts)}</b><span>Total</span></div><div class="yl-player-card-v2__metric"><b>${num(d.ylIndex)}</b><span>YL Index</span></div></div><div class="yl-player-card-v2__footer"><span class="${danger?'badge badge-crimson':'badge badge-green'}">${esc(status)}</span><span>Ver dossiê →</span></div></div>
@@ -3151,7 +3152,7 @@ function toggleArticleExpand(newsId) {
     else if(tab==='stats') body=`<div class="yl-dossier__grid"><div class="yl-dossier__panel"><h4>Game log</h4>${stats.length?`<div style="overflow:auto"><table class="yl-table"><thead><tr><th>Semana</th><th>Adversário</th><th>Resultado</th><th>Pontos</th></tr></thead><tbody>${stats.map(s=>`<tr><td>${esc(s.wk||s.week||'—')}</td><td>${esc(s.opp||'—')}</td><td>${esc(s.res||'—')}</td><td class="mono"><strong>${num(s.pts||s.points)}</strong></td></tr>`).join('')}</tbody></table></div>`:'<p class="yl-muted">Game log indisponível.</p>'}</div><div class="yl-dossier__panel"><h4>Histórico de carreira</h4>${history.length?history.map(h=>`<div class="yl-news-item"><strong>${esc(h.yr||h.season)}</strong> · ${esc(h.tm||'NFL')}<p>${esc([h.stat1,h.stat2,h.stat3].filter(Boolean).join(' · '))} ${h.ppg?`· ${h.ppg} PPG`:''}</p></div>`).join(''):'<p class="yl-muted">Histórico indisponível.</p>'}</div></div>`;
     else if(tab==='proj') body=`<div class="yl-dossier__grid"><div class="yl-dossier__panel"><h4>Fantasy Intelligence</h4><div class="yl-dossier__statgrid"><div class="yl-dossier__stat"><b>${num(proj)}</b><span>Projeção semanal</span></div><div class="yl-dossier__stat"><b>${num(p.avgPpr)}</b><span>Média PPR</span></div><div class="yl-dossier__stat"><b>${num(p.floor)}</b><span>Piso</span></div><div class="yl-dossier__stat"><b>${num(p.ceiling||p.ceil)}</b><span>Teto</span></div></div><p style="font-size:11px;color:var(--text-muted);margin-top:12px">Fonte: ${p.proj?'modelo YARDLINE / dado disponível':'aguardando projeção'} · Semana ${typeof activeLeagueWeek!=='undefined'&&activeLeagueWeek||'—'} · ${typeof activeScoringFormat!=='undefined'?activeScoringFormat:'PPR'}</p></div><div class="yl-dossier__panel"><h4>Detalhamento</h4>${p.projectionsBreakdown?Object.entries(p.projectionsBreakdown).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #edf1f5;font-size:12px"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join(''):'<p class="yl-muted">Detalhamento de projeção indisponível.</p>'}</div></div>`;
     else body=`<div class="yl-dossier__grid"><div class="yl-dossier__panel"><h4>Resumo do atleta</h4><div class="yl-dossier__statgrid"><div class="yl-dossier__stat"><b>${num(proj)}</b><span>Projeção</span></div><div class="yl-dossier__stat"><b>${num(p.avgPpr)}</b><span>PPG</span></div><div class="yl-dossier__stat"><b>${num(p.ylIndex)}</b><span>YL Index</span></div><div class="yl-dossier__stat"><b>${esc(p.pos||'—')}</b><span>Posição</span></div></div><p style="font-size:12px;line-height:1.55;color:var(--text-body);margin-top:13px">${esc(status?.headline||p.leagueVerdict?.notes||'Atleta identificado pelo catálogo oficial do Sleeper.')}</p></div><div class="yl-dossier__panel"><h4>Situação na liga</h4><span class="badge ${status?.badge||'badge-navy'}">${esc(status?.badgeText||'CATÁLOGO SLEEPER')}</span><p style="font-size:12px;color:var(--text-body);line-height:1.5;margin-top:10px">${esc(status?.description||`${p.teamName||p.team||'NFL'} · ${p.pos||'FLEX'} · ${p.injuryStatus||'Status não informado'}`)}</p></div></div>`;
-    content.innerHTML=`<div class="yl-dossier"><div class="yl-dossier__hero"><button onclick="closeModal('player-modal')" style="position:absolute;right:16px;top:14px;z-index:3;background:rgba(255,255,255,.13);border:0;color:#fff;border-radius:8px;width:34px;height:34px;font-size:17px;cursor:pointer">×</button><div class="yl-dossier__identity"><div class="yl-dossier__name">${esc(p.name)}</div><div class="yl-dossier__sub">${esc(p.pos||'FLEX')} · ${esc(p.teamName||p.team||'NFL')} · ${esc(p.number||'')}</div><div class="yl-dossier__chips"><span class="badge badge-blue">Sleeper ID ${esc(p.sleeperId||p.id)}</span><span class="badge ${/out|ir|doubtful|questionable|inactive/i.test(p.injuryStatus||'')?'badge-crimson':'badge-green'}">${esc(p.injuryStatus||'Saudável')}</span>${status?.badgeText?`<span class="badge badge-navy">${esc(status.badgeText)}</span>`:''}</div></div><img class="yl-dossier__photo" src="${esc(p.photo||p.teamLogo)}" onerror="this.onerror=null;this.src='${esc(p.teamLogo)}'" alt=""></div><div class="yl-dossier__tabs">${tabButton('overview','Visão geral')}${tabButton('news','Notícias')}${tabButton('stats','Histórico')}${tabButton('proj','Fantasy Intel')}</div><div class="yl-dossier__content">${body}</div></div>`;
+    content.innerHTML=`<div class="yl-dossier"><div class="yl-dossier__hero"><button onclick="closeModal('player-modal')" style="position:absolute;right:16px;top:14px;z-index:3;background:rgba(255,255,255,.13);border:0;color:#fff;border-radius:8px;width:34px;height:34px;font-size:17px;cursor:pointer">×</button><div class="yl-dossier__identity"><div class="yl-dossier__name">${esc(p.name)}</div><div class="yl-dossier__sub">${esc(p.pos||'FLEX')} · ${esc(p.teamName||p.team||'NFL')} · ${esc(p.number||'')}</div><div class="yl-dossier__chips"><span class="badge badge-blue">Sleeper ID ${esc(p.sleeperId||p.id)}</span><span class="badge ${/out|ir|doubtful|questionable|inactive/i.test(p.injuryStatus||'')?'badge-crimson':'badge-green'}">${esc(p.injuryStatus||'Sem restrição')}</span>${status?.badgeText?`<span class="badge badge-navy">${esc(status.badgeText)}</span>`:''}</div></div><img class="yl-dossier__photo" src="${esc(p.photo||p.teamLogo)}" onerror="this.onerror=null;this.src='${esc(p.teamLogo)}'" alt=""></div><div class="yl-dossier__tabs">${tabButton('overview','Visão geral')}${tabButton('news','Notícias')}${tabButton('stats','Histórico')}${tabButton('proj','Fantasy Intel')}</div><div class="yl-dossier__content">${body}</div></div>`;
     modal.classList.add('open');
   };
   window.renderPlaybookView=function(){
@@ -3385,9 +3386,9 @@ window.toggleSidebarGroup=function(key){
     const pos = canonical?.pos || fallback.pos || 'FLEX';
     const team = canonical?.team || fallback.team || 'FA';
     const opp = fallback.opp || '—';
-    const proj = Number(canonical?.proj ?? fallback.proj ?? 0);
+    const proj = canonical?.proj != null ? Number(canonical.proj) : (fallback.proj != null ? Number(fallback.proj) : null);
     const photo = canonical?.photo || `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`;
-    const status = canonical?.injuryStatus || fallback.status || 'Saudável';
+    const status = canonical?.injuryStatus || (fallback.status === 'Active' ? null : fallback.status) || 'Sem restrição';
     const statusShort = status.toLowerCase().includes('out') ? 'OUT' : status.toLowerCase().includes('quest') ? 'Q' : status.toLowerCase().includes('prob') ? 'P' : '';
 
     return {

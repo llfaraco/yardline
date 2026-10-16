@@ -230,7 +230,10 @@ app.get('/api/players/:playerId/history', (req, res) => {
       });
     }
 
-    const statsRows = db.prepare('SELECT season, week, stats_json, source, captured_at FROM player_stats WHERE player_id = ? ORDER BY season DESC, week ASC').all(player.id);
+    const { season } = req.query;
+    const statsRows = season
+      ? db.prepare('SELECT season, week, stats_json, source, captured_at FROM player_stats WHERE player_id = ? AND season = ? ORDER BY week ASC').all(player.id, String(season))
+      : db.prepare('SELECT season, week, stats_json, source, captured_at FROM player_stats WHERE player_id = ? ORDER BY season DESC, week ASC').all(player.id);
 
     const history = statsRows.map(row => {
       let stats = {};
@@ -239,6 +242,8 @@ app.get('/api/players/:playerId/history', (req, res) => {
       return {
         season: row.season,
         week: Number(row.week),
+        opp: stats.opponent || stats.opp || null,
+        proj: stats.proj != null ? Number(stats.proj) : null,
         points: explicitPoints != null ? Number(Number(explicitPoints).toFixed(2)) : null,
         stats,
         provenance: createDataStatusDTO({
@@ -253,7 +258,8 @@ app.get('/api/players/:playerId/history', (req, res) => {
       playerId: player.id,
       name: player.canonical_name,
       totalGames: history.length,
-      history
+      history,
+      rows: history
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

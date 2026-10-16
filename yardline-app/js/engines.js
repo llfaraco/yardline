@@ -167,7 +167,7 @@ function renderLineupSwapModal() {
           <div style="display:flex;align-items:center;gap:8px;">
             <strong style="font-size:15px;color:var(--yl-navy);">${starter.name}</strong>
             <span class="badge badge-navy">${starter.pos} · ${starter.team}</span>
-            <span class="badge badge-green">${starter.injuryStatus || 'Saudável'}</span>
+            <span class="badge badge-green">${starter.injuryStatus ? starter.injuryStatus : 'Sem restrição'}</span>
           </div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">
             Projeção Atual: <strong style="color:var(--yl-navy);">${starter.proj} pts</strong> · Média: ${starter.avgPpr} PPR · YL Index: ${starter.ylIndex}
@@ -202,7 +202,7 @@ function renderLineupSwapModal() {
                         <span class="badge badge-navy" style="font-size:10px;">${bp.pos} · ${bp.team}</span>
                       </div>
                       <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">
-                        Projeção: <strong>${bp.proj} pts</strong> · YL ${bp.ylIndex} · ${bp.injuryStatus || 'Saudável'}
+                        Projeção: <strong>${bp.proj} pts</strong> · YL ${bp.ylIndex} · ${bp.injuryStatus ? bp.injuryStatus : 'Sem restrição'}
                       </div>
                     </div>
                   </div>
@@ -243,7 +243,7 @@ function renderLineupSwapModal() {
           <div style="display:flex;align-items:center;gap:8px;">
             <strong style="font-size:15px;color:var(--yl-navy);">${benchPlayer.name}</strong>
             <span class="badge badge-navy">${benchPlayer.pos} · ${benchPlayer.team}</span>
-            <span class="badge badge-green">${benchPlayer.injuryStatus || 'Saudável'}</span>
+            <span class="badge badge-green">${benchPlayer.injuryStatus ? benchPlayer.injuryStatus : 'Sem restrição'}</span>
           </div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">
             Projeção: <strong style="color:var(--yl-navy);">${benchPlayer.proj} pts</strong> · YL Index: ${benchPlayer.ylIndex}
@@ -1450,7 +1450,7 @@ function resolveNFLPlayer(playerId) {
       proj: parseFloat(baseProj.toFixed(1)),
       avgPpr: parseFloat((baseProj * 0.94).toFixed(1)),
       ylIndex: Math.min(99, Math.round(baseProj * 4.8 + 15)),
-      injuryStatus: sp.injury_status || "Saudável"
+      injuryStatus: sp.injury_status || (sp.status === 'Active' ? 'Sem restrição' : sp.status) || 'Sem restrição'
     };
 
     YL_ALL_NFL_PLAYERS[realId] = pObj;
@@ -1481,7 +1481,7 @@ function resolveNFLPlayer(playerId) {
       proj: 8.5,
       avgPpr: 8.2,
       ylIndex: 82.0,
-      injuryStatus: "Saudável"
+      injuryStatus: "Sem restrição"
     };
     YL_ALL_NFL_PLAYERS[upCode] = defObj;
     return defObj;
@@ -1505,7 +1505,7 @@ function resolveNFLPlayer(playerId) {
     proj: 10.5,
     avgPpr: 10.0,
     ylIndex: 75.0,
-    injuryStatus: "Saudável"
+    injuryStatus: "Não informado"
   };
 }
 
@@ -1720,7 +1720,7 @@ function renderPlaybookView() {
                       <img src="${p.photo}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border-box);" onerror="this.src='${p.teamLogo}'" alt="">
                       <div>
                         <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);">${p.name}</div>
-                        <div style="font-size:11px;color:var(--text-muted);">${p.pos} · ${p.number || ''} · ${p.injuryStatus || 'Saudável'}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${p.pos} · ${p.number || ''} · ${p.injuryStatus ? p.injuryStatus : 'Sem restrição'}</div>
                       </div>
                     </div>
                   </td>
@@ -1765,7 +1765,7 @@ function renderPlaybookView() {
                       <img src="${p.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--border-box);" onerror="this.src='${p.teamLogo}'" alt="">
                       <div>
                         <div style="font-size:13px;font-weight:500;color:var(--yl-navy);">${p.name}</div>
-                        <div style="font-size:11px;color:var(--text-muted);">${p.pos} · ${p.team} · ${p.injuryStatus || 'Saudável'}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${p.pos} · ${p.team} · ${p.injuryStatus ? p.injuryStatus : 'Sem restrição'}</div>
                       </div>
                     </div>
                   </td>
@@ -2144,7 +2144,7 @@ function renderWaiversView() {
                       <img src="${p.photo}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border-box);" onerror="this.src='${p.teamLogo}'" alt="">
                       <div>
                         <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);">${p.name}</div>
-                        <div style="font-size:11px;color:var(--text-muted);">${p.teamName || p.team} · ${p.injuryStatus || 'Saudável'}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${p.teamName || p.team} · ${p.injuryStatus ? p.injuryStatus : 'Sem restrição'}</div>
                       </div>
                     </div>
                   </td>
@@ -2206,10 +2206,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const teamLogo=t=>t?`https://a.espncdn.com/i/teamlogos/nfl/500/${String(t).toLowerCase()}.png`:'https://a.espncdn.com/i/teamlogos/nfl/500/nfl.png';
   const oldBySleeper=id=>{const sid=String(id),espn=typeof SLEEPER_TO_ESPN_MAP!=='undefined'&&SLEEPER_TO_ESPN_MAP[sid],old=(typeof YL_ALL_NFL_PLAYERS!=='undefined'&&(YL_ALL_NFL_PLAYERS[sid]||(espn&&YL_ALL_NFL_PLAYERS[espn])))||(typeof YL_PLAYER_DOSSIERS!=='undefined'&&espn&&YL_PLAYER_DOSSIERS[espn]);return old?Object.assign({},old,{id:sid,sleeperId:sid,espnId:espn||old.espnId||old.id,photo:old.photo||`https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`}):null;};
   const originalResolve=window.resolveNFLPlayer;
-  window.resolveNFLPlayer=function(id){const sid=String(id||''),raw=window.YL_CANONICAL.players[sid];if(raw){const p=Object.assign({},raw,{id:sid,sleeperId:sid,name:raw.full_name||raw.name||[raw.first_name,raw.last_name].filter(Boolean).join(' ')||`Jogador #${sid}`,pos:raw.position||raw.pos||raw.fantasy_positions?.[0]||'FLEX',team:raw.team||'FA',teamName:raw.team||'Free Agent',teamLogo:raw.teamLogo||teamLogo(raw.team),photo:raw.photoUrl||raw.photo||`https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`,injuryStatus:raw.injury_status||raw.injuryStatus||'Saudável'});const old=oldBySleeper(sid);return Object.assign({},old||{},p); }return oldBySleeper(sid)||(typeof originalResolve==='function'?originalResolve(sid):null);};
+  window.resolveNFLPlayer=function(id){const sid=String(id||''),raw=window.YL_CANONICAL.players[sid];if(raw){const p=Object.assign({},raw,{id:sid,sleeperId:sid,name:raw.full_name||raw.name||[raw.first_name,raw.last_name].filter(Boolean).join(' ')||`Jogador #${sid}`,pos:raw.position||raw.pos||raw.fantasy_positions?.[0]||'FLEX',team:raw.team||'FA',teamName:raw.team||'Free Agent',teamLogo:raw.teamLogo||teamLogo(raw.team),photo:raw.photoUrl||raw.photo||`https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`,injuryStatus:raw.injury_status||raw.injuryStatus||(raw.status==='Active'?'Sem restrição':raw.status)||'Sem restrição'});const old=oldBySleeper(sid);return Object.assign({},old||{},p); }return oldBySleeper(sid)||(typeof originalResolve==='function'?originalResolve(sid):null);};
   window.syncRealSleeperLeagueLive=async function(){
     showToast(`⏳ Carregando liga Sleeper #${REAL_SLEEPER_LEAGUE_ID}...`);
-    try{const [lr,ur,rr]=await Promise.all([timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/users`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/rosters`,9000)]);if(!lr.ok||!ur.ok||!rr.ok)throw Error('Sleeper indisponível');activeSleeperLeagueData=await lr.json();activeSleeperUsers=await ur.json();activeSleeperRosters=await rr.json();activeLeagueWeek=Number(activeSleeperLeagueData.settings?.leg||activeSleeperLeagueData.settings?.last_scored_leg||1);const me=activeSleeperUsers.find(u=>String(u.display_name||u.username||'').toLowerCase()==='faraco');const mine=activeSleeperRosters.find(r=>String(r.owner_id)===String(me?.user_id))||activeSleeperRosters.find(r=>Number(r.roster_id)===2)||activeSleeperRosters[0];userRealRoster=mine;selectedActiveRosterId=mine?.roster_id||2;userStarters=(mine?.starters||[]).map(String);userBenchList=(mine?.players||[]).map(String).filter(x=>!userStarters.includes(x));userBench=userBenchList.slice();userLineup={};(ROSTER_SLOTS_DEF||[]).forEach((s,i)=>{if(userStarters[i])userLineup[s.key]=userStarters[i];});LEAGUE_12_TEAMS=activeSleeperRosters.map(r=>{const u=activeSleeperUsers.find(x=>String(x.user_id)===String(r.owner_id)),m=u?.metadata||{};return{rosterId:r.roster_id,name:m.team_name||u?.display_name||`Roster #${r.roster_id}`,owner:u?.display_name?`@${u.display_name}`:'',record:`${r.settings?.wins||0}-${r.settings?.losses||0}`,wins:r.settings?.wins||0,losses:r.settings?.losses||0,ties:r.settings?.ties||0,fpts:String(r.settings?.fpts||0),fptsAgainst:String(r.settings?.fpts_against||0),isMyTeam:Number(r.roster_id)===Number(mine?.roster_id),roster:r};});let matchup=[];try{const mr=await timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/matchups/${activeLeagueWeek}`,7000);if(mr.ok)matchup=await mr.json();}catch(e){}const mm=matchup.find(x=>Number(x.roster_id)===Number(mine?.roster_id)),opp=mm?.matchup_id!=null?matchup.find(x=>x.matchup_id===mm.matchup_id&&Number(x.roster_id)!==Number(mine?.roster_id)):null;activeRealMatchup={week:activeLeagueWeek,matchupId:mm?.matchup_id||null,myRoster:mine,oppRoster:opp,myScore:mm?.points||0,oppScore:opp?.points||0};activeRealMatchupWeek6=activeRealMatchup;if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();showToast(`✅ Liga carregada: ${activeSleeperRosters.length} times · Semana ${activeLeagueWeek}`);timeout(`${API}/players/nfl`,12000).then(async r=>{if(!r.ok)return;window.YL_CANONICAL.players=await r.json();window.YL_CANONICAL.fetchedAt=Date.now();if(typeof indexSleeperPlayersCatalog==='function')indexSleeperPlayersCatalog(window.YL_CANONICAL.players);if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();if(typeof renderPlayersView==='function')renderPlayersView();}).catch(e=>console.warn('Catálogo em segundo plano indisponível',e));}catch(e){console.error(e);showToast('⚠️ Não foi possível atualizar os dados da liga.');}
+    try{const [lr,ur,rr]=await Promise.all([timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/users`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/rosters`,9000)]);if(!lr.ok||!ur.ok||!rr.ok)throw Error('Sleeper indisponível');activeSleeperLeagueData=await lr.json();activeSleeperUsers=await ur.json();activeSleeperRosters=await rr.json();activeLeagueWeek=Number(activeSleeperLeagueData.settings?.leg||activeSleeperLeagueData.settings?.last_scored_leg||1);const me=activeSleeperUsers.find(u=>String(u.display_name||u.username||'').toLowerCase()==='faraco');const mine=activeSleeperRosters.find(r=>String(r.owner_id)===String(me?.user_id))||null;userRealRoster=mine;selectedActiveRosterId=mine?.roster_id||null;userStarters=(mine?.starters||[]).map(String);userBenchList=(mine?.players||[]).map(String).filter(x=>!userStarters.includes(x));userBench=userBenchList.slice();userLineup={};(ROSTER_SLOTS_DEF||[]).forEach((s,i)=>{if(userStarters[i])userLineup[s.key]=userStarters[i];});LEAGUE_12_TEAMS=activeSleeperRosters.map(r=>{const u=activeSleeperUsers.find(x=>String(x.user_id)===String(r.owner_id)),m=u?.metadata||{};return{rosterId:r.roster_id,name:m.team_name||u?.display_name||`Roster #${r.roster_id}`,owner:u?.display_name?`@${u.display_name}`:'',record:`${r.settings?.wins||0}-${r.settings?.losses||0}`,wins:r.settings?.wins||0,losses:r.settings?.losses||0,ties:r.settings?.ties||0,fpts:String(r.settings?.fpts||0),fptsAgainst:String(r.settings?.fpts_against||0),isMyTeam:Boolean(mine && Number(r.roster_id)===Number(mine.roster_id)),roster:r};});let matchup=[];try{const mr=await timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/matchups/${activeLeagueWeek}`,7000);if(mr.ok)matchup=await mr.json();}catch(e){}const mm=mine?matchup.find(x=>Number(x.roster_id)===Number(mine.roster_id)):null,opp=mm?.matchup_id!=null?matchup.find(x=>x.matchup_id===mm.matchup_id&&Number(x.roster_id)!==Number(mine?.roster_id)):null;activeRealMatchup={week:activeLeagueWeek,matchupId:mm?.matchup_id||null,myRoster:mine,oppRoster:opp,myScore:mm?.points||0,oppScore:opp?.points||0};activeRealMatchupWeek6=activeRealMatchup;if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();showToast(`✅ Liga carregada: ${activeSleeperRosters.length} times · Semana ${activeLeagueWeek}`);timeout(`${API}/players/nfl`,12000).then(async r=>{if(!r.ok)return;window.YL_CANONICAL.players=await r.json();window.YL_CANONICAL.fetchedAt=Date.now();if(typeof indexSleeperPlayersCatalog==='function')indexSleeperPlayersCatalog(window.YL_CANONICAL.players);if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();if(typeof renderPlayersView==='function')renderPlayersView();}).catch(e=>console.warn('Catálogo em segundo plano indisponível',e));}catch(e){console.error(e);showToast('⚠️ Não foi possível atualizar os dados da liga.');}
   };
 })();
 
@@ -2390,12 +2390,88 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
   const teamColors={SF:'#AA0000',BUF:'#00338D',DAL:'#041E42',KC:'#E31837',PHI:'#004C54',GB:'#203731',BAL:'#241773',MIA:'#008E97',NYJ:'#125740',NYG:'#0B2265',DET:'#0076B6',HOU:'#03202F',ATL:'#A71930',LAR:'#003594',TB:'#D50A0A',CIN:'#FB4F14',PIT:'#FFB612',MIN:'#4F2683',SEA:'#002244',JAX:'#006778',CAR:'#0085CA',LV:'#000000',LAC:'#0080C6',DEN:'#FB4F14',CLE:'#311D00',ARI:'#97233F',IND:'#002C5F',TEN:'#4B92DB',WAS:'#5A1414',NE:'#002244',CHI:'#0B162A'};
   function rosterPerc(id){const rosters=Array.isArray(activeSleeperRosters)?activeSleeperRosters:[];const total=rosters.length||0;const rostered=rosters.filter(r=>(r.players||[]).map(String).includes(String(id))).length;const started=rosters.filter(r=>(r.starters||[]).map(String).includes(String(id))).length;return {rostered:total?Math.round(rostered/total*100):null,started:total?Math.round(started/total*100):null};}
   function depthFor(p){const all=Object.entries(window.YL_CANONICAL?.players||{}).filter(([,r])=>r.team===p.team&&(r.position===p.pos||(r.fantasy_positions||[]).includes(p.pos))).sort((a,b)=>(Number(a[1].depth_chart_order||99)-Number(b[1].depth_chart_order||99)));return all.slice(0,6).map(([id,r])=>({id,name:r.full_name||`${r.first_name||''} ${r.last_name||''}`.trim(),order:r.depth_chart_order||'—'}));}
-  async function seasonRows(id,season){try{const d=await get(`${API}/api/players/${encodeURIComponent(id)}/history?season=${encodeURIComponent(season)}`);return d.rows||[];}catch(e){return [];}}
+  async function playerDto(id){try{const d=await get(`${API}/api/players/${encodeURIComponent(id)}`);return d&&!d.error?d:null;}catch(e){return null;}}
+  async function seasonRows(id,season){try{const url=season?`${API}/api/players/${encodeURIComponent(id)}/history?season=${encodeURIComponent(season)}`:`${API}/api/players/${encodeURIComponent(id)}/history`;const d=await get(url);return d.history||d.rows||[];}catch(e){return [];}}
   async function newsFor(p){try{const d=await get(`${API}/api/players/${encodeURIComponent(p.id)}/news`);return Array.isArray(d)?d.slice(0,3):((d.items||[]).slice(0,3));}catch(e){return [];}}
-  function profile(id){const r=rawOf(id);const p=typeof window.resolveNFLPlayer==='function'?window.resolveNFLPlayer(String(id)):null;if(!p)return null;const pc=rosterPerc(id);return Object.assign({},p,{id:String(id),sleeperId:String(id),name:r.full_name||p.name,team:r.team||p.team||'FA',pos:r.position||p.pos||'—',teamLogo:logo(r.team||p.team),photo:`https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`,age:r.age??p.age,height:r.height??p.height,weight:r.weight??p.weight,college:r.college??p.college,exp:r.years_exp??p.exp,number:r.number??p.number,injuryStatus:r.injury_status||'Saudável',rostered:pc.rostered,started:pc.started});}
-  function render(p,season,rows,news,error){const raw=rawOf(p.id),depth=depthFor(p),color=teamColors[p.team]||'#C00000';const rank=rows.filter(x=>x.proj!=null).sort((a,b)=>Number(b.proj)-Number(a.proj)).findIndex(x=>x.week===rows[rows.length-1]?.week)+1;const logRows=rows.length?rows.map(x=>`<tr><td>${x.week}</td><td>${esc(x.opp)}</td><td>${num(x.proj)}</td><td class="sleeper-fpts">${num(x.fpts)}</td><td>${num(x.snap)}</td><td>${num(x.att)}</td><td>${num(x.cmp)}</td><td>${num(x.yd)}</td><td>${num(x.td)}</td><td>${num(x.int)}</td></tr>`).join(''):`<tr><td colspan="10" class="sleeper-empty">A API Sleeper respondeu, mas não há estatística/projeção publicada para ${season}. Isso não será preenchido com mock.</td></tr>`;const newsHtml=news.length?news.map(n=>`<article class="sleeper-news"><a href="${esc(n.sourceUrl||'#')}" target="_blank" rel="noopener"><b>${esc(n.title||'Atualização do jogador')}</b></a><small>NFL.com · ${esc(n.publishedAt||n.fetchedAt||'Atualizado')}</small><p>${esc(n.summary||'')}</p></article>`).join(''):`<p class="sleeper-empty">Nenhuma notícia atual vinculada ao nome no worker NFL.com.</p>`;document.getElementById('player-modal-content').innerHTML=`<div class="sleeper-dossier" style="--sleeper-team:${color}"><button class="sleeper-close" onclick="closeModal('player-modal')">×</button><div class="sleeper-dossier__hero"><div class="sleeper-dossier__teambg"><img src="${esc(p.teamLogo)}" alt=""></div><div class="sleeper-dossier__mini"><b>${esc(p.name.split(' ').map(x=>x[0]).join('').slice(0,2))}</b><span>${esc(p.pos)} · ${esc(p.team)}</span></div><div class="sleeper-dossier__player"><img src="${esc(p.photo)}" onerror="this.onerror=null;this.src='${esc(p.teamLogo)}'" alt="${esc(p.name)}"></div><div class="sleeper-dossier__identity"><small>CATÁLOGO OFICIAL SLEEPER · ID ${esc(p.id)}</small><h1>${esc(p.name)}</h1><div class="sleeper-bio"><span><b>AGE</b>${esc(p.age??'—')}</span><i></i><span><b>HEIGHT</b>${esc(p.height??'—')}</span><i></i><span><b>WEIGHT</b>${esc(p.weight??'—')}</span><i></i><span><b>EXP</b>${esc(p.exp??'—')}</span><span class="college"><b>COLLEGE</b>${esc(p.college??'—')}</span></div><div class="sleeper-ranks"><span><b>${p.rostered??'—'}%</b> ROSTERED</span><span><b>${p.started??'—'}%</b> STARTED</span><span><b>${rank||'—'}</b> PROJ. SEMANA</span></div></div></div><div class="sleeper-dossier__bar"><b>${esc(p.pos)}</b><strong>${esc(p.team)} · #${esc(p.number??'—')}</strong><span>${esc(p.injuryStatus)}</span></div><div class="sleeper-dossier__content"><section class="sleeper-dossier__logs"><div class="sleeper-section-title"><b>GAME LOGS / PROJECTIONS</b><div class="sleeper-years">${[2026,2025,2024].map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}</div></div>${error?`<p class="sleeper-empty">${esc(error)}</p>`:''}<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>WK</th><th>OPP</th><th>PROJ</th><th>FPTS</th><th>SNAP%</th><th>ATT</th><th>CMP</th><th>YD</th><th>TD</th><th>INT</th></tr></thead><tbody>${logRows}</tbody></table></div></section><aside class="sleeper-dossier__side"><section><h3>LATEST NEWS</h3>${newsHtml}</section><section class="sleeper-depth"><h3>DEPTH CHART · ${esc(p.team)}</h3>${depth.length?depth.map((x,i)=>`<div class="sleeper-depth-row ${String(x.id)===String(p.id)?'active':''}"><b>${i+1}</b><span>${esc(x.name)}</span></div>`).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}</section><section class="sleeper-depth"><h3>FICHA TÉCNICA SLEEPER</h3><p class="sleeper-empty">Status: ${esc(raw.status||'—')} · Busca: ${esc(raw.search_rank??'—')} · ID ESPN: ${esc(raw.espn_id??'—')}</p></section></aside></div></div>`;}
-  window.YL_LOAD_PLAYER_SEASON=async function(id,season){const modal=document.getElementById('player-modal-content');const p=profile(id);if(!p||!modal)return;modal.querySelector('.sleeper-dossier__logs').innerHTML='<p class="sleeper-empty">Carregando dados oficiais do Sleeper…</p>';let rows=[],error='';try{rows=await seasonRows(id,season);}catch(e){error='Não foi possível carregar este histórico agora.';}const news=await newsFor(p);render(p,season,rows,news,error);};
-  window.openPlayerDossierModal=async function(id){const p=profile(id);const modal=document.getElementById('player-modal'),content=document.getElementById('player-modal-content');if(!modal||!content)return;modal.classList.add('open');content.innerHTML='<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Carregando perfil oficial do Sleeper…</p></div>';if(!p){content.innerHTML='<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Jogador ainda não foi carregado no catálogo oficial.</p></div>';return;}const season=Number(window.activeNflState?.season||activeLeagueWeek&&activeSleeperLeagueData?.season||new Date().getFullYear());try{const [rows,news]=await Promise.all([seasonRows(p.id,season),newsFor(p)]);render(p,season,rows,news,'');}catch(e){render(p,season,[],[], 'A consulta oficial falhou temporariamente.');}};
+  function profile(id,dto){
+    const r=rawOf(id);
+    let p=typeof window.resolveNFLPlayer==='function'?window.resolveNFLPlayer(String(id)):null;
+    if(!p&&!dto&&!r.player_id&&!r.full_name) return null;
+    if(!p){
+      const sid=String(dto?.sleeperId||dto?.id||id);
+      p={id:sid,sleeperId:sid,name:dto?.name||r.full_name||`Jogador #${sid}`,team:dto?.team||r.team||'FA',pos:dto?.position||r.position||'—',number:dto?.jersey||r.number||''};
+    }
+    const pc=rosterPerc(id);
+    const injury=dto?.injuryStatus!==undefined?dto.injuryStatus:(r.injury_status||(r.status==='Active'?null:(r.status||null)));
+    return Object.assign({},p,{
+      id:String(dto?.id||id),
+      sleeperId:String(dto?.sleeperId||id),
+      name:dto?.name||r.full_name||p.name,
+      team:dto?.team||r.team||p.team||'FA',
+      pos:dto?.position||r.position||p.pos||'—',
+      teamLogo:logo(dto?.team||r.team||p.team),
+      photo:dto?.photoUrl||p.photo||`https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`,
+      age:r.age??p.age,
+      height:r.height??p.height,
+      weight:r.weight??p.weight,
+      college:r.college??p.college,
+      exp:r.years_exp??p.exp,
+      number:dto?.jersey??r.number??p.number,
+      injuryStatus:injury,
+      rostered:pc.rostered,
+      started:pc.started,
+      dto:dto||null
+    });
+  }
+  function render(p,season,rows,news,error,dto){
+    const raw=rawOf(p.id),depth=depthFor(p),color=teamColors[p.team]||'#C00000';
+    const rank=rows.filter(x=>(x.proj!=null||x.stats?.proj!=null)).sort((a,b)=>Number(b.proj??b.stats?.proj)-Number(a.proj??a.stats?.proj)).findIndex(x=>x.week===rows[rows.length-1]?.week)+1;
+    const logRows=rows.length?rows.map(x=>{
+      const pts=x.points??x.fpts??x.stats?.pts_ppr??x.stats?.pts_half_ppr??x.stats?.pts_std??null;
+      const proj=x.proj??x.stats?.proj??null;
+      const opp=x.opp??x.stats?.opp??x.stats?.opponent??'—';
+      const snap=x.snap??x.stats?.snap_pct??x.stats?.snap??null;
+      const att=x.att??x.stats?.pass_att??x.stats?.rush_att??null;
+      const cmp=x.cmp??x.stats?.pass_cmp??null;
+      const yd=x.yd??x.stats?.pass_yd??x.stats?.rush_yd??x.stats?.rec_yd??null;
+      const td=x.td??x.stats?.pass_td??x.stats?.rush_td??x.stats?.rec_td??null;
+      const intVal=x.int??x.stats?.pass_int??null;
+      return `<tr><td>${esc(x.week)}</td><td>${esc(opp)}</td><td>${num(proj)}</td><td class="sleeper-fpts">${num(pts)}</td><td>${num(snap)}</td><td>${num(att)}</td><td>${num(cmp)}</td><td>${num(yd)}</td><td>${num(td)}</td><td>${num(intVal)}</td></tr>`;
+    }).join(''):`<tr><td colspan="10" class="sleeper-empty">A API Yardline respondeu, mas não há estatística/projeção publicada para ${season}. Sem mocks.</td></tr>`;
+    const newsHtml=news.length?news.map(n=>`<article class="sleeper-news"><a href="${esc(n.sourceUrl||n.canonical_url||'#')}" target="_blank" rel="noopener"><b>${esc(n.title||'Atualização do jogador')}</b></a><small>${esc(n.source||'NFL.com')} · ${esc(n.published_at||n.publishedAt||n.fetchedAt||'Atualizado')}</small><p>${esc(n.summary||'')}</p></article>`).join(''):`<p class="sleeper-empty">Nenhuma notícia vinculada ao atleta no worker.</p>`;
+    const hasInjury=Boolean(p.injuryStatus && p.injuryStatus !== 'Active');
+    const injuryText=hasInjury ? esc(p.injuryStatus) : 'Sem restrição';
+    const provStatus=dto?.provenance?.status || 'official';
+    const provBadge=`<span style="font-size:10px;padding:3px 9px;border-radius:4px;background:#0f172a;color:#93c5fd;border:1px solid #3b82f6;margin-left:auto;">FONTE: ${esc(provStatus.toUpperCase())} · ${esc(dto?.provenance?.source || 'CANÔNICO')}</span>`;
+    document.getElementById('player-modal-content').innerHTML=`<div class="sleeper-dossier" style="--sleeper-team:${color}"><button class="sleeper-close" onclick="closeModal('player-modal')">×</button><div class="sleeper-dossier__hero"><div class="sleeper-dossier__teambg"><img src="${esc(p.teamLogo)}" alt=""></div><div class="sleeper-dossier__mini"><b>${esc(p.name.split(' ').map(x=>x[0]).join('').slice(0,2))}</b><span>${esc(p.pos)} · ${esc(p.team)}</span></div><div class="sleeper-dossier__player"><img src="${esc(p.photo)}" onerror="this.onerror=null;this.src='${esc(p.teamLogo)}'" alt="${esc(p.name)}"></div><div class="sleeper-dossier__identity"><small>CATÁLOGO OFICIAL SLEEPER · ID ${esc(p.id)}</small><h1>${esc(p.name)}</h1><div class="sleeper-bio"><span><b>AGE</b>${esc(p.age??'—')}</span><i></i><span><b>HEIGHT</b>${esc(p.height??'—')}</span><i></i><span><b>WEIGHT</b>${esc(p.weight??'—')}</span><i></i><span><b>EXP</b>${esc(p.exp??'—')}</span><span class="college"><b>COLLEGE</b>${esc(p.college??'—')}</span></div><div class="sleeper-ranks"><span><b>${p.rostered??'—'}%</b> ROSTERED</span><span><b>${p.started??'—'}%</b> STARTED</span><span><b>${rank||'—'}</b> PROJ. SEMANA</span></div></div></div><div class="sleeper-dossier__bar"><b>${esc(p.pos)}</b><strong>${esc(p.team)} · #${esc(p.number??'—')}</strong><span class="${hasInjury?'danger':''}">${injuryText}</span>${provBadge}</div><div class="sleeper-dossier__content"><section class="sleeper-dossier__logs"><div class="sleeper-section-title"><b>GAME LOGS / PROJECTIONS</b><div class="sleeper-years">${[2026,2025,2024].map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}</div></div>${error?`<p class="sleeper-empty">${esc(error)}</p>`:''}<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>WK</th><th>OPP</th><th>PROJ</th><th>FPTS</th><th>SNAP%</th><th>ATT</th><th>CMP</th><th>YD</th><th>TD</th><th>INT</th></tr></thead><tbody>${logRows}</tbody></table></div></section><aside class="sleeper-dossier__side"><section><h3>LATEST NEWS</h3>${newsHtml}</section><section class="sleeper-depth"><h3>DEPTH CHART · ${esc(p.team)}</h3>${depth.length?depth.map((x,i)=>`<div class="sleeper-depth-row ${String(x.id)===String(p.id)?'active':''}"><b>${i+1}</b><span>${esc(x.name)}</span></div>`).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}</section><section class="sleeper-depth"><h3>FICHA TÉCNICA DTO</h3><p class="sleeper-empty" style="padding:6px 0">Status: ${injuryText} · Posição: ${esc(p.pos)} · Time: ${esc(p.team)}<br>ID Sleeper: ${esc(dto?.sleeperId||p.sleeperId||p.id)} · ID ESPN: ${esc(dto?.espnId||raw.espn_id||'—')}<br>Sincronizado: ${esc(dto?.provenance?.syncedAt||'Oficial SQLite')}</p></section></aside></div></div>`;
+  }
+  window.YL_LOAD_PLAYER_SEASON=async function(id,season){
+    const modal=document.getElementById('player-modal-content');if(!modal)return;
+    const logWrap=modal.querySelector('.sleeper-dossier__logs');if(logWrap)logWrap.innerHTML='<p class="sleeper-empty">Carregando dados canônicos…</p>';
+    let rows=[],error='',dto=null;
+    try{
+      [dto,rows]=await Promise.all([playerDto(id),seasonRows(id,season)]);
+    }catch(e){error='Não foi possível carregar este histórico agora.';}
+    const p=profile(id,dto);if(!p)return;
+    const news=await newsFor(p);
+    render(p,season,rows,news,error,dto);
+  };
+  window.openPlayerDossierModal=async function(id){
+    const modal=document.getElementById('player-modal'),content=document.getElementById('player-modal-content');if(!modal||!content)return;
+    modal.classList.add('open');
+    content.innerHTML='<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Carregando perfil e histórico canônico da Yardline…</p></div>';
+    const season=Number(window.activeNflState?.season||activeLeagueWeek&&activeSleeperLeagueData?.season||new Date().getFullYear());
+    try{
+      const [dto,rows,news]=await Promise.all([playerDto(id),seasonRows(id,season),newsFor({id})]);
+      const p=profile(id,dto);
+      if(!p){content.innerHTML='<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Jogador não encontrado no catálogo canônico.</p></div>';return;}
+      render(p,season,rows,news,'',dto);
+    }catch(e){
+      const p=profile(id,null);
+      if(p) render(p,season,[],[],'A consulta oficial falhou temporariamente.',null);
+      else content.innerHTML='<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Falha temporária ao carregar atleta da API.</p></div>';
+    }
+  };
 })();
 
 
