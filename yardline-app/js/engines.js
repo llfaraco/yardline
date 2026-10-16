@@ -2164,8 +2164,10 @@ if (typeof window !== 'undefined') {
       if (weekLabel) weekLabel.textContent = `Semana ${activeLeagueWeek ?? '—'}`;
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ ...r, roster_id: r.rosterId, owner_id: r.ownerId,
         ownerName: r.ownerName, players: r.players, starters: r.starters, reserve: r.reserve, taxi: r.taxi, settings: r.settings }));
+      const shellUserLabel = document.getElementById('topbar-user-pill')?.textContent || '';
+      const shellUser = shellUserLabel.match(/@([A-Za-z0-9_]+)/)?.[1] || null;
       const wanted = (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
-        || localStorage.getItem('yl_sleeper_username') || null;
+        || localStorage.getItem('yl_sleeper_username') || shellUser || null;
       let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
       if (!ownerId && wanted) {
         try {
@@ -2181,6 +2183,15 @@ if (typeof window !== 'undefined') {
       }
       userRealRoster = window.YardlinePlayerCard.selectUserRoster(activeSleeperRosters, {
         ownerId });
+      // The normalized shell intentionally keeps roster identity private, while
+      // standings carries the official manager username. Use that canonical
+      // crosswalk when the saved Sleeper username is available but owner_id is
+      // absent from the roster DTO; never guess a roster without an identity.
+      if (!userRealRoster && wanted) {
+        const wantedName = String(wanted).replace(/^@/, '').trim().toLowerCase();
+        const ownedStanding = (snapshot.standings || []).find(team => String(team.manager || '').trim().toLowerCase() === wantedName);
+        if (ownedStanding) userRealRoster = activeSleeperRosters.find(roster => Number(roster.roster_id) === Number(ownedStanding.rosterId)) || null;
+      }
       selectedActiveRosterId = userRealRoster?.roster_id ?? null;
       window.YL_ACTIVE_ROSTERS = activeSleeperRosters;
       window.YL_MY_ROSTER_ID = selectedActiveRosterId;
