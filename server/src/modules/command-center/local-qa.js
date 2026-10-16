@@ -195,7 +195,7 @@ export async function runLocalSmoke(config, { fetchImpl = fetch, appURL = proces
   await request('qa.news', 'News: fonte, canonical URL, timestamps e deduplicação', '/api/news?limit=20', data => {
     const rows = Array.isArray(data) ? data : data.news || data.articles;
     if (!rows?.length) return false;
-    const urls = rows.map(r => r.canonicalUrl || r.url || r.source_url);
+    const urls = rows.map(r => r.canonicalUrl || r.canonical_url || r.url || r.source_url);
     return urls.every(url => /^https?:\/\//.test(url || '')) && new Set(urls).size === urls.length && rows.every(r => (r.source || r.sourceName || r.source_name) && (r.publishedAt || r.published_at));
   });
   const catalog = await request('qa.catalog', 'Catálogo: fixtures/mocks não aparecem como oficiais', '/api/players/search?status=all&limit=100', data => data.players?.length > 0 && data.players.every(p => !/Roster Player|Canonical Test|^mock|fixture|Saudável/i.test(`${p.name} ${p.status || ''}`)));
