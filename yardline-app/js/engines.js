@@ -2205,7 +2205,12 @@ if (typeof window !== 'undefined') {
       });
       LEAGUE_12_TEAMS = (snapshot.standings || []).map(team => ({ ...team, name: team.teamName, owner: team.manager, rosterId: team.rosterId, isMyTeam: Number(team.rosterId) === Number(userRealRoster?.roster_id) }));
       const myTeamObj = LEAGUE_12_TEAMS.find(t => t.isMyTeam);
-      const myTeamName = myTeamObj?.name || 'Owner não identificado';
+      const identityLabel = document.getElementById('topbar-user-pill')?.textContent || '';
+      const identityName = identityLabel.match(/@([A-Za-z0-9_]+)/)?.[1]?.toLowerCase() || null;
+      const identityTeam = identityName
+        ? (snapshot.standings || []).find(team => String(team.manager || '').trim().toLowerCase() === identityName)
+        : null;
+      const myTeamName = myTeamObj?.name || identityTeam?.teamName || 'Owner não identificado';
       const leagueName = snapshot.league?.name || 'Liga Sleeper';
       const topTeam = document.getElementById('topbar-team-label');
       if (topTeam) topTeam.textContent = `(${myTeamName})`;
