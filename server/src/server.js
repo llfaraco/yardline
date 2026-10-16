@@ -304,7 +304,7 @@ app.get('/api/players/:playerId/history', (req, res) => {
       ...db.prepare('SELECT DISTINCT season FROM player_stats WHERE player_id=?').all(player.id).map(row => row.season),
       ...db.prepare('SELECT DISTINCT season FROM projections WHERE player_id=?').all(player.id).map(row => row.season)
     ])].sort().reverse();
-    const rows = seasons.flatMap(season => buildPlayerHistory(db, { playerId: player.id, season, league }).map(row => {
+    let rows = seasons.flatMap(season => buildPlayerHistory(db, { playerId: player.id, season, league }).map(row => {
       const stored = db.prepare("SELECT stats_json, source, captured_at FROM player_stats WHERE player_id=? AND season=? AND week=? AND source='sleeper' ORDER BY captured_at DESC LIMIT 1").get(player.id, season, row.week);
       let stats = {}; try { stats = JSON.parse(stored?.stats_json || '{}'); } catch {}
       // Public raw-history alias remains available, but league FPTS always uses the canonical scoring engine.
@@ -312,8 +312,36 @@ app.get('/api/players/:playerId/history', (req, res) => {
       return { ...row, season, points: league ? row.fpts : presetPoints, stats,
         provenance: createDataStatusDTO({ status: stored ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE, source: stored?.source || 'sleeper_stats', syncedAt: stored?.captured_at }) };
     }));
+    // Matchup data is an official Sleeper source even when the public stats endpoint
+    // has not returned the raw player box score yet. Do not report a known matchup
+    // score as unavailable merely because player_stats is empty.
+    if (league) {
+      const officialMatchupRows = db.prepare(`
+        SELECT m.week, mp.points, mp.projected_points, mp.captured_at, mp.scoring_breakdown_json
+        FROM matchup_players mp
+        JOIN matchups m ON m.id = mp.matchup_id
+        WHERE m.league_id=? AND mp.player_id=? ${req.query.season ? 'AND m.season=?' : ''}
+        ORDER BY m.week, mp.captured_at DESC
+      `).all(...(req.query.season ? [league.id, player.id, String(req.query.season)] : [league.id, player.id]));
+      const byWeek = new Map(rows.map(row => [Number(row.week), row]));
+      for (const official of officialMatchupRows) {
+        const week = Number(official.week);
+        const points = numberOrNull(official.points);
+        const current = byWeek.get(week) || { week, season: String(league.season), opp: null, proj: null, projectionFormat: null, fpts: null, points: null, stats: {}, snap: null, att: null, cmp: null, yd: null, td: null, int: null };
+        if (points !== null && current.fpts === null) {
+          current.fpts = points;
+          current.points = points;
+          current.source = { ...(current.source || {}), points: 'sleeper_matchups', projection: current.source?.projection || null };
+          current.provenance = createDataStatusDTO({ status: DATA_STATUS.OFFICIAL, source: 'sleeper_matchups', syncedAt: official.captured_at });
+          current.pointsUnavailableReason = null;
+        }
+        if (current.proj === null && numberOrNull(official.projected_points) !== null) current.proj = numberOrNull(official.projected_points);
+        byWeek.set(week, current);
+      }
+      rows = [...byWeek.values()].sort((a, b) => Number(a.week) - Number(b.week));
+    }
     res.json({ playerId: player.id, name: player.canonical_name, season: req.query.season ? String(req.query.season) : null,
-      totalGames: rows.filter(row => Object.keys(row.stats).length).length, history: rows, rows, scoringFormat: league ? 'LEAGUE' : null,
+      totalGames: rows.filter(row => Object.keys(row.stats || {}).length || row.fpts !== null).length, history: rows, rows, scoringFormat: league ? 'LEAGUE' : null,
       dataStatus: rows.some(row => row.proj !== null || row.fpts !== null || row.points !== null) ? 'partial' : 'unavailable' });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
