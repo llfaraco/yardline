@@ -230,13 +230,13 @@ function renderHomeView() {
             Todas da NFL (${YL_NFL_NEWS_DATABASE.length})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'MY_ROSTER' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='MY_ROSTER';renderHomeView();">
-            ⭐ Do Meu Time (@${activeUsername})
+            Do Meu Time (@${activeUsername})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'WAIVERS' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='WAIVERS';renderHomeView();">
-            🔥 Alvos de Waiver Wire
+            Alvos de Waiver Wire
           </button>
           <button class="btn-yl ${currentHomeFilter === 'OPPONENT' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='OPPONENT';renderHomeView();">
-            ⚔️ Adversário da Semana
+            Adversário da Semana
           </button>
         </div>
         <span style="font-size:11.5px;color:var(--text-muted);">
@@ -292,9 +292,9 @@ function renderHomeView() {
 
                       let tagClass = "badge-navy";
                       let tagTxt = p.name;
-                      if (isMine) { tagClass = "badge-green"; tagTxt = "★ No seu time: " + p.name; }
-                      else if (isOpp) { tagClass = "badge-navy"; tagTxt = "⚔️ Adversário: " + p.name; }
-                      else if (isWaiver) { tagClass = "badge-crimson"; tagTxt = "💰 Livre no Waiver: " + p.name; }
+                      if (isMine) { tagClass = "badge-green"; tagTxt = "SEU TIME: " + p.name; }
+                      else if (isOpp) { tagClass = "badge-navy"; tagTxt = "ADVERSÁRIO: " + p.name; }
+                      else if (isWaiver) { tagClass = "badge-crimson"; tagTxt = "LIVRE NO WAIVER: " + p.name; }
 
                       return `
                         <span class="badge ${tagClass}" style="cursor:pointer;padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();openPlayerDossierModal('${p.id}');">
@@ -412,7 +412,7 @@ function getPlayerLeagueStatus(playerId) {
           slot: slotKey,
           isStarter: true,
           badge: "badge-green",
-          badgeText: `★ SEU TITULAR (${slotKey})`,
+          badgeText: `SEU TITULAR (${slotKey})`,
           headline: `Pertence ao seu time (${myTeamName}) — Titular no Slot ${slotKey}`,
           description: `O atleta está atualmente escalado na sua formação titular principal no slot ${slotKey}. Projeção ativa no modelo: ${typeof getEffectiveProjection === "function" && p ? getEffectiveProjection(p) : (p?.proj || 0)} pts.`
         };
@@ -431,7 +431,7 @@ function getPlayerLeagueStatus(playerId) {
           slot: "BN",
           isStarter: false,
           badge: "badge-amber",
-          badgeText: "🛋️ NO SEU BANCO",
+          badgeText: "NO SEU BANCO",
           headline: `Pertence ao seu time (${myTeamName}) — Banco de Reservas`,
           description: "O atleta faz parte do seu elenco reserva e está disponível para ser promovido à titularidade em caso de lesão ou bye week."
         };
@@ -450,7 +450,7 @@ function getPlayerLeagueStatus(playerId) {
           slot: "IR",
           isStarter: false,
           badge: "badge-crimson",
-          badgeText: "🏥 SUA RESERVA / IR",
+          badgeText: "RESERVA / IR",
           headline: `Pertence ao seu time (${myTeamName}) — Lista de Reserva / IR`,
           description: "O atleta está alocado na lista de reserva/IR do seu time, protegido sem ocupar vaga no elenco ativo."
         };
@@ -474,7 +474,7 @@ function getPlayerLeagueStatus(playerId) {
         slot: "TITULAR",
         isStarter: true,
         badge: "badge-green",
-        badgeText: "★ SEU TITULAR",
+        badgeText: "SEU TITULAR",
         headline: `Pertence ao seu time (${myTeamName}) — Titular`,
         description: `O atleta está escalado no time titular de ${myTeamName} na liga oficial do Sleeper. Projeção ativa: ${typeof getEffectiveProjection === "function" && p ? getEffectiveProjection(p) : (p?.proj || 0)} pts.`
       };
@@ -486,7 +486,7 @@ function getPlayerLeagueStatus(playerId) {
         slot: "BN",
         isStarter: false,
         badge: "badge-amber",
-        badgeText: "🛋️ NO SEU BANCO",
+        badgeText: "NO SEU BANCO",
         headline: `Pertence ao seu time (${myTeamName}) — Banco de Reservas`,
         description: `O atleta faz parte do elenco de ${myTeamName} no banco de reservas.`
       };
@@ -502,7 +502,7 @@ function getPlayerLeagueStatus(playerId) {
       slot: "TITULAR",
       isStarter: true,
       badge: "badge-green",
-      badgeText: "★ SEU TITULAR",
+      badgeText: "SEU TITULAR",
       headline: `Pertence ao seu time (${myTeamName}) — Titular`,
       description: "Escalado no elenco titular da sua franquia."
     };
@@ -515,7 +515,7 @@ function getPlayerLeagueStatus(playerId) {
       slot: "BN",
       isStarter: false,
       badge: "badge-amber",
-      badgeText: "🛋️ NO SEU BANCO",
+      badgeText: "NO SEU BANCO",
       headline: `Pertence ao seu time (${myTeamName}) — Banco de Reservas`,
       description: "Atleta no seu banco de reservas."
     };
@@ -544,7 +544,7 @@ function getPlayerLeagueStatus(playerId) {
           owner: ownerHandle,
           isStarter: isStarter,
           badge: "badge-navy",
-          badgeText: `🛡️ TIME RIVAL: ${teamName.toUpperCase()}`,
+          badgeText: `TIME RIVAL: ${teamName.toUpperCase()}`,
           headline: `Pertence ao adversário: ${teamName} (${ownerHandle})`,
           description: `O atleta está sob contrato oficial da equipe ${teamName} e atua como ${isStarter ? '★ Titular' : '🛋️ Reserva no banco'} daquela franquia. Você pode tentar negociá-lo pelo Trade Analyzer.`
         };
@@ -556,7 +556,7 @@ function getPlayerLeagueStatus(playerId) {
   return {
     type: "FREE_AGENT",
     badge: "badge-green",
-    badgeText: "🟢 LIVRE NO WAIVER",
+    badgeText: "LIVRE NO WAIVER",
     headline: "Disponível como Jogador Livre no Waiver Wire (Free Agent)",
     description: "Este atleta não possui vínculo com nenhum dos 12+ times da liga e está totalmente livre para reivindicação imediata via FAAB no Waiver Wire."
   };
@@ -586,9 +586,9 @@ function openPlayerDossierModal(playerId, activeTab = "news") {
   const newsList = getPlayerNews(p.id);
 
   const triviaList = p.trivia || [
-    `🎓 Faculdade: Formou-se e destacou-se no futebol universitário em ${p.college || 'NCAA Division I'}.`,
+    `Faculdade: Formou-se e destacou-se no futebol universitário em ${p.college || 'NCAA Division I'}.`,
     `⚡ Experiência: Atua como ${p.exp || 'Veterano'} na NFL com disciplina e inteligência tática.`,
-    `🛡️ Perfil Físico: Altura ${p.height || '1.85m'}, peso ${p.weight || '95kg'}, camisa ${p.number || '#NFL'}.`,
+    `Perfil Físico: Altura ${p.height || '1.85m'}, peso ${p.weight || '95kg'}, camisa ${p.number || '#NFL'}.`,
     `🏈 Formação & Papel: Atua na posição de ${p.pos} pela franquia ${p.teamName || p.team}.`
   ];
 
@@ -631,34 +631,34 @@ function openPlayerDossierModal(playerId, activeTab = "news") {
       <!-- 10 Interactive Tabs Inside Dossier (Plano Mestre Seção 8) -->
       <div style="display:flex;gap:6px;margin-top:16px;border-top:1px solid rgba(255,255,255,0.12);padding-top:12px;flex-wrap:wrap;">
         <button class="btn-yl ${activeTab==='profile'?'btn-primary':'btn-outline'}" style="${activeTab==='profile'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','profile')">
-          👤 1. Perfil & IDs
+          1. Perfil & IDs
         </button>
         <button class="btn-yl ${activeTab==='medical'?'btn-primary':'btn-outline'}" style="${activeTab==='medical'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','medical')">
-          🏥 2. Status Médico
+          2. Status Médico
         </button>
         <button class="btn-yl ${activeTab==='metrics'?'btn-primary':'btn-outline'}" style="${activeTab==='metrics'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','metrics')">
-          📈 3. Métricas Avançadas
+          3. Métricas Avançadas
         </button>
         <button class="btn-yl ${activeTab==='proj'?'btn-primary':'btn-outline'}" style="${activeTab==='proj'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','proj')">
-          🎯 4. Projeções & VBD
+          4. Projeções & VBD
         </button>
         <button class="btn-yl ${activeTab==='league'?'btn-primary':'btn-outline'}" style="${activeTab==='league'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','league')">
-          ⚡ 5. Na Sua Liga
+          5. Na Sua Liga
         </button>
         <button class="btn-yl ${activeTab==='stats'?'btn-primary':'btn-outline'}" style="${activeTab==='stats'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','stats')">
-          📊 6. Game Log
+          6. Game Log
         </button>
         <button class="btn-yl ${activeTab==='matchup'?'btn-primary':'btn-outline'}" style="${activeTab==='matchup'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','matchup')">
-          🛡️ 7. Matchup
+          7. Matchup
         </button>
         <button class="btn-yl ${activeTab==='news'?'btn-primary':'btn-outline'}" style="${activeTab==='news'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','news')">
-          📰 8. Notícias (${newsList.length})
+          8. Notícias (${newsList.length})
         </button>
         <button class="btn-yl ${activeTab==='transactions'?'btn-primary':'btn-outline'}" style="${activeTab==='transactions'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','transactions')">
-          📜 9. Transações
+          9. Transações
         </button>
         <button class="btn-yl ${activeTab==='headcoach'?'btn-primary':'btn-outline'}" style="${activeTab==='headcoach'?'':'background:rgba(255,255,255,0.08);color:#FFF;border-color:rgba(255,255,255,0.2);'}padding:4px 9px;font-size:11px;" onclick="openPlayerDossierModal('${p.id}','headcoach')">
-          🧠 10. Veredito Coach
+          10. Veredito Coach
         </button>
       </div>
     </div>
@@ -700,7 +700,7 @@ function openPlayerDossierModal(playerId, activeTab = "news") {
           </div>
 
           <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:14px;font-size:12.5px;color:#065F46;line-height:1.6;">
-            <strong>✓ Proveniência Auditada:</strong> Identidade sincronizada através do catálogo oficial da NFL via IndexedDB (<code>YardlinePlayersCacheDB</code>). Hash SHA-256 verificado sem fallbacks fabricados.
+            <strong>Proveniência Auditada:</strong> Identidade sincronizada através do catálogo oficial da NFL via IndexedDB (<code>YardlinePlayersCacheDB</code>). Hash SHA-256 verificado sem fallbacks fabricados.
           </div>
         </div>
       ` : ''}
@@ -874,37 +874,37 @@ function openPlayerDossierModal(playerId, activeTab = "news") {
           <div style="display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border-light);padding-top:14px;margin-top:4px;">
             ${leagueStatus.type === "MY_STARTER" ? `
               <button class="btn-yl btn-primary" onclick="if(typeof openStarterSwap==='function'){openStarterSwap('${leagueStatus.slot}');}closeModal('player-modal');">
-                🔄 Substituir Titular (${leagueStatus.slot})
+                Substituir Titular (${leagueStatus.slot})
               </button>
               <button class="btn-yl btn-outline" onclick="if(typeof swapBenchStarter==='function'){swapBenchStarter('${p.id}');}closeModal('player-modal');">
-                🛋️ Mover para o Banco
+                Mover para o Banco
               </button>
             ` : ''}
 
             ${leagueStatus.type === "MY_BENCH" ? `
               <button class="btn-yl btn-primary" onclick="if(typeof openBenchPromote==='function'){openBenchPromote('${p.id}');}closeModal('player-modal');">
-                ⚡ Promover para o Time Titular
+                Promover para o Time Titular
               </button>
             ` : ''}
 
             ${leagueStatus.type === "OPPONENT" ? `
               <button class="btn-yl btn-primary" onclick="if(typeof handleTradeTargetTeamChange==='function'){handleTradeTargetTeamChange(${leagueStatus.rosterId});tradeTargetPicks=['${p.id}'];renderTradeView();}closeModal('player-modal');openNavTab('trade');showToast('🤝 Negociando ${p.name} de ${leagueStatus.teamName} no Trade Analyzer!');">
-                🤝 Propor Troca no Trade Analyzer
+                Propor Troca no Trade Analyzer
               </button>
             ` : ''}
 
             ${leagueStatus.type === "FREE_AGENT" ? `
               <button class="btn-yl btn-primary" onclick="closeModal('player-modal');if(typeof openSmartWaiverClaimModal==='function'){openSmartWaiverClaimModal('${p.id}');}">
-                ⚡ Reivindicar via Waivers (FAAB)
+                Reivindicar via Waivers (FAAB)
               </button>
             ` : ''}
 
             <button class="btn-yl btn-outline" onclick="togglePlayerWatchlist('${p.id}')">
-              ${isWatchlisted ? '⭐ Na Watchlist' : '☆ Adicionar à Watchlist'}
+              ${isWatchlisted ? 'Na Watchlist' : 'Adicionar à Watchlist'}
             </button>
 
             <button class="btn-yl btn-green" onclick="sharePlayerCardWhatsApp('${p.id}')">
-              💬 Compartilhar Cartão no WhatsApp
+              Compartilhar Cartão no WhatsApp
             </button>
           </div>
         </div>
@@ -981,7 +981,7 @@ function openPlayerDossierModal(playerId, activeTab = "news") {
             </div>
             <div style="background:var(--bg-subtle);padding:12px;border-radius:6px;border:1px solid var(--border-box);">
               <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Estrelas de Matchup</div>
-              <div style="font-size:15px;margin-top:2px;">⭐⭐⭐⭐⭐</div>
+              <div style="margin-top:2px;"><span class="badge badge-green" style="font-weight:700;">FAVORÁVEL (5/5)</span></div>
             </div>
           </div>
         </div>
@@ -1096,7 +1096,7 @@ function sharePlayerCardWhatsApp(playerId) {
     `💡 *Análise:* Monitorado pelo motor analítico da YARDLINE na Neilo Pistola League (#1369770282776006656).`;
 
   navigator.clipboard.writeText(text).then(() => {
-    showToast(`📋 Dossiê de ${p.name} copiado para o WhatsApp!`);
+    showToast(`Dossiê de ${p.name} copiado para o WhatsApp!`);
   }).catch(() => {
     showToast("Dossiê gerado para o WhatsApp!");
   });
@@ -1174,7 +1174,7 @@ function renderPlayersView() {
             `).join("")}
           </select>
           <button class="btn-yl btn-primary" onclick="syncSleeperPlayers().then(() => { renderPlayersView(); if(typeof showToast==='function') showToast('Catálogo oficial sincronizado com sucesso!'); })">
-            ⚡ Sincronizar Base Sleeper API
+            Sincronizar Base Sleeper API
           </button>
         </div>
       </div>
@@ -1293,11 +1293,11 @@ try {
         }
       }
       renderTeamsView(); renderPlayersView(); startLiveTickerClockEngine();
-      showToast("✅ +" + count + " atletas sincronizados ao vivo da API do Sleeper!");
+      showToast("+" + count + " atletas sincronizados ao vivo da API do Sleeper!");
       return;
     }
   } catch (e) {}
-  showToast("✅ Base local ativa com 100+ jogadores oficiais das 32 equipes!");
+  showToast("Base local ativa com 100+ jogadores oficiais das 32 equipes!");
 }
 
 // 4. PLAYBOOK CONTROLLER (FANTASYPROS START/SIT ASSISTANT)
@@ -1325,8 +1325,8 @@ function renderPlaybookView() {
             <div style="font-size:10.5px;color:var(--text-muted);text-transform:uppercase;">PROJEÇÃO TOTAL TITULARES</div>
             <div class="mono" style="font-size:22px;font-weight:500;color:var(--yl-navy);">${totalProj} pts</div>
           </div>
-          <button class="btn-yl btn-primary" onclick="showToast('⚡ Escalação otimizada com sucesso!')">
-            ⚡ Otimizar Escalação
+          <button class="btn-yl btn-primary" onclick="showToast('Escalação otimizada com sucesso!')">
+            Otimizar Escalação
           </button>
         </div>
       </div>
@@ -1512,10 +1512,10 @@ function renderLeagueView() {
         </div>
         <div style="display:flex;gap:10px;">
           <button class="btn-yl btn-primary" id="sleeper-audit-trigger-btn" onclick="triggerDetailedSleeperAudit()">
-            ⚡ Auditar & Sincronizar em 14 Etapas
+            Auditar & Sincronizar (14 Etapas)
           </button>
           <button class="btn-yl btn-outline" onclick="openNavTab('social')">
-            💬 Veredito WhatsApp
+            Veredito WhatsApp
           </button>
         </div>
       </div>
@@ -1530,7 +1530,7 @@ function renderLeagueView() {
           <div id="sleeper-audit-progress-bar" style="width:100%;height:100%;background:var(--yl-crimson);transition:width 0.2s;"></div>
         </div>
         <div id="sleeper-audit-live-logs" style="max-height:85px;overflow-y:auto;font-size:11.5px;line-height:1.5;">
-          <div style="color:#047857;font-family:monospace;">✓ [14:02:11] Sincronização oficial concluída com sucesso. 12 elencos, regras de pontuação PPR e confrontos da Semana 6 carregados.</div>
+          <div style="color:#047857;font-family:monospace;">[14:02:11] Sincronização oficial concluída com sucesso. 12 elencos, regras de pontuação PPR e confrontos da Semana 6 carregados.</div>
         </div>
       </div>
     </div>
@@ -1731,7 +1731,7 @@ async function openManagerDnaDetailModal(rosterId) {
       <!-- Archetype Banner -->
       <div style="background:linear-gradient(135deg, #0F172A 0%, #1E293B 100%);color:#FFF;padding:16px 20px;border-radius:10px;margin-bottom:16px;">
         <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;">Arquétipo Comportamental Identificado</div>
-        <div style="font-size:20px;font-weight:600;color:#38BDF8;margin:2px 0 6px;">⚔️ ${dna.archetype}</div>
+        <div style="font-size:20px;font-weight:600;color:#38BDF8;margin:2px 0 6px;">${dna.archetype}</div>
         <div style="font-size:12px;color:#CBD5E1;line-height:1.5;">${dna.insights?.[0] || 'Decisões orientadas a dados e antecipação de mercado.'}</div>
       </div>
 
@@ -1761,7 +1761,7 @@ async function openManagerDnaDetailModal(rosterId) {
 
       <!-- Tactical Advice for Negotiating / Facing this Rival -->
       <div style="background:#FFF;border:1px solid var(--border-box);border-left:4px solid var(--yl-crimson);border-radius:8px;padding:14px;margin-bottom:18px;">
-        <div style="font-size:12px;font-weight:600;color:var(--yl-navy);margin-bottom:4px;">🎯 Como Negociar ou Enfrentar este Adversário:</div>
+        <div style="font-size:12px;font-weight:600;color:var(--yl-navy);margin-bottom:4px;">Como Negociar ou Enfrentar este Adversário:</div>
         <div style="font-size:12.5px;color:var(--text-body);line-height:1.5;">
           ${dna.insights?.[1] || 'Mantenha propostas com valor transparente e alvos em posições de carência no elenco dele.'}
         </div>
@@ -1769,7 +1769,7 @@ async function openManagerDnaDetailModal(rosterId) {
 
       <div style="display:flex;justify-content:flex-end;gap:10px;">
         <button class="btn-yl btn-primary" onclick="closeModal('manager-dna-modal');openNavTab('trade');">
-          Propor Troca no Trade Analyzer ➔
+          Propor Troca no Trade Analyzer →
         </button>
       </div>
     `;
@@ -1803,7 +1803,7 @@ async function openManagerDnaDetailModal(rosterId) {
       ` : `
         <div style="background:linear-gradient(135deg, #0F172A 0%, #1E293B 100%);color:#FFF;padding:16px 20px;border-radius:10px;margin-bottom:16px;">
           <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;">Arquétipo Comportamental Identificado</div>
-          <div style="font-size:20px;font-weight:600;color:#38BDF8;margin:2px 0 6px;">⚔️ ${localDna.trades > 0 ? 'The Trade Wheeler' : (localDna.waivers > 2 ? 'Tactical Aggressor' : 'The Conservative Stasher')}</div>
+          <div style="font-size:20px;font-weight:600;color:#38BDF8;margin:2px 0 6px;">${localDna.trades > 0 ? 'The Trade Wheeler' : (localDna.waivers > 2 ? 'Tactical Aggressor' : 'The Conservative Stasher')}</div>
           <div style="font-size:12px;color:#CBD5E1;line-height:1.5;">Baseado no histórico real de movimentações registradas na liga.</div>
         </div>
       `}
@@ -1857,7 +1857,7 @@ function renderManagerDnaView() {
           <div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
               <span class="badge badge-crimson">ARQUÉTIPO CANÔNICO YARDLINE</span>
-              <span class="badge badge-amber">ALL-PRO MANAGER ⭐</span>
+              <span class="badge badge-amber">ALL-PRO MANAGER</span>
             </div>
             <h2 style="font-size:24px;font-weight:600;margin:0;">Faraco <span style="font-size:16px;color:#94A3B8;font-weight:400;">(${myTeam.owner})</span></h2>
             <div style="font-size:12.5px;color:#CBD5E1;margin-top:2px;">
@@ -1868,7 +1868,7 @@ function renderManagerDnaView() {
 
         <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px 18px;text-align:right;">
           <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;">ESTILO TÁTICO PREDOMINANTE</div>
-          <div style="font-size:18px;font-weight:600;color:#38BDF8;margin-top:2px;">⚔️ TACTICAL AGGRESSOR</div>
+          <div style="font-size:18px;font-weight:600;color:#38BDF8;margin-top:2px;">TACTICAL AGGRESSOR</div>
           <div style="font-size:11px;color:#A7F3D0;margin-top:2px;">Top 1% em Eficiência de Escalação (97.2%)</div>
         </div>
       </div>
@@ -2017,13 +2017,13 @@ function renderAiModeView() {
 
         <div style="display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;">
           <button class="btn-yl btn-outline" onclick="showToast('Diagnóstico: Manter Emeka Egbuka no FLEX titular (+5.4 pts projetados).')">
-            🎯 Escalar Egbuka ou Godwin?
+            Escalar Egbuka ou Godwin?
           </button>
           <button class="btn-yl btn-outline" onclick="showToast('Waiver #1: Isaiah Likely (81% rotas) com lance de $25 FAAB.')">
-            🔥 Qual o Waiver Prioritário?
+            Qual o Waiver Prioritário?
           </button>
           <button class="btn-yl btn-outline" onclick="showToast('Raio-X: 61% de probabilidade de vitória contra o Chiarello Squad.')">
-            ⚔️ Raio-X do Confronto
+            Raio-X do Confronto
           </button>
         </div>
 
@@ -2063,7 +2063,7 @@ function renderSocialView() {
       </div>
 
       <button class="btn-yl btn-green" style="padding:10px 16px;font-size:13.5px;" onclick="copyWhatsAppVerdict()">
-        💬 Copiar Texto Formatado para WhatsApp
+        Copiar Texto Formatado para WhatsApp
       </button>
     </div>
   `;
@@ -2086,7 +2086,7 @@ function copyWhatsAppVerdict() {
     `👉 _Analisado pela YARDLINE · Camada de Inteligência NFL Brasil_`;
 
   navigator.clipboard.writeText(text).then(() => {
-    showToast("✅ Veredito copiado com sucesso! Cole no WhatsApp da liga.");
+    showToast("Veredito copiado com sucesso! Cole no WhatsApp da liga.");
   }).catch(() => {
     showToast("Texto gerado para WhatsApp!");
   });
@@ -2168,7 +2168,7 @@ async function openCheckoutModal(planCode, method = "PIX") {
       <div style="background:#F8FAFC;border:1px solid var(--border-light);border-radius:10px;padding:16px;text-align:center;margin-bottom:18px;">
         <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;">VALOR TOTAL DA ASSINATURA</div>
         <div style="font-size:26px;font-weight:700;color:var(--yl-navy);margin:4px 0;">${priceFormatted} <span style="font-size:13px;font-weight:400;color:var(--text-muted);">/mês</span></div>
-        <div style="font-size:11.5px;color:var(--yl-emerald);font-weight:500;">✓ Sem conversão cambial · Cobrança oficial em Reais</div>
+        <div style="font-size:11.5px;color:var(--yl-emerald);font-weight:500;">Sem conversão cambial · Cobrança oficial em Reais</div>
       </div>
 
       ${method === "PIX" ? `
@@ -2198,7 +2198,7 @@ async function openCheckoutModal(planCode, method = "PIX") {
       <div style="border-top:1px solid var(--border-light);padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <span style="font-size:11.5px;color:var(--text-muted);">Aguardando confirmação bancária...</span>
         <button class="btn-yl btn-primary" style="padding:8px 16px;font-size:12px;background:var(--yl-emerald);border-color:var(--yl-emerald);" onclick="confirmPaymentWebhookSimulation('${checkout.providerPaymentId}', '${planCode}')">
-          ✓ Confirmar Pagamento (Webhook)
+          Confirmar Pagamento (Webhook)
         </button>
       </div>
     `;
@@ -2219,7 +2219,7 @@ async function confirmPaymentWebhookSimulation(providerPaymentId, planCode) {
   localStorage.setItem("yl_active_plan", planCode);
   closeModal("checkout-modal");
   renderPlansView();
-  showToast(`🎉 Pagamento confirmado via Webhook! Plano ${planCode} ativado com sucesso.`);
+  showToast(`Pagamento confirmado via Webhook! Plano ${planCode} ativado com sucesso.`);
 }
 
 function renderPlansView() {
@@ -2271,15 +2271,15 @@ function renderPlansView() {
             <div>
               ${isCurrent ? `
                 <button class="btn-yl btn-primary" style="width:100%;justify-content:center;background:var(--yl-emerald);border-color:var(--yl-emerald);" disabled>
-                  ✓ Plano Ativo & Sincronizado
+                  Plano Ativo & Sincronizado
                 </button>
               ` : `
                 <div style="display:flex;flex-direction:column;gap:8px;">
                   <button class="btn-yl btn-primary" style="width:100%;justify-content:center;" onclick="openCheckoutModal('${plan.code}', 'PIX')">
-                    ⚡ Assinar com Pix Instantâneo
+                    Assinar com Pix Instantâneo
                   </button>
                   <button class="btn-yl btn-outline" style="width:100%;justify-content:center;font-size:12px;" onclick="openCheckoutModal('${plan.code}', 'CARD')">
-                    💳 Cartão de Crédito
+                    Cartão de Crédito
                   </button>
                 </div>
               `}
@@ -2364,35 +2364,35 @@ function renderOnboardingStep() {
       </p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
         <div onclick="setOnboardingProfile('competitive')" style="cursor:pointer;padding:16px;border-radius:10px;border:2px solid ${onboardingData.profile === 'competitive' ? 'var(--yl-crimson)' : 'var(--border-light)'};background:${onboardingData.profile === 'competitive' ? 'rgba(195,17,43,0.04)' : '#FFF'};">
-          <div style="font-size:22px;margin-bottom:6px;">🏈</div>
+          <div style="margin-bottom:6px;color:var(--yl-crimson);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg></div>
           <div style="font-weight:600;font-size:14px;color:var(--yl-navy);">Já jogo Fantasy</div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Quero vencer minha liga, otimizar lances de FAAB e receber dados de volume (TPRR, rotas, snaps).</div>
         </div>
         <div onclick="setOnboardingProfile('beginner')" style="cursor:pointer;padding:16px;border-radius:10px;border:2px solid ${onboardingData.profile === 'beginner' ? 'var(--yl-crimson)' : 'var(--border-light)'};background:${onboardingData.profile === 'beginner' ? 'rgba(195,17,43,0.04)' : '#FFF'};">
-          <div style="font-size:22px;margin-bottom:6px;">🌱</div>
+          <div style="margin-bottom:6px;color:var(--yl-emerald);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12A10 10 0 0 1 12 2z"></path><path d="M12 6v12"></path></svg></div>
           <div style="font-weight:600;font-size:14px;color:var(--yl-navy);">Estou começando agora</div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Preciso de recomendações explicadas sem jargões complexos e diagnósticos guiados.</div>
         </div>
         <div onclick="setOnboardingProfile('commissioner')" style="cursor:pointer;padding:16px;border-radius:10px;border:2px solid ${onboardingData.profile === 'commissioner' ? 'var(--yl-crimson)' : 'var(--border-light)'};background:${onboardingData.profile === 'commissioner' ? 'rgba(195,17,43,0.04)' : '#FFF'};">
-          <div style="font-size:22px;margin-bottom:6px;">👑</div>
+          <div style="margin-bottom:6px;color:var(--yl-amber);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
           <div style="font-weight:600;font-size:14px;color:var(--yl-navy);">Sou comissário de liga</div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Quero gerar vereditos automáticos para o WhatsApp, movimentar trocas e auditar matchups.</div>
         </div>
         <div onclick="setOnboardingProfile('multi')" style="cursor:pointer;padding:16px;border-radius:10px;border:2px solid ${onboardingData.profile === 'multi' ? 'var(--yl-crimson)' : 'var(--border-light)'};background:${onboardingData.profile === 'multi' ? 'rgba(195,17,43,0.04)' : '#FFF'};">
-          <div style="font-size:22px;margin-bottom:6px;">⚡</div>
+          <div style="margin-bottom:6px;color:var(--yl-blue);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
           <div style="font-weight:600;font-size:14px;color:var(--yl-navy);">Tenho mais de uma liga</div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Preciso gerenciar múltiplos elencos rapidamente e cruzar notícias com vários times.</div>
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;">
-        <button class="btn-yl btn-primary" style="padding:10px 22px;font-size:13.5px;" onclick="currentOnboardingStep=2;renderOnboardingStep();">Avançar para Conexão ➔</button>
+        <button class="btn-yl btn-primary" style="padding:10px 22px;font-size:13.5px;" onclick="currentOnboardingStep=2;renderOnboardingStep();">Avançar para Conexão →</button>
       </div>
     `;
   } else if (step === 2) {
     html += `
       <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);padding:14px 18px;border-radius:8px;margin-bottom:20px;">
         <div style="font-weight:600;font-size:13px;color:#065F46;display:flex;align-items:center;gap:6px;">
-          <span>🔒</span> 100% Seguro: Não solicitamos sua senha
+          100% Seguro: Não solicitamos sua senha
         </div>
         <div style="font-size:12px;color:#047857;margin-top:4px;line-height:1.5;">
           A YARDLINE consulta os endpoints oficiais da API pública do Sleeper via backend protegido. Lemos apenas as configurações públicas de elenco, confrontos e regras de pontuação da sua liga.
@@ -2406,13 +2406,13 @@ function renderOnboardingStep() {
           <button class="btn-yl btn-navy" onclick="executeSleeperUserLookup(true)">Buscar Minhas Ligas</button>
         </div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
-          💡 Digite seu nome de usuário oficial do Sleeper (ex: <code>Faraco</code>) para listar todas as suas ligas da temporada.
+          Digite seu nome de usuário oficial do Sleeper (ex: <code>Faraco</code>) para listar todas as suas ligas da temporada.
         </div>
       </div>
 
       <div style="display:flex;justify-content:space-between;">
         <button class="btn-yl btn-outline" onclick="currentOnboardingStep=1;renderOnboardingStep();">⬅ Voltar</button>
-        <button class="btn-yl btn-primary" onclick="proceedToStep3()">Avançar ➔</button>
+        <button class="btn-yl btn-primary" onclick="proceedToStep3()">Avançar →</button>
       </div>
     `;
   } else if (step === 3) {
@@ -2461,7 +2461,7 @@ function renderOnboardingStep() {
 
       <div style="display:flex;justify-content:space-between;">
         <button class="btn-yl btn-outline" onclick="currentOnboardingStep=2;renderOnboardingStep();">⬅ Voltar</button>
-        <button class="btn-yl btn-primary" onclick="generateFirstDiagnostic()">Gerar Diagnóstico Imediato ➔</button>
+        <button class="btn-yl btn-primary" onclick="generateFirstDiagnostic()">Gerar Diagnóstico Imediato →</button>
       </div>
     `;
   } else if (step === 4) {
@@ -2493,7 +2493,7 @@ function renderOnboardingStep() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
         <div style="background:#FFF;border:1px solid var(--border-light);border-radius:8px;padding:14px;">
           <div style="font-weight:600;font-size:13px;color:var(--yl-navy);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-            <span>🎯</span> Titulares Auditados (${startersList.length} Atletas)
+            Titulares Auditados (${startersList.length} Atletas)
           </div>
           <ul style="font-size:12px;color:var(--text-body);margin:0;padding-left:16px;line-height:1.6;">
             ${topStarters.length > 0 ? topStarters.map(st => `
@@ -2508,7 +2508,7 @@ function renderOnboardingStep() {
 
         <div style="background:#FFF;border:1px solid var(--border-light);border-radius:8px;padding:14px;">
           <div style="font-weight:600;font-size:13px;color:var(--yl-navy);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-            <span>⚡</span> Estratégia de Rodada
+            Estratégia de Rodada
           </div>
           <div style="font-size:12px;color:var(--text-body);line-height:1.5;">
             <strong>Otimização de Escalação:</strong><br>
@@ -2535,7 +2535,7 @@ async function executeSleeperUserLookup(advance = true) {
     onboardingData.sleeperUsername = inp.value.trim();
   }
   const uname = onboardingData.sleeperUsername || "Faraco";
-  showToast(`🔍 Consultando usuário @${uname} via YARDLINE API...`);
+  showToast(`Consultando usuário @${uname} via YARDLINE API...`);
 
   try {
     let udata = null;
@@ -2551,14 +2551,14 @@ async function executeSleeperUserLookup(advance = true) {
     }
 
     if (!udata || !udata.user_id) {
-      showToast(`❌ Usuário @${uname} não encontrado no Sleeper.`);
+      showToast(`Usuário @${uname} não encontrado no Sleeper.`);
       return;
     }
     onboardingData.sleeperUserId = udata.user_id;
     localStorage.setItem("yl_sleeper_username", uname);
     if (typeof activeSleeperUsername !== "undefined") activeSleeperUsername = uname;
 
-    showToast(`📥 Buscando ligas NFL de @${uname}...`);
+    showToast(`Buscando ligas NFL de @${uname}...`);
     let leagues = [];
     try {
       const legRes = await fetch(`${YL_API_BASE}/integrations/sleeper/user/${udata.user_id}/leagues/2026`);
@@ -2579,14 +2579,14 @@ async function executeSleeperUserLookup(advance = true) {
       onboardingData.selectedLeagueId = onboardingData.userLeagues[0].id;
       onboardingData.selectedLeagueName = `${onboardingData.userLeagues[0].name} (#${onboardingData.userLeagues[0].id})`;
     }
-    showToast(`✅ ${onboardingData.userLeagues.length} ligas encontradas para @${uname}!`);
+    showToast(`${onboardingData.userLeagues.length} ligas encontradas para @${uname}!`);
     if (advance) {
       currentOnboardingStep = 3;
       renderOnboardingStep();
     }
   } catch (err) {
     console.error("[Onboarding Error]:", err);
-    showToast("❌ Erro de comunicação com a API.");
+    showToast("Erro de comunicação com a API.");
   }
 }
 
@@ -2599,7 +2599,7 @@ function proceedToStep3() {
 }
 
 async function generateFirstDiagnostic() {
-  showToast(`⚙️ Sincronizando ${onboardingData.selectedLeagueName} e calculando matchup...`);
+  showToast(`Sincronizando ${onboardingData.selectedLeagueName} e calculando matchup...`);
   try {
     try {
       await fetch(`${YL_API_BASE}/integrations/sleeper/sync-league`, {
@@ -2632,7 +2632,7 @@ function completeOnboardingFlow() {
     activeSleeperUsername = onboardingData.sleeperUsername;
   }
 
-  showToast(`🎉 Liga ${onboardingData.selectedLeagueName} conectada com sucesso!`);
+  showToast(`Liga ${onboardingData.selectedLeagueName} conectada com sucesso!`);
   if (typeof syncRealSleeperLeagueLive === "function") {
     syncRealSleeperLeagueLive();
   }
@@ -2703,7 +2703,7 @@ function triggerDetailedSleeperAudit() {
         statusBadge.className = "badge badge-green";
         statusBadge.innerText = "SINCRONIZADO & AUDITADO: " + new Date().toLocaleTimeString('pt-BR');
       }
-      showToast("✅ Sincronização Sleeper concluída! 12 elencos e regras auditadas.");
+      showToast("Sincronização Sleeper concluída! 12 elencos e regras auditadas.");
     }
   }
 
@@ -2790,7 +2790,7 @@ function renderWaiverClaimContent() {
     <!-- Etapa 3: Quem Cortar (Sugestão de Drop) -->
     <div style="background:#FFF;border:1px solid var(--border-light);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="font-weight:500;font-size:13px;color:var(--yl-navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-        <span>✂️</span> Quem cortar para abrir espaço no elenco?
+        Quem cortar para abrir espaço no elenco?
       </div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <select id="waiver-drop-select" class="yl-search-input" style="flex:1;min-width:240px;font-size:13px;padding:8px 12px;">
@@ -2810,7 +2810,7 @@ function renderWaiverClaimContent() {
     <div style="background:#FFF;border:1px solid var(--border-light);border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div style="font-weight:500;font-size:13px;color:var(--yl-navy);display:flex;align-items:center;gap:6px;">
-          <span>💰</span> Oferta de FAAB Sugerida pela IA: <strong style="color:var(--yl-crimson);">22% ($22)</strong>
+          Oferta de FAAB Sugerida pela IA: <strong style="color:var(--yl-crimson);">22% ($22)</strong>
         </div>
         <div style="font-size:12px;color:var(--text-muted);">
           Seu Saldo: <strong>$100</strong> · Saldo Pós-Lance: <strong id="faab-remaining-val">$78</strong>
@@ -2826,13 +2826,13 @@ function renderWaiverClaimContent() {
     <!-- Etapa 5 & 6: Concorrentes e Prioridade -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
       <div style="background:#FFF7ED;border:1px solid #FFEDD5;border-radius:8px;padding:12px;">
-        <div style="font-weight:500;font-size:12.5px;color:#9A3412;margin-bottom:4px;">⚠️ Concorrentes Prováveis na Liga</div>
+        <div style="font-weight:500;font-size:12.5px;color:#9A3412;margin-bottom:4px;"><span class="badge badge-amber" style="font-size:10px;margin-right:4px;">ALERTA</span> Concorrentes Prováveis na Liga</div>
         <div style="font-size:11.5px;color:#C2410C;line-height:1.4;">
           <strong>3 times</strong> (Galáticos, Tatuapé Touchdowns, Faria Lima Blitz) estão carentes de RB e têm mais de $75 em FAAB. Lance recomendado de 22% cobre lances médios de 15%.
         </div>
       </div>
       <div style="background:#F8FAFC;border:1px solid var(--border-light);border-radius:8px;padding:12px;">
-        <div style="font-weight:500;font-size:12.5px;color:var(--yl-navy);margin-bottom:4px;">⚡ Prioridade do Pedido</div>
+        <div style="font-weight:500;font-size:12.5px;color:var(--yl-navy);margin-bottom:4px;">Prioridade do Pedido</div>
         <select class="yl-search-input" style="width:100%;font-size:12px;padding:6px 10px;">
           <option value="1" selected>Prioridade 1 (Reivindicação Primária)</option>
           <option value="2">Prioridade 2 (Secundária)</option>
@@ -2844,10 +2844,10 @@ function renderWaiverClaimContent() {
     <!-- Etapa 7 & 8: Ações Claras (Simulação vs Envio Real) -->
     <div style="border-top:1px solid var(--border-light);padding-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <button class="btn-yl btn-outline" style="padding:10px 18px;font-size:13px;border-color:var(--yl-emerald);color:#065F46;background:rgba(16,185,129,0.06);" onclick="simulateWaiverAddition('${p.id}')">
-        🟢 Simular Adição no Playbook
+        Simular Adição no Playbook
       </button>
       <button class="btn-yl btn-primary" style="padding:10px 22px;font-size:13px;" onclick="copyOrderAndOpenSleeper('${p.name}', '${p.team}')">
-        📋 Copiar Ordem e Abrir Sleeper ➔
+        Copiar Ordem e Abrir Sleeper →
       </button>
     </div>
   `;
@@ -2864,7 +2864,7 @@ function simulateWaiverAddition(playerId) {
   closeModal("waiver-modal");
   renderPlaybookView();
   renderWaiversView();
-  showToast("🟢 Simulação aplicada! " + (YL_ALL_NFL_PLAYERS[playerId]?.name || "Jogador") + " adicionado ao banco. Projeção atualizada no Playbook.");
+  showToast("Simulação aplicada! " + (YL_ALL_NFL_PLAYERS[playerId]?.name || "Jogador") + " adicionado ao banco. Projeção atualizada no Playbook.");
   openNavTab("playbook");
 }
 
@@ -2875,7 +2875,7 @@ function copyOrderAndOpenSleeper(playerName, playerTeam) {
 
   const textToCopy = `[ORDEM DE WAIVER YARDLINE]\nReivindicar: ${playerName} (${playerTeam})\nCortar: ${dropText}\nOferta FAAB: $${faab} (22%)\nPrioridade: 1\nLiga: Neilo Pistola League (Sleeper)`;
   navigator.clipboard.writeText(textToCopy).then(() => {
-    showToast("📋 Ordem copiada para o clipboard! Abrindo Sleeper...");
+    showToast("Ordem copiada para o clipboard! Abrindo Sleeper...");
     setTimeout(() => {
       window.open("https://sleeper.com/fantasy-football", "_blank");
       closeModal("waiver-modal");
@@ -2984,7 +2984,7 @@ function renderTeamsView() {
           </div>
         </div>
         <div style="display:flex;gap:8px;">
-          <button class="btn-yl btn-outline" style="font-size:12px;" onclick="openNavTab('playbook')">⚡ Abrir Playbook</button>
+          <button class="btn-yl btn-outline" style="font-size:12px;" onclick="openNavTab('playbook')">Abrir Playbook</button>
         </div>
       </div>
 
@@ -3021,7 +3021,7 @@ function renderTeamsView() {
       ${qbs.length > 0 ? `
         <div>
           <div style="font-size:13px;font-weight:500;color:var(--yl-navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-            <span>🎯</span> QUARTERBACKS (QB)
+            <span class="badge badge-navy" style="font-size:10px;margin-right:6px;">QB</span> QUARTERBACKS
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${qbs.map(renderPlayerRow).join('')}
@@ -3032,7 +3032,7 @@ function renderTeamsView() {
       ${rbs.length > 0 ? `
         <div>
           <div style="font-size:13px;font-weight:500;color:var(--yl-navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-            <span>⚡</span> RUNNING BACKS (RB)
+            <span class="badge badge-blue" style="font-size:10px;margin-right:6px;">RB</span> RUNNING BACKS
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${rbs.map(renderPlayerRow).join('')}
@@ -3043,7 +3043,7 @@ function renderTeamsView() {
       ${wrs.length > 0 ? `
         <div>
           <div style="font-size:13px;font-weight:500;color:var(--yl-navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-            <span>🙌</span> WIDE RECEIVERS (WR)
+            <span class="badge badge-green" style="font-size:10px;margin-right:6px;">WR</span> WIDE RECEIVERS
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${wrs.map(renderPlayerRow).join('')}
@@ -3054,7 +3054,7 @@ function renderTeamsView() {
       ${tes.length > 0 ? `
         <div>
           <div style="font-size:13px;font-weight:500;color:var(--yl-navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-            <span>🛡️</span> TIGHT ENDS (TE)
+            <span class="badge badge-amber" style="font-size:10px;margin-right:6px;">TE</span> TIGHT ENDS
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${tes.map(renderPlayerRow).join('')}
@@ -3065,7 +3065,7 @@ function renderTeamsView() {
       ${ks.length > 0 || defs.length > 0 ? `
         <div>
           <div style="font-size:13px;font-weight:500;color:var(--yl-navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-            <span>🏈</span> SPECIAL TEAMS & DEFESA (K / DEF)
+            <span class="badge badge-crimson" style="font-size:10px;margin-right:6px;">K / DEF</span> SPECIAL TEAMS & DEFESA
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${[...ks, ...defs].map(renderPlayerRow).join('')}
@@ -3486,11 +3486,11 @@ window.toggleSidebarGroup=function(key){
             </div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn-yl btn-primary" onclick="syncRealSleeperLeagueLive();showToast('⚡ Conexão direta com a API do Sleeper sincronizada!')">
+            <button class="btn-yl btn-primary" onclick="syncRealSleeperLeagueLive();showToast('Conexão direta com a API do Sleeper sincronizada!')">
               ↻ Atualizar Sleeper
             </button>
             <button class="btn-yl btn-outline" onclick="toggleLeagueChat()">
-              💬 Abrir Chat (${REAL_WEEK6_TRANSACTIONS.length})
+              Abrir Chat (${REAL_WEEK6_TRANSACTIONS.length})
             </button>
           </div>
         </div>
@@ -3869,7 +3869,7 @@ window.toggleSidebarGroup=function(key){
     const systemCard = `
       <div class="yl-chat-event event-system">
         <div class="yl-chat-event__head">
-          <span class="yl-chat-event__user" style="color:#C3112B;">🚨 COMISSÁRIO · SISTEMA OFICIAL</span>
+          <span class="yl-chat-event__user" style="color:#C3112B;"><span class="badge badge-crimson" style="font-size:9px;margin-right:4px;">COMISSÁRIO</span> SISTEMA OFICIAL</span>
           <span class="yl-chat-event__time">Semana 6</span>
         </div>
         <div class="yl-chat-event__body">
@@ -3930,7 +3930,7 @@ window.toggleSidebarGroup=function(key){
       localStorage.setItem("yl_chat_collapsed", isCollapsed ? "1" : "0");
     } catch (e) {}
 
-    showToast(isCollapsed ? "💬 League Chat recolhido" : "💬 League Chat expandido");
+    showToast(isCollapsed ? "League Chat recolhido" : "League Chat expandido");
   }
 
   async function sendChatMessage() {
@@ -3962,7 +3962,7 @@ window.toggleSidebarGroup=function(key){
     saveStoredChatMessages(msgs);
     input.value = "";
     renderLeagueChatFeed();
-    showToast("✓ Mensagem enviada para o League Chat!");
+    showToast("Mensagem enviada para o League Chat!");
   }
 
   function insertChatQuickText(text) {
@@ -4023,7 +4023,7 @@ window.toggleSidebarGroup=function(key){
     if (label) label.textContent = "Sincronizando...";
 
     if (typeof showToast === "function") {
-      showToast("⏳ Iniciando sincronização em tempo real com o GitHub...");
+      showToast("Iniciando sincronização com o GitHub...");
     }
 
     try {
@@ -4035,20 +4035,20 @@ window.toggleSidebarGroup=function(key){
       if (pill) pill.classList.remove("syncing");
 
       if (data.status === "already_in_progress") {
-        if (typeof showToast === "function") showToast("ℹ️ Sincronização já em andamento.");
+        if (typeof showToast === "function") showToast("Sincronização já em andamento.");
       } else if (data.status === "ok") {
         if (typeof showToast === "function") {
-          showToast(`✓ GitHub sincronizado! Commit: ${data.commit || 'recente'}`);
+          showToast(`GitHub sincronizado! Commit: ${data.commit || 'recente'}`);
         }
         if (label) label.textContent = "10m · Atualizado agora";
       } else {
-        if (typeof showToast === "function") showToast("✓ Verificação com o GitHub concluída.");
+        if (typeof showToast === "function") showToast("Verificação com o GitHub concluída.");
       }
     } catch (err) {
       if (pill) pill.classList.remove("syncing");
       if (label) label.textContent = "10m · Ativo";
       if (typeof showToast === "function") {
-        showToast("✓ Agente local executando em background (ciclo de 10 min).");
+        showToast("Agente local executando em background (ciclo de 10 min).");
       }
     }
   }

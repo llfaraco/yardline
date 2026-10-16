@@ -27,7 +27,8 @@ Thumbs.db
 *.bak
 YARDLINE-NEWS-BLOCK.patch
 
-# Database journal & WAL
+# Database operational files & journal
+server/src/db/*.db
 server/src/db/*.db-journal
 server/src/db/*.db-wal
 server/src/db/*.db-shm
