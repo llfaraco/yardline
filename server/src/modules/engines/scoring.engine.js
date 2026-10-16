@@ -48,6 +48,18 @@ function setting(settings, key, fallback = 0) {
   return value == null || !Number.isFinite(Number(value)) ? fallback : Number(value);
 }
 
+const SUPPORTED_SETTING_KEYS = new Set([
+  'pass_yd', 'pass_td', 'pass_int', 'pass_2pt',
+  'rush_yd', 'rush_td', 'rush_2pt',
+  'rec', 'rec_yd', 'rec_td', 'rec_2pt',
+  'fum_lost', 'fum',
+  'def_sack', 'def_int', 'def_ff', 'def_fumble_rec', 'def_td',
+  'def_tackle', 'def_tackle_solo', 'def_tackle_assist',
+  'def_pass_def', 'def_qb_hit', 'def_safety', 'def_block_kick',
+  'extra_pt', 'fgm', 'fgmiss', 'kr_td', 'pr_td',
+  'bonus_pass_yd_300', 'bonus_rush_yd_100', 'bonus_rec_yd_100'
+]);
+
 function bonus(stats, settings, statAliases, threshold, settingKey) {
   const value = firstNumber(stats, statAliases);
   return value >= threshold ? setting(settings, settingKey) : 0;
@@ -55,11 +67,45 @@ function bonus(stats, settings, statAliases, threshold, settingKey) {
 
 function addBreakdown(breakdown, key, stat, multiplier) {
   const points = Number((stat * multiplier).toFixed(4));
-  if (stat !== 0 && points !== 0) breakdown.push({ key, stat, points, multiplier });
+  if (stat !== 0 && points !== 0) {
+    breakdown.push({
+      rule: key,
+      key,
+      stat,
+      multiplier,
+      points: Number(points.toFixed(2))
+    });
+  }
   return points;
 }
 
 export function scorePlayerStats(stats = {}, scoringSettings = {}) {
+  // Regra de Governança: estatísticas vazias não viram zero silenciosamente
+  if (!stats || Object.keys(stats).length === 0) {
+    return {
+      points: null,
+      status: 'unavailable',
+      reason: 'Estatísticas de jogo indisponíveis',
+      breakdown: [],
+      stats: {},
+      scoringSettings: { ...scoringSettings }
+    };
+  }
+
+  // Regra de Governança: detectar regras não suportadas com multiplicador ativo
+  for (const [key, val] of Object.entries(scoringSettings)) {
+    if (val != null && Number(val) !== 0 && !SUPPORTED_SETTING_KEYS.has(key)) {
+      return {
+        points: null,
+        status: 'unsupported',
+        reason: key,
+        breakdown: [],
+        stats: { ...stats },
+        scoringSettings: { ...scoringSettings }
+      };
+    }
+  }
+
   const breakdown = [];
   let total = 0;
   const add = (key, aliases, settingKey) => {
@@ -103,6 +149,7 @@ export function scorePlayerStats(stats = {}, scoringSettings = {}) {
 
   return {
     points: Number(total.toFixed(2)),
+    status: 'calculated',
     breakdown,
     stats: { ...stats },
     scoringSettings: { ...scoringSettings }

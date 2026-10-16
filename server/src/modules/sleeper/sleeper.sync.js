@@ -333,6 +333,73 @@ function persistTradedPicks({ leagueId, season, picks, capturedAt }) {
   }
 }
 
+function persistDrafts({ leagueId, season, drafts, capturedAt }) {
+  if (!Array.isArray(drafts) || drafts.length === 0) return 0;
+  const statement = db.prepare(`
+    INSERT INTO drafts (id, league_id, provider_draft_id, season, type, status, settings_json, metadata_json, captured_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(provider_draft_id) DO UPDATE SET
+      type=excluded.type, status=excluded.status, settings_json=excluded.settings_json,
+      metadata_json=excluded.metadata_json, captured_at=excluded.captured_at
+  `);
+  let count = 0;
+  for (const draft of drafts) {
+    const draftId = String(draft.draft_id || draft.id);
+    statement.run(
+      `draft_${leagueId}_${draftId}`,
+      leagueId,
+      draftId,
+      String(draft.season || season),
+      String(draft.type || 'snake'),
+      String(draft.status || 'complete'),
+      JSON.stringify(draft.settings || {}),
+      JSON.stringify(draft.metadata || {}),
+      capturedAt
+    );
+    count++;
+  }
+  return count;
+}
+
+function persistDraftPicks({ draftId, picks, capturedAt }) {
+  if (!Array.isArray(picks) || picks.length === 0) return 0;
+  const statement = db.prepare(`
+    INSERT INTO draft_picks (id, draft_id, player_id, picked_by, roster_id, round, pick_no, metadata_json, captured_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      player_id=excluded.player_id, picked_by=excluded.picked_by, roster_id=excluded.roster_id,
+      metadata_json=excluded.metadata_json, captured_at=excluded.captured_at
+  `);
+  let count = 0;
+  for (const pick of picks) {
+    const round = Number(pick.round || 1);
+    const pickNo = Number(pick.pick_no || pick.draft_slot || 1);
+    const pickId = `dpk_${draftId}_${round}_${pickNo}`;
+    statement.run(
+      pickId,
+      draftId,
+      pick.player_id ? String(pick.player_id) : null,
+      pick.picked_by ? String(pick.picked_by) : null,
+      Number(pick.roster_id || 0),
+      round,
+      pickNo,
+      JSON.stringify(pick.metadata || {}),
+      capturedAt
+    );
+    count++;
+  }
+  return count;
+}
+
+function recordSourceProvenance({ entityType, entityId, source = 'sleeper', status = 'official', isEstimate = 0, confidence = 1.0, capturedAt }) {
+  const id = `prov_${entityType}_${entityId}_${Date.now()}`;
+  db.prepare(`
+    INSERT INTO source_provenance (id, entity_type, entity_id, source, status, is_estimate, confidence, fetched_at, captured_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, entityType, entityId, source, status, isEstimate, confidence, capturedAt, capturedAt);
+}
+
+
 // ========================================================
 // 3. SERVICE PRINCIPAL DE INTEGRAÇÃO SLEEPER
 // ========================================================
@@ -523,12 +590,10 @@ export const sleeperSyncService = {
     }
 
     // Localizar o roster do usuário
-    let userRoster = findUserRoster(rosters, resolvedUserId);
+    const userRoster = findUserRoster(rosters, resolvedUserId);
     if (!userRoster) {
-      userRoster = rosters.find(r => r.roster_id === 2) || rosters[0];
-    }
-    if (!userRoster) {
-      throw new Error('O usuário não possui roster nessa liga.');
+      // Regra de Governança: roster desconhecido não cair no roster 2
+      throw new Error(`Roster não encontrado para o usuário ${resolvedUserId} na liga ${providerLeagueId}.`);
     }
 
     // Localizar adversário através do agrupamento por matchup_id
@@ -619,16 +684,17 @@ export const sleeperSyncService = {
         league = db.prepare('SELECT * FROM leagues WHERE id = ?').get(league.id);
       }
 
-      const [users, rosters, matchups, transactions, tradedPicks, stats, projections] = await Promise.all([
+      const [users, rosters, matchups, transactions, tradedPicks, drafts, stats, projections] = await Promise.all([
         this.getLeagueUsers(normLeague.id),
         this.getLeagueRosters(normLeague.id),
         this.getLeagueMatchups(normLeague.id, week),
         this.getLeagueTransactions(normLeague.id, week).catch(() => []),
         sleeperConnector.getLeagueTradedPicks(normLeague.id).catch(() => []),
+        sleeperConnector.getLeagueDrafts(normLeague.id).catch(() => []),
         sleeperConnector.getNflStats(normLeague.season, week).catch(() => ({})),
         sleeperConnector.getNflProjections(normLeague.season, week).catch(() => ({}))
       ]);
-      recordsRead += (users?.length || 0) + (rosters?.length || 0) + (matchups?.length || 0) + (transactions?.length || 0) + (tradedPicks?.length || 0) + Object.keys(stats || {}).length + Object.keys(projections || {}).length;
+      recordsRead += (users?.length || 0) + (rosters?.length || 0) + (matchups?.length || 0) + (transactions?.length || 0) + (tradedPicks?.length || 0) + (drafts?.length || 0) + Object.keys(stats || {}).length + Object.keys(projections || {}).length;
 
       const catalog = await this.getNflPlayers();
       persistCatalog(catalog, now);
@@ -643,6 +709,20 @@ export const sleeperSyncService = {
       persistPlayerStats({ leagueId: league.id, season: normLeague.season, week, stats, projections, capturedAt: now });
       persistTransactions({ leagueId: league.id, season: normLeague.season, week, transactions, capturedAt: now });
       persistTradedPicks({ leagueId: league.id, season: normLeague.season, picks: tradedPicks, capturedAt: now });
+      if (Array.isArray(drafts) && drafts.length > 0) {
+        recordsWritten += persistDrafts({ leagueId: league.id, season: normLeague.season, drafts, capturedAt: now });
+        for (const draft of drafts) {
+          const draftId = String(draft.draft_id || draft.id);
+          const draftDbId = `draft_${league.id}_${draftId}`;
+          try {
+            const picks = await sleeperConnector.getDraftPicks(draftId);
+            recordsWritten += persistDraftPicks({ draftId: draftDbId, picks, capturedAt: now });
+          } catch (e) {
+            console.error('[DraftPicks Error]:', e.message);
+          }
+        }
+      }
+      recordSourceProvenance({ entityType: 'league', entityId: league.id, source: 'sleeper', status: 'official', capturedAt: now });
       persistPayload({ leagueId: league.id, resource: 'league', resourceKey: normLeague.id, payload: rawLeague, capturedAt: now });
       persistPayload({ leagueId: league.id, resource: 'state', resourceKey: `${normLeague.season}:${week}`, payload: state, capturedAt: now });
 
