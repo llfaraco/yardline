@@ -3307,10 +3307,15 @@ function renderWaiverClaimContent() {
   const p = currentWaiverClaim.player;
   const faab = currentWaiverClaim.suggestedFaabPercent;
   const dropPlayer = currentWaiverClaim.suggestedDropPlayer;
-  const netGain = ((Number(p.proj) || 12.0) - (Number(dropPlayer?.proj) || 9.4)).toFixed(1);
+  const playerProjection = Number.isFinite(p?.proj) ? p.proj : null;
+  const dropProjection = Number.isFinite(dropPlayer?.proj) ? dropPlayer.proj : null;
+  const netGainNumeric = Number.isFinite(playerProjection) && Number.isFinite(dropProjection)
+    ? playerProjection - dropProjection
+    : null;
+  const netGain = Number.isFinite(netGainNumeric) ? netGainNumeric.toFixed(1) : null;
 
   const dropOptions = (currentWaiverClaim.candidateDrops && currentWaiverClaim.candidateDrops.length > 0)
-    ? currentWaiverClaim.candidateDrops.map((d, i) => `<option value="${esc(d.id)}" ${i === 0 ? 'selected' : ''}>${esc(d.name)} (${esc(d.pos)} - ${esc(d.team)}) · Proj: ${Number(d.proj || 0).toFixed(1)} pts${i === 0 ? ' · Sugestão do Motor (Menor Projeção)' : ''}</option>`).join('')
+    ? currentWaiverClaim.candidateDrops.map((d, i) => `<option value="${esc(d.id)}" ${i === 0 ? 'selected' : ''}>${esc(d.name)} (${esc(d.pos)} - ${esc(d.team)}) · Proj: ${Number.isFinite(d.proj) ? d.proj.toFixed(1) : 'indisponível'} pts${i === 0 ? ' · Sugestão do Motor (Menor Projeção)' : ''}</option>`).join('')
     : `<option value="godwin" selected>Chris Godwin (WR - TB) · Proj: 9.4 pts · Recomendado pelo Motor</option>
        <option value="hubbard">Chuba Hubbard (RB - CAR) · Proj: 9.8 pts</option>
        <option value="dallas">Dallas Goedert (TE - PHI) · Proj: 8.5 pts</option>
@@ -3335,7 +3340,7 @@ function renderWaiverClaimContent() {
           <span class="badge badge-green">YL Index: ${Number(p.ylIndex || 88.0).toFixed(1)}</span>
         </div>
         <div style="font-size:12.5px;color:var(--text-body);margin-top:4px;">
-          <strong>Por que é relevante:</strong> Projeção semanal de <strong>${Number(p.proj || 11.5).toFixed(1)} pts</strong>. Oportunidade tática para reforçar a posição com base em métricas de volume e eficiência.
+          <strong>Por que é relevante:</strong> Projeção semanal de <strong>${Number.isFinite(playerProjection) ? playerProjection.toFixed(1) : '—'} pts</strong>. Oportunidade tática para reforçar a posição com base em métricas de volume e eficiência.
         </div>
       </div>
     </div>
@@ -3349,7 +3354,7 @@ function renderWaiverClaimContent() {
         <select id="waiver-drop-select" class="yl-search-input" style="flex:1;min-width:240px;font-size:13px;padding:8px 12px;">
           ${dropOptions}
         </select>
-        <span class="badge ${Number(netGain) >= 0 ? 'badge-green' : 'badge-amber'}" style="padding:6px 10px;">Ganho Líquido Estimado: ${Number(netGain) >= 0 ? '+' : ''}${netGain} pts</span>
+        <span class="badge ${Number.isFinite(netGainNumeric) && netGainNumeric >= 0 ? 'badge-green' : 'badge-amber'}" style="padding:6px 10px;">Ganho Líquido Estimado: ${Number.isFinite(netGainNumeric) && netGainNumeric >= 0 ? '+' : ''}${netGain ?? 'indisponível'} pts</span>
       </div>
       <div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">
         O motor avaliou seu banco de reservas e sugeriu o atleta com menor projeção imediata para minimizar o custo de oportunidade.
@@ -3833,8 +3838,10 @@ window.YL_V2 = { openPlayerDossierModal: window.openPlayerDossierModal, renderPl
                 `;
               }
 
-              const projVal = Number(p.proj || 0);
-              const matchupBadge = projVal >= 18 ? '<span class="badge badge-green">Favorável</span>' : (projVal >= 14 ? '<span class="badge badge-blue">Neutro</span>' : '<span class="badge badge-crimson">Atenção</span>');
+              const projVal = Number.isFinite(p.proj) ? p.proj : null;
+              const matchupBadge = Number.isFinite(projVal)
+                ? (projVal >= 18 ? '<span class="badge badge-green">Favorável</span>' : (projVal >= 14 ? '<span class="badge badge-blue">Neutro</span>' : '<span class="badge badge-crimson">Atenção</span>'))
+                : '<span class="badge badge-unavail">indisponível</span>';
 
               return `
                 ${tierRow}
@@ -3852,7 +3859,7 @@ window.YL_V2 = { openPlayerDossierModal: window.openPlayerDossierModal, renderPl
                   <td><span class="badge badge-navy">${esc(p.pos||'—')}</span></td>
                   <td><span class="badge badge-blue">${esc(p.team||'—')}</span></td>
                   <td class="mono">${esc(p._posRank)}</td>
-                  <td class="mono" style="font-weight:600;">${p.proj != null ? Number(p.proj).toFixed(1) : '—'}</td>
+                  <td class="mono" style="font-weight:600;">${Number.isFinite(p.proj) ? p.proj.toFixed(1) : '—'}</td>
                   <td class="mono">${p.avgPpr != null ? Number(p.avgPpr).toFixed(1) : '—'}</td>
                   <td>${matchupBadge}</td>
                   <td class="mono"><strong>${p.ylIndex==null?'—':esc(p.ylIndex)}</strong></td>
@@ -3949,6 +3956,11 @@ window.toggleSidebarGroup=function(key){
   const num = (v, def = '0.0') => {
     const n = parseFloat(v);
     return isNaN(n) ? def : n.toFixed(1);
+  };
+  const formatMatchupNumber = value => Number.isFinite(value) ? value.toFixed(1) : '—';
+  const sumFiniteProjections = players => {
+    const projections = players.map(player => player?.proj).filter(Number.isFinite);
+    return projections.length ? projections.reduce((total, projection) => total + projection, 0) : null;
   };
 
   // Os 16 Times Oficiais da Neilo Pistola League
@@ -4069,9 +4081,12 @@ window.toggleSidebarGroup=function(key){
   // Helper de resolução de jogador com fotos oficiais e fallbacks seguros
   function resolveMatchupPlayer(id) {
     const p = typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(String(id)) : null;
-    if (!p) return null;
+    if (!p) return {
+      id: String(id), name: 'Jogador indisponível', pos: '—', team: '—', photo: '', opp: '—',
+      proj: null, status: 'Projeção indisponível', statusShort: ''
+    };
     const status = p.injuryStatus || 'Lesão não informada';
-    return { ...p, opp: '—', proj: p.metrics.projectedPoints, status,
+    return { ...p, opp: '—', proj: p.metrics?.projectedPoints ?? null, status,
       statusShort: /out/i.test(status) ? 'OUT' : /quest/i.test(status) ? 'Q' : '' };
   }
 
@@ -4125,6 +4140,7 @@ window.toggleSidebarGroup=function(key){
     { id: 7, away: { rosterId: 1, name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3", proj: 136.4, score: 0 }, home: { rosterId: 2, name: "Gengar My Balls", owner: "@Faraco", record: "4-1", proj: 148.6, score: 0 }, isFeatured: true },
     { id: 8, away: { rosterId: 3, name: "Parsons a Parsons", owner: "@NacuaMatata90", record: "1-4", proj: 115.0, score: 0 }, home: { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1", proj: 135.2, score: 0 }, isFeatured: false }
   ];
+  window.YL_WEEK6_MATCHUPS = WEEK6_ALL_MATCHUPS;
 
   window.selectedLeagueMatchupId = 7;
   window.selectLeagueMatchup = function(mId) {
@@ -4172,23 +4188,30 @@ window.toggleSidebarGroup=function(key){
       ? awayRosterData.players.filter(p => !awayStarters.includes(String(p))).map(String)
       : ["11643", "9753", "4971", "7528", "12547", "11603", "7635", "13281", "13405", "2306", "11565", "12508", "10894", "13340"];
 
-    // Projeções calculadas exclusivamente sobre os 19 titulares
-    let homeProjTotal = 0;
-    let awayProjTotal = 0;
+    // Projeções calculadas exclusivamente sobre os 19 titulares; ausência não vira zero.
     const starterPairs = WEEK6_SLOTS.map((slot, i) => {
       const homeP = resolveMatchupPlayer(homeStarters[i]);
       const awayP = resolveMatchupPlayer(awayStarters[i]);
-      homeProjTotal += (homeP.proj || 0);
-      awayProjTotal += (awayP.proj || 0);
       return { slot, homeP, awayP };
     });
 
-    const homeProjDisplay = homeProjTotal > 0 ? homeProjTotal.toFixed(1) : homeTeam.proj.toFixed(1);
-    const awayProjDisplay = awayProjTotal > 0 ? awayProjTotal.toFixed(1) : awayTeam.proj.toFixed(1);
+    const homeProjTotal = sumFiniteProjections(starterPairs.map(pair => pair.homeP));
+    const awayProjTotal = sumFiniteProjections(starterPairs.map(pair => pair.awayP));
+    const homeTeamProjection = Number.isFinite(homeProjTotal) ? homeProjTotal : (Number.isFinite(homeTeam.proj) ? homeTeam.proj : null);
+    const awayTeamProjection = Number.isFinite(awayProjTotal) ? awayProjTotal : (Number.isFinite(awayTeam.proj) ? awayTeam.proj : null);
+    const homeProjDisplay = formatMatchupNumber(homeTeamProjection);
+    const awayProjDisplay = formatMatchupNumber(awayTeamProjection);
 
-    const totalProj = (homeProjTotal + awayProjTotal) || 1;
-    const homeWinProb = Math.min(95, Math.max(5, Math.round((homeProjTotal / totalProj) * 100)));
-    const awayWinProb = 100 - homeWinProb;
+    const totalProj = Number.isFinite(homeTeamProjection) && Number.isFinite(awayTeamProjection)
+      ? homeTeamProjection + awayTeamProjection
+      : null;
+    const homeWinProb = Number.isFinite(totalProj) && totalProj > 0
+      ? Math.min(95, Math.max(5, Math.round((homeTeamProjection / totalProj) * 100)))
+      : null;
+    const awayWinProb = Number.isFinite(homeWinProb) ? 100 - homeWinProb : null;
+    const projectedAdvantage = Number.isFinite(homeTeamProjection) && Number.isFinite(awayTeamProjection)
+      ? homeTeamProjection - awayTeamProjection
+      : null;
 
     const homeInitials = homeTeam.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'HM';
     const awayInitials = awayTeam.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'AW';
@@ -4229,7 +4252,7 @@ window.toggleSidebarGroup=function(key){
             <span style="font-size:12px;opacity:0.85;">Status dos Atletas: <strong>Yet to play (Aguardando Início)</strong></span>
           </div>
           <div style="font-size:12px;opacity:0.85;">
-            Placar Oficial Sleeper: <strong class="mono" style="font-size:14px;color:#34D399;">${(homeTeam.score || 0).toFixed(1)} × ${(awayTeam.score || 0).toFixed(1)}</strong>
+            Placar Oficial Sleeper: <strong class="mono" style="font-size:14px;color:#34D399;">${formatMatchupNumber(homeTeam.score)} × ${formatMatchupNumber(awayTeam.score)}</strong>
           </div>
         </div>
 
@@ -4243,7 +4266,7 @@ window.toggleSidebarGroup=function(key){
                 ${homeTeam.rosterId === 2 ? '<span class="badge badge-green" style="font-size:9.5px;padding:1px 6px;">VOCÊ</span>' : '<span class="badge badge-navy" style="font-size:9.5px;padding:1px 6px;">MANDANTE</span>'}
               </div>
               <div style="font-size:12px;opacity:0.8;margin-top:2px;">
-                ${esc(homeTeam.owner)} · <strong>${esc(homeTeam.record)}</strong> · ${homeRosterData ? homeRosterData.fpts.toFixed(1) : '—'} pts
+                ${esc(homeTeam.owner)} · <strong>${esc(homeTeam.record)}</strong> · ${formatMatchupNumber(homeRosterData?.fpts)} pts
               </div>
               <div class="mono" style="font-size:26px;font-weight:700;color:#38BDF8;margin-top:6px;">
                 ${homeProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
@@ -4257,10 +4280,10 @@ window.toggleSidebarGroup=function(key){
               VS
             </div>
             <div style="font-size:11px;opacity:0.8;margin-top:6px;">
-              Win Prob: <strong style="color:#34D399;">${homeWinProb}%</strong> vs <strong>${awayWinProb}%</strong>
+              Win Prob: <strong style="color:#34D399;">${Number.isFinite(homeWinProb) ? homeWinProb + '%' : '—'}</strong> vs <strong>${Number.isFinite(awayWinProb) ? awayWinProb + '%' : '—'}</strong>
             </div>
             <div style="font-size:10px;opacity:0.65;margin-top:2px;">
-              Vantagem projetada: ${homeProjTotal >= awayProjTotal ? '+' + (homeProjTotal - awayProjTotal).toFixed(1) : '-' + (awayProjTotal - homeProjTotal).toFixed(1)} pts
+              Vantagem projetada: ${Number.isFinite(projectedAdvantage) ? (projectedAdvantage >= 0 ? '+' : '') + formatMatchupNumber(projectedAdvantage) : '—'} pts
             </div>
           </div>
 
@@ -4273,7 +4296,7 @@ window.toggleSidebarGroup=function(key){
                 <h3 style="font-size:18px;font-weight:700;margin:0;">${esc(awayTeam.name)}</h3>
               </div>
               <div style="font-size:12px;opacity:0.8;margin-top:2px;">
-                ${esc(awayTeam.owner)} · <strong>${esc(awayTeam.record)}</strong> · ${awayRosterData ? awayRosterData.fpts.toFixed(1) : '—'} pts
+                ${esc(awayTeam.owner)} · <strong>${esc(awayTeam.record)}</strong> · ${formatMatchupNumber(awayRosterData?.fpts)} pts
               </div>
               <div class="mono" style="font-size:26px;font-weight:700;color:#CBD5E1;margin-top:6px;">
                 ${awayProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
@@ -4283,8 +4306,8 @@ window.toggleSidebarGroup=function(key){
         </div>
 
         <!-- Win Probability Visual Bar -->
-        <div class="yl-matchup-prob-bar" title="Probabilidade de Vitória: ${esc(homeTeam.name)} ${homeWinProb}% | ${esc(awayTeam.name)} ${awayWinProb}%">
-          <div class="yl-matchup-prob-bar__fill" style="width: ${homeWinProb}%;"></div>
+        <div class="yl-matchup-prob-bar" title="Probabilidade de Vitória: ${esc(homeTeam.name)} ${Number.isFinite(homeWinProb) ? homeWinProb + '%' : 'indisponível'} | ${esc(awayTeam.name)} ${Number.isFinite(awayWinProb) ? awayWinProb + '%' : 'indisponível'}">
+          <div class="yl-matchup-prob-bar__fill" style="width: ${Number.isFinite(homeWinProb) ? homeWinProb : 0}%;"></div>
         </div>
       </div>
 
@@ -4356,7 +4379,7 @@ window.toggleSidebarGroup=function(key){
                       <div class="yl-matchup-player-score" style="text-align:right;">
                         <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
                           <span style="color:#22c55e;font-size:12px;font-weight:800;"></span>
-                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${homeP.proj.toFixed(1)}</strong>
+                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${formatMatchupNumber(homeP.proj)}</strong>
                         </div>
                         <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
                       </div>
@@ -4373,7 +4396,7 @@ window.toggleSidebarGroup=function(key){
                     <div class="yl-matchup-player-wrap align-right" onclick="openPlayerDossierModal('${esc(awayP.id)}')">
                       <div class="yl-matchup-player-score" style="text-align:left;">
                         <div style="display:flex;align-items:center;gap:4px;justify-content:flex-start;">
-                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${awayP.proj.toFixed(1)}</strong>
+                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${formatMatchupNumber(awayP.proj)}</strong>
                         </div>
                         <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
                       </div>
@@ -4433,7 +4456,7 @@ window.toggleSidebarGroup=function(key){
                       </div>
                     </div>
                     <div style="text-align:right;">
-                      <span class="mono" style="font-size:12px;font-weight:600;color:var(--yl-navy);">${p.proj.toFixed(1)}</span>
+                      <span class="mono" style="font-size:12px;font-weight:600;color:var(--yl-navy);">${formatMatchupNumber(p.proj)}</span>
                       <small style="display:block;font-size:9px;color:var(--text-muted);">${esc(p.statusShort || 'BN')}</small>
                     </div>
                   </div>
@@ -4461,7 +4484,7 @@ window.toggleSidebarGroup=function(key){
                       </div>
                     </div>
                     <div style="text-align:right;">
-                      <span class="mono" style="font-size:12px;font-weight:600;color:var(--yl-navy);">${p.proj.toFixed(1)}</span>
+                      <span class="mono" style="font-size:12px;font-weight:600;color:var(--yl-navy);">${formatMatchupNumber(p.proj)}</span>
                       <small style="display:block;font-size:9px;color:var(--text-muted);">${esc(p.statusShort || 'BN')}</small>
                     </div>
                   </div>
@@ -4498,19 +4521,19 @@ window.toggleSidebarGroup=function(key){
                 <span>MATCHUP #${m.id}</span>
                 ${isSelected ? '<span class="badge badge-crimson" style="font-size:8.5px;padding:1px 5px;">ATIVO NO GAME CENTER</span>' : (m.isFeatured ? '<span class="badge badge-navy" style="font-size:8.5px;padding:1px 5px;">SEU DUELO</span>' : '<span>NFL WK 6</span>')}
               </div>
-              <div class="yl-matchup-mini-team ${m.away.proj > m.home.proj ? 'is-winner' : ''}">
+              <div class="yl-matchup-mini-team ${Number.isFinite(m.away.proj) && Number.isFinite(m.home.proj) && m.away.proj > m.home.proj ? 'is-winner' : ''}">
                 <div>
                   <strong>${esc(m.away.name)}</strong>
                   <small style="color:var(--text-muted);display:block;font-size:10px;">${esc(m.away.owner)} · ${esc(m.away.record)}</small>
                 </div>
-                <div class="mono" style="font-size:13px;">${m.away.proj.toFixed(1)}</div>
+                <div class="mono" style="font-size:13px;">${formatMatchupNumber(m.away.proj)}</div>
               </div>
-              <div class="yl-matchup-mini-team ${m.home.proj > m.away.proj ? 'is-winner' : ''}" style="margin-top:4px;">
+              <div class="yl-matchup-mini-team ${Number.isFinite(m.home.proj) && Number.isFinite(m.away.proj) && m.home.proj > m.away.proj ? 'is-winner' : ''}" style="margin-top:4px;">
                 <div>
                   <strong>${esc(m.home.name)}</strong>
                   <small style="color:var(--text-muted);display:block;font-size:10px;">${esc(m.home.owner)} · ${esc(m.home.record)}</small>
                 </div>
-                <div class="mono" style="font-size:13px;">${m.home.proj.toFixed(1)}</div>
+                <div class="mono" style="font-size:13px;">${formatMatchupNumber(m.home.proj)}</div>
               </div>
             </div>
             `;
