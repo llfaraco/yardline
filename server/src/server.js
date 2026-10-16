@@ -3,7 +3,7 @@ import cors from 'cors';
 import crypto from 'node:crypto';
 import { initDatabase, db } from './db/database.js';
 import { authService } from './modules/auth/auth.service.js';
-import { sleeperSyncService, normalizeSleeperPlayer, normalizeLeague, normalizeManager, normalizeRoster, normalizeMatchup, getPlayerPhoto, calculateManagerDna } from './modules/sleeper/sleeper.sync.js';
+import { sleeperSyncService, normalizeSleeperPlayer, normalizeLeague, normalizeManager, normalizeRoster, normalizeMatchup, getPlayerPhoto, calculateManagerDna, CANONICAL_SLEEPER_TO_ESPN } from './modules/sleeper/sleeper.sync.js';
 import { sleeperConnector } from './modules/sleeper/sleeper.connector.js';
 import { solveOptimalLineupAssignment } from './modules/engines/lineup.solver.js';
 import { calculateLeagueBaselines, computeVBD } from './modules/engines/vbd.engine.js';
@@ -193,6 +193,32 @@ app.get('/api/players/catalog', async (req, res) => {
   }
 });
 
+function formatHeight(h) {
+  if (!h || h === '—') return '—';
+  const str = String(h).trim();
+  if (str.includes("'") || str.includes('m')) return str;
+  const num = Number(str);
+  if (!isNaN(num) && num >= 55 && num <= 90) {
+    const feet = Math.floor(num / 12);
+    const inches = num % 12;
+    const meters = (num * 0.0254).toFixed(2);
+    return `${feet}'${inches}" (${meters}m)`;
+  }
+  return str;
+}
+
+function formatWeight(w) {
+  if (!w || w === '—') return '—';
+  const str = String(w).trim();
+  if (str.toLowerCase().includes('lb') || str.toLowerCase().includes('kg')) return str;
+  const num = Number(str);
+  if (!isNaN(num) && num >= 100 && num <= 450) {
+    const kg = Math.round(num * 0.453592);
+    return `${num} lbs (${kg}kg)`;
+  }
+  return str;
+}
+
 // DTO Canônico: Ficha individual do jogador
 app.get('/api/players/:playerId', (req, res) => {
   try {
@@ -216,10 +242,14 @@ app.get('/api/players/:playerId', (req, res) => {
     const sleeperIdentity = identities.find(i => i.provider === 'sleeper');
     const espnIdentity = identities.find(i => i.provider === 'espn');
     const catalogPlayer = sleeperSyncService.getCachedPlayer(playerId) || sleeperSyncService.getCachedPlayer(player.id);
-    const resolvedEspnId = espnIdentity?.provider_player_id || catalogPlayer?.espnId || null;
+    const resolvedEspnId = espnIdentity?.provider_player_id || catalogPlayer?.espnId || CANONICAL_SLEEPER_TO_ESPN[String(player.id)] || CANONICAL_SLEEPER_TO_ESPN[String(playerId)] || null;
     const resolvedSleeperId = sleeperIdentity?.provider_player_id || catalogPlayer?.sleeperId || (player.id.length <= 6 ? player.id : null);
 
     const latestProjection = db.prepare('SELECT projection FROM projections WHERE player_id = ? ORDER BY season DESC, week DESC, created_at DESC LIMIT 1').get(player.id);
+
+    const safePhoto = (!player.photo_url || player.photo_url.includes('/teamlogos/'))
+      ? (catalogPlayer?.photoUrl || getPlayerPhoto({ espnId: resolvedEspnId, sleeperId: resolvedSleeperId, team: player.team }))
+      : player.photo_url;
 
     const card = createPlayerCardDTO({
       id: player.id,
@@ -230,12 +260,12 @@ app.get('/api/players/:playerId', (req, res) => {
       team: player.team || catalogPlayer?.team,
       jersey: player.number ?? catalogPlayer?.number,
       injuryStatus: (player.status && player.status !== 'Active') ? player.status : (catalogPlayer?.injuryStatus || null),
-      photoUrl: player.photo_url || catalogPlayer?.photoUrl,
-      height: catalogPlayer?.height || null,
-      weight: catalogPlayer?.weight || null,
-      yearsExp: catalogPlayer?.yearsExp || null,
-      college: catalogPlayer?.college || null,
-      age: catalogPlayer?.age || null,
+      photoUrl: safePhoto,
+      height: formatHeight(catalogPlayer?.height || player.height),
+      weight: formatWeight(catalogPlayer?.weight || player.weight),
+      yearsExp: catalogPlayer?.yearsExp ?? player.years_exp ?? null,
+      college: catalogPlayer?.college || player.college || null,
+      age: catalogPlayer?.age ?? player.age ?? null,
       depthChartOrder: catalogPlayer?.depthChartOrder || null,
       metrics: createMetricDTO({
         projectedPoints: latestProjection?.projection != null ? Number(latestProjection.projection) : null,

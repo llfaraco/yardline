@@ -196,6 +196,12 @@ export function createPlayerCardDTO(raw = {}) {
     jersey: raw.jersey != null ? String(raw.jersey) : (raw.number != null ? `#${raw.number}` : null),
     injuryStatus,
     photoUrl,
+    height: raw.height || null,
+    weight: raw.weight || null,
+    yearsExp: raw.yearsExp != null ? raw.yearsExp : null,
+    college: raw.college || null,
+    age: raw.age != null ? raw.age : null,
+    depthChartOrder: raw.depthChartOrder != null ? raw.depthChartOrder : null,
     metrics: raw.metrics ? createMetricDTO(raw.metrics) : createMetricDTO(),
     provenance: raw.provenance ? createDataStatusDTO(raw.provenance) : createDataStatusDTO({
       status: DATA_STATUS.OFFICIAL,

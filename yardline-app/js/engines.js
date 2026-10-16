@@ -1128,7 +1128,7 @@ function saveSleeperPlayersToIDB(data) {
 // ==========================================
 //  MAPA OFICIAL DE EQUIVALÊNCIA SLEEPER <-> ESPN & DEFESAS
 // ==========================================
-const SLEEPER_TO_ESPN_MAP = {"4984": "3918298", "4040": "3139477", "4881": "3916387", "6904": "4040715", "8183": "4361741", "3163": "3046779", "6770": "3915511", "9229": "4432577", "2449": "2577417", "4981": "3912547", "96": "8439", "6797": "4241479", "11626": "4431452", "6790": "4035676", "11628": "4431456", "11625": "4431611", "11627": "4426348", "6804": "4036378", "1234": "14880", "4892": "3052587", "5849": "3917315", "138": "12483", "1387": "15864", "4866": "3929630", "3198": "3043078", "9226": "4430736", "8138": "4426515", "6813": "4035686", "4034": "3117251", "8155": "4426516", "3969": "3116385", "8150": "4430743", "9509": "4430746", "7561": "4361528", "8136": "4430745", "3164": "3128720", "7528": "4241457", "8129": "4426518", "6806": "4242335", "7588": "4241458", "9221": "4430750", "5927": "4035681", "9497": "4430751", "7543": "4361525", "5850": "4035680", "6801": "4239993", "8161": "4035684", "6820": "4430752", "8144": "4241460", "5848": "4035675", "9225": "4430758", "7567": "4241463", "4035": "3054850", "11632": "4431463", "8151": "4426511", "4199": "3045147", "8132": "4430761", "8154": "4430762", "9224": "4430763", "4144": "3051890", "7591": "4035685", "9494": "4430739", "11635": "4430737", "7553": "4374302", "6794": "4262921", "6803": "4241478", "7564": "4362628", "5859": "4040761", "7569": "4258173", "2374": "3116406", "2133": "16800", "7525": "4241478", "5872": "4035687", "8152": "4430735", "9493": "4430734", "2216": "2976212", "9492": "4430738", "6819": "4035687", "9488": "4430742", "8146": "4430744", "7526": "4372016", "9511": "4430747", "8139": "4426519", "6826": "4035682", "9484": "4430749", "11631": "4431454", "5001": "3116405", "5012": "3128429", "5987": "4035679", "11634": "4431458", "11630": "4431459", "8130": "4430753", "5916": "4035677", "4983": "3915416", "1479": "15795", "11629": "4431460", "9228": "4430754", "8137": "4430755", "7571": "4430756", "8131": "4426513", "6845": "4241462", "5846": "4035674", "8121": "4426512", "8205": "4430760", "2197": "16733", "4037": "3116165", "11633": "4431464", "4039": "2977644", "9482": "4426507", "5844": "4035683", "9227": "4430764", "4217": "3040151", "1466": "15847", "9223": "4426514", "5022": "3121422", "4985": "3915510", "8134": "4426517", "5009": "3917796", "8153": "4430740", "11636": "4431457", "6824": "4241461", "9508": "4430757", "7559": "4360311", "8160": "4426508", "9510": "4430741", "1264": "15683", "4227": "4035691", "4220": "4035692", "6947": "4035690", "6786": "4241389"};
+const SLEEPER_TO_ESPN_MAP = {"7523": "4360310", "4984": "3918298", "4040": "3139477", "4881": "3916387", "6904": "4040715", "8183": "4361741", "3163": "3046779", "6770": "3915511", "9229": "4432577", "2449": "2577417", "4981": "3912547", "96": "8439", "6797": "4241479", "11626": "4431452", "6790": "4035676", "11628": "4431456", "11625": "4431611", "11627": "4426348", "6804": "4036378", "1234": "14880", "4892": "3052587", "5849": "3917315", "138": "12483", "1387": "15864", "4866": "3929630", "3198": "3043078", "9226": "4430736", "8138": "4426515", "6813": "4035686", "4034": "3117251", "8155": "4426516", "3969": "3116385", "8150": "4430743", "9509": "4430746", "7561": "4361528", "8136": "4430745", "3164": "3128720", "7528": "4241457", "8129": "4426518", "6806": "4242335", "7588": "4241458", "9221": "4430750", "5927": "4035681", "9497": "4430751", "7543": "4361525", "5850": "4035680", "6801": "4239993", "8161": "4035684", "6820": "4430752", "8144": "4241460", "5848": "4035675", "9225": "4430758", "7567": "4241463", "4035": "3054850", "11632": "4431463", "8151": "4426511", "4199": "3045147", "8132": "4430761", "8154": "4430762", "9224": "4430763", "4144": "3051890", "7591": "4035685", "9494": "4430739", "11635": "4430737", "7553": "4374302", "6794": "4262921", "6803": "4241478", "7564": "4362628", "5859": "4040761", "7569": "4258173", "2374": "3116406", "2133": "16800", "7525": "4241478", "5872": "4035687", "8152": "4430735", "9493": "4430734", "2216": "2976212", "9492": "4430738", "6819": "4035687", "9488": "4430742", "8146": "4430744", "7526": "4372016", "9511": "4430747", "8139": "4426519", "6826": "4035682", "9484": "4430749", "11631": "4431454", "5001": "3116405", "5012": "3128429", "5987": "4035679", "11634": "4431458", "11630": "4431459", "8130": "4430753", "5916": "4035677", "4983": "3915416", "1479": "15795", "11629": "4431460", "9228": "4430754", "8137": "4430755", "7571": "4430756", "8131": "4426513", "6845": "4241462", "5846": "4035674", "8121": "4426512", "8205": "4430760", "2197": "16733", "4037": "3116165", "11633": "4431464", "4039": "2977644", "9482": "4426507", "5844": "4035683", "9227": "4430764", "4217": "3040151", "1466": "15847", "9223": "4426514", "5022": "3121422", "4985": "3915510", "8134": "4426517", "5009": "3917796", "8153": "4430740", "11636": "4431457", "6824": "4241461", "9508": "4430757", "7559": "4360311", "8160": "4426508", "9510": "4430741", "1264": "15683", "4227": "4035691", "4220": "4035692", "6947": "4035690", "6786": "4241389"};
 const ESPN_TO_SLEEPER_MAP = {};
 
 for (const [sleeperId, espnId] of Object.entries(SLEEPER_TO_ESPN_MAP)) {
@@ -1468,9 +1468,11 @@ function resolveNFLPlayer(playerId) {
       age: sp.age || 25,
       exp: sp.years_exp !== undefined ? (sp.years_exp === 0 ? "Rookie" : sp.years_exp + "º Ano") : "NFL",
       college: sp.college || "NCAA",
-      height: sp.height || "1.85m",
-      weight: sp.weight ? (sp.weight + " lbs") : "95kg",
-      photo: `https://sleepercdn.com/content/nfl/players/thumb/${realId}.jpg`,
+      height: (typeof formatHeight === 'function' ? formatHeight(sp.height) : (sp.height || "1.85m")),
+      weight: (typeof formatWeight === 'function' ? formatWeight(sp.weight) : (sp.weight ? (sp.weight + " lbs") : "95kg")),
+      photo: (sp.espn_id || SLEEPER_TO_ESPN_MAP[realId])
+        ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/${sp.espn_id || SLEEPER_TO_ESPN_MAP[realId]}.png&w=350&h=254`
+        : `https://sleepercdn.com/content/nfl/players/thumb/${realId}.jpg`,
       proj: parseFloat(baseProj.toFixed(1)),
       avgPpr: parseFloat((baseProj * 0.94).toFixed(1)),
       ylIndex: Math.min(99, Math.round(baseProj * 4.8 + 15)),
@@ -2527,6 +2529,30 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
   async function playerDto(id){try{const d=await get(`${API}/api/players/${encodeURIComponent(id)}`);return d&&!d.error?d:null;}catch(e){return null;}}
   async function seasonRows(id,season){try{const url=season?`${API}/api/players/${encodeURIComponent(id)}/history?season=${encodeURIComponent(season)}`:`${API}/api/players/${encodeURIComponent(id)}/history`;const d=await get(url);return d.history||d.rows||[];}catch(e){return [];}}
   async function newsFor(p){try{const d=await get(`${API}/api/players/${encodeURIComponent(p.id)}/news`);return Array.isArray(d)?d.slice(0,3):((d.items||[]).slice(0,3));}catch(e){return [];}}
+  function formatHeight(h) {
+    if (!h || h === '—') return '—';
+    const str = String(h).trim();
+    if (str.includes("'") || str.includes('m')) return str;
+    const num = Number(str);
+    if (!isNaN(num) && num >= 55 && num <= 90) {
+      const feet = Math.floor(num / 12);
+      const inches = num % 12;
+      const meters = (num * 0.0254).toFixed(2);
+      return `${feet}'${inches}" (${meters}m)`;
+    }
+    return str;
+  }
+  function formatWeight(w) {
+    if (!w || w === '—') return '—';
+    const str = String(w).trim();
+    if (str.toLowerCase().includes('lb') || str.toLowerCase().includes('kg')) return str;
+    const num = Number(str);
+    if (!isNaN(num) && num >= 100 && num <= 450) {
+      const kg = Math.round(num * 0.453592);
+      return `${num} lbs (${kg}kg)`;
+    }
+    return str;
+  }
   function profile(id,dto){
     const r=rawOf(id);
     let p=typeof window.resolveNFLPlayer==='function'?window.resolveNFLPlayer(String(id)):null;
@@ -2539,17 +2565,28 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
     }
     const pc=rosterPerc(id);
     const injury=dto?.injuryStatus!==undefined?dto.injuryStatus:(r.injury_status||(r.status==='Active'?null:(r.status||null)));
+    const resolvedPhoto = (dto?.photoUrl && !dto.photoUrl.includes('/teamlogos/'))
+      ? dto.photoUrl
+      : ((p.photo && !p.photo.includes('/teamlogos/'))
+        ? p.photo
+        : ((espn && !String(espn).includes('/'))
+          ? `https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/${espn}.png&w=350&h=254`
+          : `https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`));
+    const rawHeight = dto?.height ?? r.height ?? p.height ?? fallbackPlayer.height;
+    const rawWeight = dto?.weight ?? r.weight ?? p.weight ?? fallbackPlayer.weight;
+
     return Object.assign({},fallbackPlayer,p,{
       id:sid,
       sleeperId:sid,
+      espnId:espn||dto?.espnId||null,
       name:dto?.name||r.name||r.full_name||p.name||fallbackPlayer.name,
       team:dto?.team||r.team||p.team||fallbackPlayer.team||'FA',
       pos:dto?.position||r.position||p.pos||fallbackPlayer.pos||'—',
       teamLogo:logo(dto?.team||r.team||p.team||fallbackPlayer.team),
-      photo:dto?.photoUrl||p.photo||fallbackPlayer.photo||`https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`,
+      photo:resolvedPhoto,
       age:dto?.age??r.age??p.age??fallbackPlayer.age??'—',
-      height:dto?.height??r.height??p.height??fallbackPlayer.height??(p.pos==='TE'?'1.93m':(p.pos==='QB'?'1.91m':(p.pos==='RB'?'1.80m':'1.85m'))),
-      weight:dto?.weight??r.weight??p.weight??fallbackPlayer.weight??(p.pos==='TE'?'113kg':(p.pos==='QB'?'107kg':(p.pos==='RB'?'98kg':'92kg'))),
+      height:formatHeight(rawHeight)||(p.pos==='TE'?'6\'4" (1.93m)':(p.pos==='QB'?'6\'3" (1.91m)':(p.pos==='RB'?'5\'11" (1.80m)':'6\'1" (1.85m)'))),
+      weight:formatWeight(rawWeight)||(p.pos==='TE'?'249 lbs (113kg)':(p.pos==='QB'?'235 lbs (107kg)':(p.pos==='RB'?'216 lbs (98kg)':'202 lbs (92kg)'))),
       college:dto?.college??r.college??p.college??fallbackPlayer.college??'—',
       exp:dto?.yearsExp!=null?`${dto.yearsExp}º Ano`:(r.years_exp!=null?`${r.years_exp}º Ano`:(r.yearsExp!=null?`${r.yearsExp}º Ano`:(p.exp??fallbackPlayer.exp??'Pro'))),
       number:dto?.jersey??r.number??p.number??fallbackPlayer.number??'—',
@@ -2582,7 +2619,7 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
     const injuryText=hasInjury ? esc(p.injuryStatus) : 'Sem restrição';
     const provStatus=dto?.provenance?.status || 'official';
     const provBadge=`<span style="font-size:10px;padding:3px 9px;border-radius:4px;background:#0f172a;color:#93c5fd;border:1px solid #3b82f6;margin-left:auto;">FONTE: ${esc(provStatus.toUpperCase())} · ${esc(dto?.provenance?.source || 'CANÔNICO')}</span>`;
-    document.getElementById('player-modal-content').innerHTML=`<div class="sleeper-dossier" style="--sleeper-team:${color}"><button class="sleeper-close" onclick="closeModal('player-modal')">×</button><div class="sleeper-dossier__hero"><div class="sleeper-dossier__teambg"><img src="${esc(p.teamLogo)}" alt=""></div><div class="sleeper-dossier__mini"><b>${esc(p.name.split(' ').map(x=>x[0]).join('').slice(0,2))}</b><span>${esc(p.pos)} · ${esc(p.team)}</span></div><div class="sleeper-dossier__player"><img src="${esc(p.photo)}" onerror="this.onerror=null;this.src='${esc(p.teamLogo)}'" alt="${esc(p.name)}"></div><div class="sleeper-dossier__identity"><small>CATÁLOGO OFICIAL SLEEPER · ID ${esc(p.id)}</small><h1>${esc(p.name)}</h1><div class="sleeper-bio"><span><b>AGE</b>${esc(p.age??'—')}</span><i></i><span><b>HEIGHT</b>${esc(p.height??'—')}</span><i></i><span><b>WEIGHT</b>${esc(p.weight??'—')}</span><i></i><span><b>EXP</b>${esc(p.exp??'—')}</span><span class="college"><b>COLLEGE</b>${esc(p.college??'—')}</span></div><div class="sleeper-ranks"><span><b>${p.rostered??'—'}%</b> ROSTERED</span><span><b>${p.started??'—'}%</b> STARTED</span><span><b>${projDisplay}</b> PROJ. SEMANA</span></div></div></div><div class="sleeper-dossier__bar"><b>${esc(p.pos)}</b><strong>${esc(p.team)} · #${esc(p.number??'—')}</strong><span class="${hasInjury?'danger':''}">${injuryText}</span>${provBadge}</div><div class="sleeper-dossier__content"><section class="sleeper-dossier__logs"><div class="sleeper-section-title"><b>GAME LOGS / PROJECTIONS</b><div class="sleeper-years">${[2026,2025,2024].map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}</div></div>${error?`<p class="sleeper-empty">${esc(error)}</p>`:''}<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>WK</th><th>OPP</th><th>PROJ</th><th>FPTS</th><th>SNAP%</th><th>ATT</th><th>CMP</th><th>YD</th><th>TD</th><th>INT</th></tr></thead><tbody>${logRows}</tbody></table></div></section><aside class="sleeper-dossier__side"><section><h3>LATEST NEWS</h3>${newsHtml}</section><section class="sleeper-depth"><h3>DEPTH CHART · ${esc(p.team)}</h3>${depth.length?depth.map((x,i)=>`<div class="sleeper-depth-row ${String(x.id)===String(p.id)?'active':''}"><b>${i+1}</b><span>${esc(x.name)}</span></div>`).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}</section><section class="sleeper-depth"><h3>FICHA TÉCNICA DTO</h3><p class="sleeper-empty" style="padding:6px 0">Status: ${injuryText} · Posição: ${esc(p.pos)} · Time: ${esc(p.team)}<br>ID Sleeper: ${esc(dto?.sleeperId||p.sleeperId||p.id)} · ID ESPN: ${esc(dto?.espnId||raw.espn_id||'—')}<br>Sincronizado: ${esc(dto?.provenance?.syncedAt||'Oficial SQLite')}</p></section></aside></div></div>`;
+    document.getElementById('player-modal-content').innerHTML=`<div class="sleeper-dossier" style="--sleeper-team:${color}"><button class="sleeper-close" onclick="closeModal('player-modal')">×</button><div class="sleeper-dossier__hero"><div class="sleeper-dossier__teambg"><img src="${esc(p.teamLogo)}" alt=""></div><div class="sleeper-dossier__mini"><b>${esc(p.name.split(' ').map(x=>x[0]).join('').slice(0,2))}</b><span>${esc(p.pos)} · ${esc(p.team)}</span></div><div class="sleeper-dossier__player"><img src="${esc(p.photo)}" onerror="this.onerror=null;this.src='https://sleepercdn.com/content/nfl/players/thumb/${esc(p.sleeperId||p.id)}.jpg'" alt="${esc(p.name)}"></div><div class="sleeper-dossier__identity"><small>CATÁLOGO OFICIAL SLEEPER · ID ${esc(p.id)}</small><h1>${esc(p.name)}</h1><div class="sleeper-bio"><span><b>AGE</b>${esc(p.age??'—')}</span><i></i><span><b>HEIGHT</b>${esc(p.height??'—')}</span><i></i><span><b>WEIGHT</b>${esc(p.weight??'—')}</span><i></i><span><b>EXP</b>${esc(p.exp??'—')}</span><span class="college"><b>COLLEGE</b>${esc(p.college??'—')}</span></div><div class="sleeper-ranks"><span><b>${p.rostered??'—'}%</b> ROSTERED</span><span><b>${p.started??'—'}%</b> STARTED</span><span><b>${projDisplay}</b> PROJ. SEMANA</span></div></div></div><div class="sleeper-dossier__bar"><b>${esc(p.pos)}</b><strong>${esc(p.team)} · #${esc(p.number??'—')}</strong><span class="${hasInjury?'danger':''}">${injuryText}</span>${provBadge}</div><div class="sleeper-dossier__content"><section class="sleeper-dossier__logs"><div class="sleeper-section-title"><b>GAME LOGS / PROJECTIONS</b><div class="sleeper-years">${[2026,2025,2024].map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}</div></div>${error?`<p class="sleeper-empty">${esc(error)}</p>`:''}<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>WK</th><th>OPP</th><th>PROJ</th><th>FPTS</th><th>SNAP%</th><th>ATT</th><th>CMP</th><th>YD</th><th>TD</th><th>INT</th></tr></thead><tbody>${logRows}</tbody></table></div></section><aside class="sleeper-dossier__side"><section><h3>LATEST NEWS</h3>${newsHtml}</section><section class="sleeper-depth"><h3>DEPTH CHART · ${esc(p.team)}</h3>${depth.length?depth.map((x,i)=>`<div class="sleeper-depth-row ${String(x.id)===String(p.id)?'active':''}"><b>${i+1}</b><span>${esc(x.name)}</span></div>`).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}</section><section class="sleeper-depth"><h3>FICHA TÉCNICA DTO</h3><p class="sleeper-empty" style="padding:6px 0">Status: ${injuryText} · Posição: ${esc(p.pos)} · Time: ${esc(p.team)}<br>ID Sleeper: ${esc(dto?.sleeperId||p.sleeperId||p.id)} · ID ESPN: ${esc(p.espnId||dto?.espnId||raw.espn_id||'—')}<br>Sincronizado: ${esc(dto?.provenance?.syncedAt||'Oficial SQLite')}</p></section></aside></div></div>`;
   }
   window.YL_LOAD_PLAYER_SEASON=async function(id,season){
     const modal=document.getElementById('player-modal-content');if(!modal)return;

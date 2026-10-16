@@ -330,25 +330,37 @@ async function runMonitor() {
 
     // 5. Testes de Busca, Filtros e Navegação
     console.log('[5/6] Testando Busca Canônica, Notícias e Filtros...');
+    await new Promise(r => setTimeout(r, 1500));
+
     try {
-      const searchRes = await fetch(`${API_URL}/api/players/search?q=Josh%20Allen&limit=5`);
+      const searchRes = await fetch(`${API_URL}/api/players/search?q=Josh%20Allen&limit=5`, { signal: AbortSignal.timeout(10000) });
       if (searchRes.ok) {
         const sData = await searchRes.json();
         report.searchAndFilters.joshAllenSearch = (sData.players && sData.players.length > 0 && sData.players[0].name === 'Josh Allen') ? 'PASS' : 'FAIL';
       } else {
         report.searchAndFilters.joshAllenSearch = 'FAIL';
       }
+    } catch (e) {
+      report.searchAndFilters.joshAllenSearch = 'FAIL';
+      report.searchAndFilters.joshAllenError = e.message;
+    }
 
-      const idpRes = await fetch(`${API_URL}/api/players/search?position=IDP&limit=5`);
+    try {
+      const idpRes = await fetch(`${API_URL}/api/players/search?position=IDP&limit=5`, { signal: AbortSignal.timeout(10000) });
       if (idpRes.ok) {
         const idpData = await idpRes.json();
-        const validIdp = idpData.players.every(p => ['DL', 'LB', 'DB', 'DE', 'DT', 'CB', 'S'].includes(p.pos));
+        const validIdp = idpData.players && idpData.players.every(p => ['DL', 'LB', 'DB', 'DE', 'DT', 'CB', 'S'].includes(p.pos));
         report.searchAndFilters.idpPositionFilter = validIdp ? 'PASS' : 'FAIL';
       } else {
         report.searchAndFilters.idpPositionFilter = 'FAIL';
       }
+    } catch (e) {
+      report.searchAndFilters.idpPositionFilter = 'FAIL';
+      report.searchAndFilters.idpError = e.message;
+    }
 
-      const newsRes = await fetch(`${API_URL}/api/news?limit=10`);
+    try {
+      const newsRes = await fetch(`${API_URL}/api/news?limit=10`, { signal: AbortSignal.timeout(10000) });
       if (newsRes.ok) {
         const newsData = await newsRes.json();
         const validNews = Array.isArray(newsData) ? newsData.length > 0 : Boolean(newsData.news?.length || newsData.articles?.length);
@@ -356,20 +368,14 @@ async function runMonitor() {
       } else {
         report.newsDeduplication.feedStatus = 'FAIL';
       }
-
-      if (
-        report.searchAndFilters.joshAllenSearch === 'PASS' &&
-        report.searchAndFilters.idpPositionFilter === 'PASS' &&
-        report.newsDeduplication.feedStatus === 'PASS'
-      ) {
-        report.testSummary.passed += 3;
-      } else {
-        report.testSummary.failed += 1;
-      }
     } catch (e) {
-      report.searchAndFilters.error = e.message;
-      report.testSummary.failed++;
+      report.newsDeduplication.feedStatus = 'FAIL';
+      report.newsDeduplication.error = e.message;
     }
+
+    if (report.searchAndFilters.joshAllenSearch === 'PASS') report.testSummary.passed++; else report.testSummary.failed++;
+    if (report.searchAndFilters.idpPositionFilter === 'PASS') report.testSummary.passed++; else report.testSummary.failed++;
+    if (report.newsDeduplication.feedStatus === 'PASS') report.testSummary.passed++; else report.testSummary.failed++;
 
     // 6. Determinação de Status da Release
     report.testSummary.total = report.testSummary.passed + report.testSummary.failed + report.testSummary.blocked;

@@ -8,6 +8,50 @@ let cachedPlayersCatalog = null;
 let cachedPlayersTimestamp = 0;
 const PLAYERS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
+export const CANONICAL_SLEEPER_TO_ESPN = {
+  "7523": "4360310", // Trevor Lawrence (JAX)
+  "8183": "4361741", // Brock Purdy (SF)
+  "4984": "3918298", // Josh Allen (BUF)
+  "4040": "3139477", // Patrick Mahomes (KC)
+  "4881": "3916387", // Lamar Jackson (BAL)
+  "6904": "4040715", // Jalen Hurts (PHI)
+  "3163": "3046779", // Jared Goff (DET)
+  "6770": "3915511", // Joe Burrow (CIN)
+  "9229": "4432577", // C.J. Stroud (HOU)
+  "2449": "2577417", // Dak Prescott (DAL)
+  "96":   "8439",    // Aaron Rodgers (NYJ)
+  "6797": "4241479", // Tua Tagovailoa (MIA)
+  "11626":"4431452", // Drake Maye (NE)
+  "6804": "4036378", // Jordan Love (GB)
+  "1234": "14880",   // Russell Wilson (PIT)
+  "4892": "3052587", // Baker Mayfield (TB)
+  "5849": "3917315", // Kyler Murray (ARI)
+  "4038941": "4038941", // Justin Herbert (LAC)
+  "4866": "3929630", // Saquon Barkley (PHI)
+  "3198": "3043078", // Derrick Henry (BAL)
+  "4034": "3117251", // Christian McCaffrey (SF)
+  "3969": "3116385", // Joe Mixon (HOU)
+  "3164": "3128720", // Nick Chubb (CLE)
+  "7588": "4241458", // Kenneth Walker III (SEA)
+  "4035": "3054850", // Alvin Kamara (NO)
+  "8138": "4426515", // Puka Nacua (LAR)
+  "7564": "4362628", // Ja'Marr Chase (CIN)
+  "6806": "4242335", // Justin Jefferson (MIN)
+  "2374": "3116406", // Tyreek Hill (MIA)
+  "2133": "16800",   // Davante Adams (NYJ)
+  "4217": "3040151", // George Kittle (SF)
+  "1466": "15847",   // Travis Kelce (KC)
+  "8155": "4426516", // Garrett Wilson (NYJ)
+  "6786": "4241389", // CeeDee Lamb (DAL)
+  "8134": "4426517", // Zay Flowers (BAL)
+  "8150": "4361529", // Trey McBride (ARI)
+  "11625":"4431611", // Trey Benson (ARI)
+  "6813": "4035686", // Jonathan Taylor (IND)
+  "7569": "4258173", // Nico Collins (HOU)
+  "7553": "4374302", // Amon-Ra St. Brown (DET)
+  "6801": "4239993"  // Tee Higgins (CIN)
+};
+
 // ========================================================
 // 1. NORMALIZADORES CANÔNICOS (SEÇÃO 5 DA ESPECIFICAÇÃO)
 // ========================================================
@@ -15,7 +59,8 @@ export function normalizeSleeperPlayer(playerId, rawPlayer = {}) {
   const firstName = rawPlayer.first_name || '';
   const lastName = rawPlayer.last_name || '';
   const name = [firstName, lastName].filter(Boolean).join(' ') || rawPlayer.name || `Jogador #${playerId}`;
-  const espnId = rawPlayer.espn_id ? String(rawPlayer.espn_id) : null;
+  const espnId = rawPlayer.espn_id ? String(rawPlayer.espn_id) : (CANONICAL_SLEEPER_TO_ESPN[String(playerId)] || null);
+  const sleeperId = String(rawPlayer.player_id || playerId);
 
   return {
     id: String(playerId),
@@ -35,18 +80,25 @@ export function normalizeSleeperPlayer(playerId, rawPlayer = {}) {
     yearsExp: rawPlayer.years_exp != null ? rawPlayer.years_exp : null,
     depthChartOrder: rawPlayer.depth_chart_order != null ? rawPlayer.depth_chart_order : null,
     depthChartPosition: rawPlayer.depth_chart_position || null,
-    sleeperId: String(rawPlayer.player_id || playerId),
+    sleeperId,
     espnId,
-    photoUrl: getPlayerPhoto({ espnId, team: rawPlayer.team, photoUrl: rawPlayer.photoUrl })
+    photoUrl: getPlayerPhoto({ espnId, sleeperId, team: rawPlayer.team, photoUrl: rawPlayer.photoUrl })
   };
 }
 
 export function getPlayerPhoto(player = {}) {
-  if (player.photoUrl) {
+  if (player.photoUrl && !player.photoUrl.includes('/teamlogos/')) {
     return player.photoUrl;
   }
   if (player.espnId) {
     return `https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/${encodeURIComponent(player.espnId)}.png&w=350&h=254`;
+  }
+  const sleeperId = player.sleeperId || player.id || player.player_id;
+  if (sleeperId && !isNaN(Number(sleeperId))) {
+    return `https://sleepercdn.com/content/nfl/players/thumb/${encodeURIComponent(sleeperId)}.jpg`;
+  }
+  if (player.photoUrl) {
+    return player.photoUrl;
   }
   if (player.team) {
     return `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(player.team.toLowerCase())}.png`;
@@ -259,6 +311,10 @@ function persistCatalog(catalog, capturedAt) {
       number=excluded.number, college=excluded.college, height=excluded.height, weight=excluded.weight,
       photo_url=excluded.photo_url, team_logo_url=excluded.team_logo_url, updated_at=excluded.updated_at
   `);
+  const identityStatement = db.prepare(`
+    INSERT OR REPLACE INTO player_identities (id, player_id, provider, provider_player_id, raw_name, valid_from)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
   const insertMany = db.transaction((players) => {
     for (const player of players) {
       const name = player.name || `Jogador #${player.id}`;
@@ -269,6 +325,11 @@ function persistCatalog(catalog, capturedAt) {
         player.team ? `https://a.espncdn.com/i/teamlogos/nfl/500/${String(player.team).toLowerCase()}.png` : null,
         capturedAt, capturedAt
       );
+      // Salvar identidades cruzadas para resolução unificada de fotos, dísticos e notícias
+      identityStatement.run(`id_slp_${player.id}`, String(player.id), 'sleeper', String(player.sleeperId || player.id), name, capturedAt);
+      if (player.espnId) {
+        identityStatement.run(`id_espn_${player.id}`, String(player.id), 'espn', String(player.espnId), name, capturedAt);
+      }
     }
   });
   insertMany(Object.values(catalog || {}));
