@@ -18,7 +18,17 @@ export function initDatabase() {
   const schemaPath = path.join(__dirname, 'schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
   db.exec(schemaSql);
-  
+
+  // Additive migrations: preserve existing deployments and tracked seed data.
+  for (const [table, column, type] of [
+    ['players', 'injury_status', 'TEXT'], ['players', 'catalog_json', 'TEXT'],
+    ['rosters', 'taxi_json', 'TEXT'], ['sync_runs', 'metric_status_json', 'TEXT']
+  ]) {
+    if (!db.prepare(`PRAGMA table_info(${table})`).all().some(field => field.name === column)) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    }
+  }
+
   // Seed initial plans if empty
   seedInitialPlans();
   console.log('✅ [Database] Banco de dados inicializado com sucesso em:', DB_PATH);

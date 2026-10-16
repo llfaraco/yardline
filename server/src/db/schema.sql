@@ -71,6 +71,8 @@ CREATE TABLE IF NOT EXISTS players (
   position TEXT NOT NULL,
   team TEXT,
   status TEXT DEFAULT 'Active',
+  injury_status TEXT,
+  catalog_json TEXT,
   age INTEGER,
   number TEXT,
   college TEXT,
@@ -103,6 +105,7 @@ CREATE TABLE IF NOT EXISTS rosters (
   players_json TEXT NOT NULL,
   starters_json TEXT NOT NULL,
   reserve_json TEXT,
+  taxi_json TEXT,
   settings_json TEXT,
   captured_at TEXT NOT NULL,
   FOREIGN KEY (league_id) REFERENCES leagues(id) ON DELETE CASCADE
@@ -238,7 +241,8 @@ CREATE TABLE IF NOT EXISTS sync_runs (
   records_read INTEGER DEFAULT 0,
   records_written INTEGER DEFAULT 0,
   error_code TEXT,
-  error_message TEXT
+  error_message TEXT,
+  metric_status_json TEXT
 );
 
 CREATE TABLE IF NOT EXISTS audit_events (

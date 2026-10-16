@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import crypto from 'node:crypto';
+import { pathToFileURL } from 'node:url';
+import { loadPersistedCatalog, buildPlayerData, buildPlayerCards, leagueCardContext, buildPlayerHistory } from './modules/players/player-card.service.js';
 import { initDatabase, db } from './db/database.js';
 import { authService } from './modules/auth/auth.service.js';
 import { sleeperSyncService, normalizeSleeperPlayer, normalizeLeague, normalizeManager, normalizeRoster, normalizeMatchup, getPlayerPhoto, calculateManagerDna } from './modules/sleeper/sleeper.sync.js';
@@ -14,7 +16,7 @@ import { newsService } from './modules/news/news.service.js';
 // Inicializar banco de dados
 initDatabase();
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middlewares
@@ -209,8 +211,11 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
   const latestState = db.prepare(`SELECT payload_json FROM sync_payloads WHERE league_id = ? AND resource = 'state' ORDER BY captured_at DESC LIMIT 1`).get(league.id);
   const state = parse(latestState?.payload_json, null);
   const settings = parse(league.settings_json, {});
-  const week = Number(req.query.week || state?.week || settings.leg || 1);
-  const rosters = db.prepare(`SELECT r.*, m.display_name, m.team_name, m.avatar FROM rosters r LEFT JOIN league_memberships m ON r.owner_membership_id=m.id WHERE r.league_id=? ORDER BY r.provider_roster_id`).all(league.id);
+  const week = Number(req.query.week ?? state?.week ?? settings.leg);
+  if (!Number.isInteger(week) || week < 1 || week > 22) return res.status(400).json({ error: 'Semana válida (1–22) é obrigatória; não há default implícito.' });
+  const latestRun = db.prepare("SELECT status, error_message, metric_status_json FROM sync_runs WHERE league_id=? ORDER BY finished_at DESC LIMIT 1").get(league.id);
+  const dataStatus = latestRun?.status === 'ERROR' ? 'stale' : league.last_synced_at ? 'synced' : 'not_synced';
+  const rosters = db.prepare(`SELECT r.*, m.provider_user_id AS owner_id, m.display_name, m.team_name, m.avatar FROM rosters r LEFT JOIN league_memberships m ON r.owner_membership_id=m.id WHERE r.league_id=? ORDER BY r.provider_roster_id`).all(league.id);
   const rawMatchups = db.prepare('SELECT * FROM matchups WHERE league_id = ? AND week = ? ORDER BY provider_matchup_id').all(league.id, week);
   const matchups = rawMatchups.map(matchup => ({
     ...matchup,
@@ -225,29 +230,30 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
   }).sort((a, b) => b.wins - a.wins || b.fpts - a.fpts).map((team, index) => ({ ...team, rank: index + 1 }));
   const transactions = db.prepare('SELECT * FROM transactions WHERE league_id = ? AND week = ? ORDER BY occurred_at DESC').all(league.id, week).map(t => ({ ...t, rosterIds: parse(t.roster_ids_json, []), adds: parse(t.adds_json, {}), drops: parse(t.drops_json, {}), draftPicks: parse(t.draft_picks_json, []), waiverBudget: parse(t.waiver_budget_json, []), raw: parse(t.raw_json, {}) }));
   const tradedPicks = db.prepare('SELECT * FROM traded_picks WHERE league_id = ? ORDER BY season, round, pick_no').all(league.id).map(p => ({ ...p, raw: parse(p.raw_json, {}) }));
-  const playerData = {};
-  const scoringSettings = normalizeScoringSettings(parse(league.scoring_settings_json, {}));
-  const statsRows = db.prepare('SELECT player_id, week, stats_json FROM player_stats WHERE season = ? ORDER BY week').all(String(league.season));
-  for (const row of statsRows) {
-    const pid = String(row.player_id);
-    const stats = parse(row.stats_json, {});
-    const hasStats = Object.keys(stats).length > 0;
-    const explicitPoints = stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std;
-    const points = Number(explicitPoints ?? (hasStats ? scorePlayerStats(stats, scoringSettings).points : NaN));
-    const current = playerData[pid] || { totalPts: 0, games: 0, currentPoints: null };
-    if (Number.isFinite(points)) { current.totalPts += points; current.games += 1; if (Number(row.week) === week) current.currentPoints = points; }
-    playerData[pid] = current;
-  }
-  for (const [pid, data] of Object.entries(playerData)) data.avgPpr = data.games ? Number((data.totalPts / data.games).toFixed(2)) : null;
-  const projectionRows = db.prepare('SELECT player_id, projection FROM projections WHERE season = ? AND week = ? ORDER BY created_at DESC').all(String(league.season), week);
-  for (const row of projectionRows) if (playerData[String(row.player_id)]?.projectedPoints == null) playerData[String(row.player_id)].projectedPoints = Number(row.projection);
+  const catalog = loadPersistedCatalog(db);
+  const metricRows = (table, valueColumn = 'stats_json') => db.prepare(`SELECT ${valueColumn} AS value FROM ${table} WHERE season=? AND week=?`).all(String(league.season), week);
+  const hasObjectPayload = rows => rows.some(row => { const value = parse(row.value, null); return value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length > 0; });
+  const statsRows = metricRows('player_stats');
+  const projectionRows = metricRows('projections', 'projection');
+  const persistedMetricStatus = parse(latestRun?.metric_status_json, {});
+  const metricAvailability = {
+    stats: { status: persistedMetricStatus.stats || (latestRun?.status === 'ERROR' ? 'failed' : hasObjectPayload(statsRows) ? 'available' : statsRows.length ? 'empty' : 'unavailable') },
+    projections: { status: persistedMetricStatus.projections || (latestRun?.status === 'ERROR' ? 'failed' : projectionRows.some(row => Number.isFinite(Number(row.value))) ? 'available' : projectionRows.length ? 'empty' : 'unavailable') }
+  };
+  const playerData = buildPlayerData(db, { season: league.season, week, seasonType: league.season_type, scoringSettings: parse(league.scoring_settings_json, {}), catalog });
+  const cardContext = leagueCardContext(league, week, dataStatus);
+  cardContext.metricAvailability = metricAvailability;
+  const shellRosters = rosters.map(r => ({ rosterId: r.provider_roster_id, ownerId: r.owner_id || null, ownerName: r.display_name,
+    owner: r.display_name, teamName: r.team_name, avatar: r.avatar, players: parse(r.players_json, []),
+    starters: parse(r.starters_json, []), reserve: parse(r.reserve_json, []), taxi: parse(r.taxi_json, null), settings: parse(r.settings_json, {}) }));
+  const playerCards = buildPlayerCards(catalog, playerData, cardContext, shellRosters);
   res.json({
-    dataStatus: league.last_synced_at ? 'synced' : 'not_synced',
+    dataStatus, syncError: latestRun?.status === 'ERROR' ? latestRun.error_message : null,
     syncedAt: league.last_synced_at,
     league: { id: league.id, providerLeagueId: league.provider_league_id, name: league.name, season: league.season, status: league.status, settings, scoringSettings: parse(league.scoring_settings_json, {}), rosterPositions: parse(league.roster_positions_json, []) },
     state: { ...(state || {}), week },
-    rosters: rosters.map(r => ({ rosterId: r.provider_roster_id, owner: r.display_name, teamName: r.team_name, avatar: r.avatar, players: parse(r.players_json, []), starters: parse(r.starters_json, []), reserve: parse(r.reserve_json, []), settings: parse(r.settings_json, {}) })),
-    standings, matchups, transactions, tradedPicks, playerData
+    rosters: shellRosters,
+    standings, matchups, transactions, tradedPicks, playerData, playerCards, cardContext
   });
 });
 
@@ -267,6 +273,7 @@ app.get('/api/leagues/:leagueId/rosters', (req, res) => {
     players: JSON.parse(r.players_json || '[]'),
     starters: JSON.parse(r.starters_json || '[]'),
     reserve: JSON.parse(r.reserve_json || '[]'),
+    taxi: r.taxi_json == null ? null : JSON.parse(r.taxi_json),
     settings: JSON.parse(r.settings_json || '{}')
   })));
 });
@@ -544,11 +551,11 @@ app.get('/api/news', (req, res) => {
 
 app.get('/api/players/:playerId/history', (req, res) => {
   const season = String(req.query.season || new Date().getUTCFullYear());
-  const rows = db.prepare(`SELECT s.week, s.stats_json, p.projection FROM player_stats s LEFT JOIN projections p ON p.player_id=s.player_id AND p.season=s.season AND p.week=s.week WHERE s.player_id=? AND s.season=? ORDER BY s.week`).all(String(req.params.playerId), season).map(row => {
-    let stats = {}; try { stats = JSON.parse(row.stats_json || '{}'); } catch {}
-    return { week: row.week, opp: stats.opponent || '—', proj: row.projection == null ? null : Number(row.projection), fpts: stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std ?? null, snap: stats.off_pct ?? stats.snap_pct ?? null, att: stats.rush_att ?? stats.pass_att ?? stats.rec_tgt ?? null, cmp: stats.pass_cmp ?? null, yd: stats.pass_yd ?? stats.rush_yd ?? stats.rec_yd ?? null, td: stats.pass_td ?? stats.rush_td ?? stats.rec_td ?? null, int: stats.pass_int ?? null };
-  });
-  res.json({ playerId: String(req.params.playerId), season, rows, dataStatus: rows.length ? 'synced' : 'not_synced' });
+  const league = req.query.leagueId ? db.prepare('SELECT * FROM leagues WHERE id=? OR provider_league_id=?').get(req.query.leagueId, req.query.leagueId) : null;
+  if (req.query.leagueId && !league) return res.status(404).json({ error: 'Liga não encontrada.' });
+  const rows = buildPlayerHistory(db, { playerId: req.params.playerId, season, league });
+  res.json({ playerId: String(req.params.playerId), season, rows, scoringFormat: league ? 'LEAGUE' : null,
+    dataStatus: rows.some(row => row.proj !== null || row.fpts !== null) ? 'partial' : 'unavailable' });
 });
 
 app.get('/api/leagues/:leagueId/messages', (req, res) => {
@@ -616,7 +623,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`🚀 [YARDLINE API] Servidor de produção ativo na porta ${PORT}`);
-  console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  app.listen(PORT, () => {
+    console.log(`🚀 [YARDLINE API] Servidor de produção ativo na porta ${PORT}`);
+    console.log(`📡 Health Check: http://localhost:${PORT}/api/health`);
+  });
+}

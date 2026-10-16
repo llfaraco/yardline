@@ -2,6 +2,8 @@
 // YARDLINE - SCORING ENGINE
 // Converte estatísticas Sleeper em pontos explicáveis.
 // ========================================================
+import contract from '../../../../yardline-app/js/player-card-contract.js';
+const { numberOrNull } = contract;
 
 const STAT_ALIASES = {
   passYards: ['pass_yd', 'pass_yds', 'passing_yards'],
@@ -36,16 +38,25 @@ const STAT_ALIASES = {
   puntReturnTd: ['pr_td', 'punt_return_td']
 };
 
+// Cards fail closed rather than claiming a complete custom-league score.
+export const SUPPORTED_SCORING_KEYS = new Set([
+  'pass_yd', 'pass_td', 'pass_int', 'pass_2pt', 'rush_yd', 'rush_td', 'rush_2pt',
+  'rec', 'rec_yd', 'rec_td', 'rec_2pt', 'fum_lost', 'def_sack', 'def_int', 'def_ff',
+  'def_fumble_rec', 'def_td', 'def_tackle', 'def_tackle_solo', 'def_tackle_assist',
+  'def_pass_def', 'def_qb_hit', 'def_safety', 'def_block_kick', 'extra_pt', 'fgm',
+  'fgmiss', 'kr_td', 'pr_td', 'bonus_pass_yd_300', 'bonus_rush_yd_100', 'bonus_rec_yd_100'
+]);
+
 function firstNumber(stats, aliases) {
   for (const key of aliases) {
-    if (stats?.[key] != null && Number.isFinite(Number(stats[key]))) return Number(stats[key]);
+    const value = numberOrNull(stats?.[key]);
+    if (value !== null) return value;
   }
   return 0;
 }
 
 function setting(settings, key, fallback = 0) {
-  const value = settings?.[key];
-  return value == null || !Number.isFinite(Number(value)) ? fallback : Number(value);
+  return numberOrNull(settings?.[key]) ?? fallback;
 }
 
 function bonus(stats, settings, statAliases, threshold, settingKey) {
@@ -59,7 +70,20 @@ function addBreakdown(breakdown, key, stat, multiplier) {
   return points;
 }
 
+export function scoringUnavailableReason(scoringSettings) {
+  if (!scoringSettings || typeof scoringSettings !== 'object' || Array.isArray(scoringSettings) || !Object.keys(scoringSettings).length) return 'scoring_unavailable';
+  const entries = Object.entries(scoringSettings);
+  const invalid = entries.filter(([, value]) => numberOrNull(value) === null).map(([key]) => key).sort();
+  if (invalid.length) return `invalid_scoring:${invalid.join(',')}`;
+  const unsupported = entries.filter(([key, value]) => numberOrNull(value) !== 0 && !SUPPORTED_SCORING_KEYS.has(key)).map(([key]) => key).sort();
+  return unsupported.length ? `unsupported_scoring:${unsupported.join(',')}` : null;
+}
+
 export function scorePlayerStats(stats = {}, scoringSettings = {}) {
+  const reason = scoringUnavailableReason(scoringSettings)
+    || (!stats || typeof stats !== 'object' || Array.isArray(stats) || !Object.keys(stats).length ? 'stats_unavailable'
+      : !Object.values(STAT_ALIASES).flat().some(key => numberOrNull(stats[key]) !== null) ? 'scorable_stats_unavailable' : null);
+  if (reason) return { points: null, reason, breakdown: [], stats, scoringSettings };
   const breakdown = [];
   let total = 0;
   const add = (key, aliases, settingKey) => {
@@ -103,6 +127,7 @@ export function scorePlayerStats(stats = {}, scoringSettings = {}) {
 
   return {
     points: Number(total.toFixed(2)),
+    reason: null,
     breakdown,
     stats: { ...stats },
     scoringSettings: { ...scoringSettings }
@@ -116,10 +141,13 @@ export function scoreRoster({ playerIds = [], starters = [], statsByPlayer = {},
     const scored = scorePlayerStats(statsByPlayer[id] || {}, scoringSettings);
     return { playerId: id, slot: starterSet.has(id) ? `STARTER_${index + 1}` : 'BN', isStarter: starterSet.has(id), ...scored };
   });
-  const startersScore = players.filter(p => p.isStarter).reduce((sum, p) => sum + p.points, 0);
-  return { points: Number(startersScore.toFixed(2)), players };
+  const active = players.filter(p => p.isStarter);
+  const reason = scoringUnavailableReason(scoringSettings) || active.find(p => p.points === null)?.reason
+    || (starters.some(id => !players.some(p => p.playerId === String(id))) ? 'starter_stats_unavailable' : null);
+  const startersScore = active.reduce((sum, p) => sum + p.points, 0);
+  return { points: reason ? null : Number(startersScore.toFixed(2)), reason, players };
 }
 
 export function normalizeScoringSettings(raw = {}) {
-  return Object.fromEntries(Object.entries(raw).map(([key, value]) => [key, Number(value) || 0]));
+  return Object.fromEntries(Object.entries(raw).map(([key, value]) => [key, numberOrNull(value)]));
 }
