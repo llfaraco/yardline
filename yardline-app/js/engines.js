@@ -2097,7 +2097,7 @@ if (typeof window !== 'undefined') {
       if (customLeagueId && customLeagueId !== inFlightLeagueId) return syncInFlight.catch(() => {}).then(() => window.syncRealSleeperLeagueLive(customLeagueId));
       return syncInFlight;
     }
-    inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || '1389356417462317056';
+    inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
     syncInFlight = syncShell(inFlightLeagueId).finally(() => { syncInFlight = null; });
     return syncInFlight;
   };
@@ -2141,9 +2141,23 @@ if (typeof window !== 'undefined') {
       activeNflState = snapshot.state; activeLeagueWeek = snapshot.state?.week ?? null;
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ ...r, roster_id: r.rosterId, owner_id: r.ownerId,
         ownerName: r.ownerName, players: r.players, starters: r.starters, reserve: r.reserve, taxi: r.taxi, settings: r.settings }));
-      const wanted = typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null;
+      const wanted = (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
+        || localStorage.getItem('yl_sleeper_username') || null;
+      let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
+      if (!ownerId && wanted) {
+        try {
+          const user = await request(`/api/integrations/sleeper/user/${encodeURIComponent(String(wanted).replace(/^@/, ''))}`);
+          ownerId = user?.user_id || null;
+          if (ownerId) {
+            window.YL_SLEEPER_USER_ID = String(ownerId);
+            localStorage.setItem('yl_sleeper_user_id', String(ownerId));
+          }
+        } catch (identityError) {
+          console.warn('[Yardline sync] identidade Sleeper indisponível:', identityError.message);
+        }
+      }
       userRealRoster = window.YardlinePlayerCard.selectUserRoster(activeSleeperRosters, {
-        ownerId: window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null, username: wanted || null });
+        ownerId });
       selectedActiveRosterId = userRealRoster?.roster_id ?? null;
       window.YL_ACTIVE_ROSTERS = activeSleeperRosters;
       window.YL_MY_ROSTER_ID = selectedActiveRosterId;

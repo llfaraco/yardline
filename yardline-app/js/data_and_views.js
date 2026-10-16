@@ -2825,7 +2825,7 @@ let onboardingData = {
   sleeperUsername: localStorage.getItem("yl_sleeper_username") || "Faraco",
   sleeperUserId: null,
   userLeagues: [],
-  selectedLeagueId: localStorage.getItem("yl_active_league") || "1369770282776006656",
+  selectedLeagueId: localStorage.getItem("yl_active_league") || localStorage.getItem("yl_active_league_id") || "1369770282776006656",
   selectedLeagueName: "Neilo Pistola League (#1369770282776006656)",
   diagnosticMatchup: null
 };
