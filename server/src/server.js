@@ -10,6 +10,16 @@ import { calculateLeagueBaselines, computeVBD } from './modules/engines/vbd.engi
 import { scorePlayerStats, normalizeScoringSettings } from './modules/engines/scoring.engine.js';
 import { billingService } from './modules/billing/billing.service.js';
 import { newsService } from './modules/news/news.service.js';
+import {
+  DATA_STATUS,
+  INJURY_STATUS,
+  createDataStatusDTO,
+  createMetricDTO,
+  createPlayerCardDTO,
+  createRosterDTO,
+  createMatchupDTO,
+  createLeagueShellDTO
+} from './contracts/dtos.js';
 
 // Inicializar banco de dados
 initDatabase();
@@ -146,6 +156,111 @@ app.get('/api/players/catalog', async (req, res) => {
   }
 });
 
+// DTO Canônico: Ficha individual do jogador
+app.get('/api/players/:playerId', (req, res) => {
+  try {
+    const { playerId } = req.params;
+    let player = db.prepare('SELECT * FROM players WHERE id = ?').get(playerId);
+    if (!player) {
+      const crosswalk = db.prepare('SELECT player_id FROM player_identities WHERE provider_player_id = ?').get(playerId);
+      if (crosswalk) {
+        player = db.prepare('SELECT * FROM players WHERE id = ?').get(crosswalk.player_id);
+      }
+    }
+
+    if (!player) {
+      return res.status(404).json({
+        error: 'Jogador não encontrado no catálogo canônico.',
+        dataStatus: DATA_STATUS.UNAVAILABLE
+      });
+    }
+
+    const identities = db.prepare('SELECT provider, provider_player_id FROM player_identities WHERE player_id = ?').all(player.id);
+    const sleeperIdentity = identities.find(i => i.provider === 'sleeper');
+    const espnIdentity = identities.find(i => i.provider === 'espn');
+
+    const latestProjection = db.prepare('SELECT projection FROM projections WHERE player_id = ? ORDER BY season DESC, week DESC, created_at DESC LIMIT 1').get(player.id);
+
+    const card = createPlayerCardDTO({
+      id: player.id,
+      sleeperId: sleeperIdentity?.provider_player_id || (player.id.length <= 6 ? player.id : null),
+      espnId: espnIdentity?.provider_player_id || null,
+      name: player.canonical_name,
+      position: player.position,
+      team: player.team,
+      jersey: player.number,
+      injuryStatus: player.status !== 'Active' ? player.status : null,
+      photoUrl: player.photo_url,
+      metrics: createMetricDTO({
+        projectedPoints: latestProjection?.projection != null ? Number(latestProjection.projection) : null,
+        provenance: createDataStatusDTO({
+          status: latestProjection ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE,
+          source: 'projections_db'
+        })
+      }),
+      provenance: createDataStatusDTO({
+        status: DATA_STATUS.OFFICIAL,
+        source: 'canonical_players_db',
+        syncedAt: player.updated_at
+      })
+    });
+
+    res.json(card);
+  } catch (err) {
+    res.status(500).json({ error: err.message, dataStatus: DATA_STATUS.UNAVAILABLE });
+  }
+});
+
+// Histórico de pontuação e estatísticas do jogador
+app.get('/api/players/:playerId/history', (req, res) => {
+  try {
+    const { playerId } = req.params;
+    let player = db.prepare('SELECT id, canonical_name FROM players WHERE id = ?').get(playerId);
+    if (!player) {
+      const crosswalk = db.prepare('SELECT player_id FROM player_identities WHERE provider_player_id = ?').get(playerId);
+      if (crosswalk) {
+        player = db.prepare('SELECT id, canonical_name FROM players WHERE id = ?').get(crosswalk.player_id);
+      }
+    }
+
+    if (!player) {
+      return res.status(404).json({
+        error: 'Jogador não encontrado.',
+        dataStatus: DATA_STATUS.UNAVAILABLE
+      });
+    }
+
+    const statsRows = db.prepare('SELECT season, week, stats_json, source, captured_at FROM player_stats WHERE player_id = ? ORDER BY season DESC, week ASC').all(player.id);
+
+    const history = statsRows.map(row => {
+      let stats = {};
+      try { stats = JSON.parse(row.stats_json || '{}'); } catch {}
+      const explicitPoints = stats.pts_ppr ?? stats.pts_half_ppr ?? stats.pts_std;
+      return {
+        season: row.season,
+        week: Number(row.week),
+        points: explicitPoints != null ? Number(Number(explicitPoints).toFixed(2)) : null,
+        stats,
+        provenance: createDataStatusDTO({
+          status: DATA_STATUS.OFFICIAL,
+          source: row.source || 'sleeper_stats',
+          syncedAt: row.captured_at
+        })
+      };
+    });
+
+    res.json({
+      playerId: player.id,
+      name: player.canonical_name,
+      totalGames: history.length,
+      history
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 app.post('/api/integrations/sleeper/connect', requireAuth, async (req, res) => {
   try {
     const { username } = req.body;
@@ -241,14 +356,40 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
   for (const [pid, data] of Object.entries(playerData)) data.avgPpr = data.games ? Number((data.totalPts / data.games).toFixed(2)) : null;
   const projectionRows = db.prepare('SELECT player_id, projection FROM projections WHERE season = ? AND week = ? ORDER BY created_at DESC').all(String(league.season), week);
   for (const row of projectionRows) if (playerData[String(row.player_id)]?.projectedPoints == null) playerData[String(row.player_id)].projectedPoints = Number(row.projection);
-  res.json({
-    dataStatus: league.last_synced_at ? 'synced' : 'not_synced',
-    syncedAt: league.last_synced_at,
-    league: { id: league.id, providerLeagueId: league.provider_league_id, name: league.name, season: league.season, status: league.status, settings, scoringSettings: parse(league.scoring_settings_json, {}), rosterPositions: parse(league.roster_positions_json, []) },
+  const shellDto = createLeagueShellDTO({
+    league: {
+      id: league.id,
+      providerLeagueId: league.provider_league_id,
+      name: league.name,
+      season: league.season,
+      status: league.status,
+      settings,
+      scoringSettings: parse(league.scoring_settings_json, {}),
+      rosterPositions: parse(league.roster_positions_json, [])
+    },
     state: { ...(state || {}), week },
-    rosters: rosters.map(r => ({ rosterId: r.provider_roster_id, owner: r.display_name, teamName: r.team_name, avatar: r.avatar, players: parse(r.players_json, []), starters: parse(r.starters_json, []), reserve: parse(r.reserve_json, []), settings: parse(r.settings_json, {}) })),
-    standings, matchups, transactions, tradedPicks, playerData
+    rosters: rosters.map(r => ({
+      rosterId: r.provider_roster_id,
+      owner: r.display_name,
+      teamName: r.team_name,
+      avatar: r.avatar,
+      players: parse(r.players_json, []),
+      starters: parse(r.starters_json, []),
+      reserve: parse(r.reserve_json, []),
+      settings: parse(r.settings_json, {})
+    })),
+    standings,
+    matchups,
+    transactions,
+    tradedPicks,
+    playerData,
+    provenance: createDataStatusDTO({
+      status: league.last_synced_at ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE,
+      source: 'sleeper_sync',
+      syncedAt: league.last_synced_at
+    })
   });
+  res.json(shellDto);
 });
 
 app.get('/api/leagues/:leagueId/rosters', (req, res) => {
