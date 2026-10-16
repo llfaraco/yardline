@@ -2033,7 +2033,12 @@ function renderAllViews() {
   renderAiModeView();
   renderSocialView();
   renderPlansView();
-  window.syncRealSleeperLeagueLive().catch(() => {});
+  // A carga inicial só hidrata o snapshot persistido via GET. A sincronização
+  // mutável POST fica reservada ao botão explícito do usuário.
+  const initialLoad = typeof window.hydrateSleeperLeagueShell === 'function'
+    ? window.hydrateSleeperLeagueShell()
+    : window.syncRealSleeperLeagueLive();
+  initialLoad.catch(() => {});
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -2098,7 +2103,13 @@ if (typeof window !== 'undefined') {
       return syncInFlight;
     }
     inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
-    syncInFlight = syncShell(inFlightLeagueId).finally(() => { syncInFlight = null; });
+    syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: false }).finally(() => { syncInFlight = null; });
+    return syncInFlight;
+  };
+  window.hydrateSleeperLeagueShell = function(customLeagueId){
+    if (syncInFlight) return syncInFlight;
+    inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
+    syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: true }).finally(() => { syncInFlight = null; });
     return syncInFlight;
   };
   // Catalog buttons use this named public entry point; it delegates to the canonical shell sync.
@@ -2106,7 +2117,7 @@ if (typeof window !== 'undefined') {
     if (typeof window.syncRealSleeperLeagueLive !== 'function') return Promise.reject(new Error('Sincronização Sleeper indisponível.'));
     return window.syncRealSleeperLeagueLive();
   };
-  async function syncShell(id){
+  async function syncShell(id, { skipRemoteSync = false } = {}){
     localStorage.setItem('yl_active_league_id', id);
     const apiBase = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`);
     const request = async (path, options = {}) => {
@@ -2118,9 +2129,11 @@ if (typeof window !== 'undefined') {
         return body;
       } finally { clearTimeout(timer); }
     };
-    showToast(`Sincronizando liga #${id} pelo backend...`);
+    if (!skipRemoteSync) showToast(`Sincronizando liga #${id} pelo backend...`);
     try {
-      await request('/api/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) });
+      if (!skipRemoteSync) {
+        await request('/api/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) });
+      }
       const snapshot = await request(`/api/leagues/${id}/shell`);
       const nextPlayerCards = snapshot.playerCards || {};
       const previousPlayerCards = window.YL_PLAYER_CARDS || {};
@@ -2263,7 +2276,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
   }
   function profile(id) { return resolveNFLPlayer(String(id)); }
   window.YL_SWITCH_DOSSIER_TAB = function(tabName) {
-    const tabs = ['gamelogs', 'sentiment', 'seasonstats', 'news', 'depth'];
+    const tabs = ['gamelogs', 'sentiment', 'seasonstats', 'outlook', 'news', 'depth', 'leagues', 'fullprofile'];
     tabs.forEach(t => {
       const sec = document.getElementById('tab-sec-' + t);
       const btn = document.getElementById('tab-btn-' + t);
@@ -2331,6 +2344,10 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
       </div>`;
     const expertNoteHtml = `<div class="yl-expert-card"><div class="yl-expert-avatar">YL</div><div class="yl-expert-content"><div class="yl-expert-head"><strong>Notas de especialistas</strong><span>Fonte externa não carregada</span></div><p class="yl-expert-text">Nenhuma opinião de especialista será atribuída sem fonte verificável.</p></div></div>`;
     const seasonStatsHtml = `<div class="sleeper-table-wrap" style="margin-top:10px;"><table class="sleeper-log"><thead><tr class="super-header"><th colspan="4">RESUMO OBSERVADO</th><th colspan="5">PASSING</th><th colspan="2">RUSHING</th></tr><tr><th>TEMPORADA</th><th>TIME</th><th>FPTS LIGA</th><th>SEMANAS OBS.</th><th>ATT</th><th>CMP</th><th>YDS</th><th>TD</th><th>INT</th><th>ATT</th><th>YDS</th></tr></thead><tbody><tr><td>${esc(season)}</td><td>${esc(p.team || '—')}</td><td class="sleeper-fpts">${num(seasonPoints)}</td><td>${validRows.length || '—'}</td>${['pass_att','pass_cmp','pass_yd','pass_td','pass_int','rush_att','rush_yd'].map(key => `<td>${num(sumStat(key))}</td>`).join('')}</tr></tbody></table><p class="sleeper-empty">Totais parciais das semanas efetivamente persistidas; ausência não equivale a zero.</p></div>`;
+    const outlookHtml = `<div class="yl-coach-ai-card"><div class="yl-coach-ai-header"><strong>OUTLOOK DA RODADA</strong><span class="badge badge-navy">DADOS VERIFICADOS</span></div><div class="yl-coach-body"><p>Projeção oficial persistida: <strong>${projDisplay}</strong> ${esc(p.context.projectionFormat || 'formato não informado')}.</p><p>Contexto: temporada ${esc(season)} · semana ${esc(p.context.week ?? '—')} · ${esc(p.context.seasonType || '—')} · scoring ${esc(p.context.scoringFormat || '—')}.</p><p>Não há consenso externo, teto ou risco calculado sem fonte verificável; nenhum valor é inventado.</p></div></div>`;
+    const leagueRows = p.rosterContext.length ? p.rosterContext.map(r => `<tr><td>${esc(r.rosterId ?? '—')}</td><td>${r.starter ? 'Titular' : r.reserve ? 'Reserva' : r.taxi ? 'Taxi' : 'Banco'}</td><td>${r.ownerId ? esc(r.ownerId) : 'Não identificado'}</td></tr>`).join('') : '<tr><td colspan="3" class="sleeper-empty">Atleta não consta dos rosters persistidos desta liga.</td></tr>';
+    const leaguesHtml = `<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>ROSTER</th><th>STATUS</th><th>OWNER ID</th></tr></thead><tbody>${leagueRows}</tbody></table><p class="sleeper-empty">Disponibilidade e ownership são derivados somente do roster oficial sincronizado.</p></div>`;
+    const fullProfileHtml = `<div class="sleeper-table-wrap"><table class="sleeper-log"><tbody><tr><th>PLAYER ID</th><td>${esc(p.sleeperId || p.id)}</td><th>ESPN ID</th><td>${esc(p.espnId || '—')}</td></tr><tr><th>NOME</th><td>${esc(p.name)}</td><th>POSIÇÃO</th><td>${esc(p.position || p.pos || '—')}</td></tr><tr><th>TIME</th><td>${esc(p.team || '—')}</td><th>STATUS</th><td>${esc(p.status || '—')}</td></tr><tr><th>LESÃO</th><td>${esc(p.injuryStatus || 'Não informada')}</td><th>COLLEGE</th><td>${esc(p.college || '—')}</td></tr><tr><th>FONTE</th><td colspan="3">${esc(p.source?.catalog || 'indisponível')} · ${esc(p.dataStatus || '—')}</td></tr></tbody></table></div>`;
 
     const newsHtml=news.length?news.map(n=>`<article class="sleeper-news"><a href="${esc(n.sourceUrl||n.canonical_url||'#')}" target="_blank" rel="noopener"><b>${esc(n.title||'Atualização do jogador')}</b></a><small>${esc(n.source||'NFL.com')} · ${esc(n.published_at||n.publishedAt||n.fetchedAt||'Atualizado')}</small><p>${esc(n.summary||'')}</p></article>`).join(''):`<p class="sleeper-empty">Nenhuma notícia vinculada ao atleta no worker.</p>`;
     const hasInjury=Boolean(p.injuryStatus && p.injuryStatus !== 'Active' && p.injuryStatus !== 'Sem restrição');
@@ -2416,8 +2433,11 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
           <button class="sleeper-tab-btn active" id="tab-btn-gamelogs" onclick="window.YL_SWITCH_DOSSIER_TAB('gamelogs')">Game Logs</button>
           <button class="sleeper-tab-btn" id="tab-btn-sentiment" onclick="window.YL_SWITCH_DOSSIER_TAB('sentiment')">Consensus Sentiment (Coach AI)</button>
           <button class="sleeper-tab-btn" id="tab-btn-seasonstats" onclick="window.YL_SWITCH_DOSSIER_TAB('seasonstats')">Season Stats</button>
+          <button class="sleeper-tab-btn" id="tab-btn-outlook" onclick="window.YL_SWITCH_DOSSIER_TAB('outlook')">Outlook</button>
           <button class="sleeper-tab-btn" id="tab-btn-news" onclick="window.YL_SWITCH_DOSSIER_TAB('news')">Latest News & Analysis</button>
           <button class="sleeper-tab-btn" id="tab-btn-depth" onclick="window.YL_SWITCH_DOSSIER_TAB('depth')">Depth Chart</button>
+          <button class="sleeper-tab-btn" id="tab-btn-leagues" onclick="window.YL_SWITCH_DOSSIER_TAB('leagues')">Leagues</button>
+          <button class="sleeper-tab-btn" id="tab-btn-fullprofile" onclick="window.YL_SWITCH_DOSSIER_TAB('fullprofile')">Full Profile</button>
         </div>
 
         <!-- CONTENT MAIN GRID -->
@@ -2467,6 +2487,11 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
               ${seasonStatsHtml}
             </div>
 
+            <div id="tab-sec-outlook" style="display:none;">
+              <div class="sleeper-section-title"><b>OUTLOOK / CONTEXTO DA RODADA</b></div>
+              ${outlookHtml}
+            </div>
+
             <!-- TAB 4: LATEST NEWS -->
             <div id="tab-sec-news" style="display:none;">
               <div class="sleeper-section-title">
@@ -2490,6 +2515,16 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
                   </div>
                 `).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}
               </div>
+            </div>
+
+            <div id="tab-sec-leagues" style="display:none;">
+              <div class="sleeper-section-title"><b>LEAGUES / SITUAÇÃO NA LIGA</b></div>
+              ${leaguesHtml}
+            </div>
+
+            <div id="tab-sec-fullprofile" style="display:none;">
+              <div class="sleeper-section-title"><b>FULL PROFILE / IDENTIDADE CANÔNICA</b></div>
+              ${fullProfileHtml}
             </div>
           </section>
 
