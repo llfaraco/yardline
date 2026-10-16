@@ -39,11 +39,11 @@ test('Orchestration has exactly 15 canonical continuously active agents with cad
     assert.ok(['WORKING', 'WAITING_DEPENDENCY', 'NEEDS_REVIEW'].includes(agent.status));
     assert.equal(agent.cadenceMinutes, 60);
     for (const field of ['mission', 'monitorTargets', 'allowedActions', 'evidenceRequired', 'handoffTo', 'writePolicy', 'stopConditions', 'reopenRules', 'nextAction']) assert.ok(agent[field]?.length, `${agent.id}: ${field}`);
-    assert.match(agent.handoffTo, /Antigravity/);
-    assert.match(agent.writePolicy, /Sem push automático/);
+    assert.equal(agent.handoffTo, 'Manus Team Leader');
+    assert.match(agent.writePolicy, /Sem edição de código/);
   }
-  assert.equal(config.coordinator.name, 'Team Leader');
-  assert.match(config.coordinator.mission, /só resolver após evidência/);
+  assert.equal(config.coordinator.name, 'Team Leader Manus');
+  assert.match(config.coordinator.mission, /implementar somente após autorização operacional/);
 });
 test('Continuous references and QA are never COMPLETED; invalid policy is rejected', t => {
   for (const id of ['agent_sleeper_ref', 'agent_fantasypros_ref', 'agent_nfl_news', 'agent_yahoo_news', 'agent_qa_senior']) assert.notEqual(config.agents.find(a => a.id === id).status, 'COMPLETED');

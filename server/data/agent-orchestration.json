@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "mode": "POLLING_READ_ONLY",
+  "schemaVersion": 2,
+  "mode": "POLLING_READ_ONLY_MANUS_AUTHORITY",
   "cadenceMinutes": 60,
   "leagueId": "1369770282776006656",
   "maxCycleMinutes": 10,
@@ -39,19 +39,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Product + Team Leader",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_sleeper_ref",
@@ -77,19 +78,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Sleeper Integration + Data",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_fantasypros_ref",
@@ -116,19 +118,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Frontend + Product",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_nfl_news",
@@ -155,19 +158,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / News + Data",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_yahoo_news",
@@ -194,19 +198,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / News + Data",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_qa_senior",
@@ -232,25 +237,26 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Team Leader + QA",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_backend_lead",
       "name": "Backend / API Lead",
       "role": "Arquitetura de API Gateway, DTOs, autenticação JWT, billing e rate limiting",
-      "mission": "Auditar contratos REST, falhas/latência e rotas do código atual; entregar correções ao time escritor Antigravity após revisão.",
+      "mission": "Auditar contratos REST, falhas/latência e rotas do código atual; entregar diagnósticos e evidências ao Team Leader Manus; não editar código.",
       "status": "WAITING_DEPENDENCY",
       "cadenceMinutes": 60,
       "monitorTargets": [
@@ -271,19 +277,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Backend",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_data_engineer",
@@ -310,19 +317,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Data",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_sleeper_integration",
@@ -350,19 +358,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Sleeper Integration",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_scoring_engineer",
@@ -389,19 +398,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Scoring",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_frontend_lead",
@@ -428,19 +438,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Frontend",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_design_system",
@@ -467,19 +478,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Design + Frontend",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_accessibility",
@@ -506,19 +518,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Accessibility + Frontend",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_security",
@@ -544,19 +557,20 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / Security",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     },
     {
       "id": "agent_devops",
@@ -583,30 +597,31 @@
         "observed vs inferred vs not-verifiable",
         "URL/HTTP status/latency or test command + log"
       ],
-      "handoffTo": "Antigravity / DevOps + Team Leader",
-      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "handoffTo": "Manus Team Leader",
+      "writePolicy": "Somente leitura, testes, relatórios e handoffs. Sem edição de código, testes, mocks, merge, commit, push ou publicação.",
       "stopConditions": [
         "Parar se operador pausar runtime",
         "Não executar login, compra ou mutação externa",
-        "Conflito/concurrent code write bloqueia release"
+        "Não editar arquivos protegidos nem executar merge/commit/push",
+        "Conflito ou concorrência de código bloqueia release"
       ],
       "reopenRules": [
         "Mesmo checkId recorrente reutiliza handoff",
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
     }
   ],
   "coordinator": {
-    "id": "team_leader",
-    "name": "Team Leader",
-    "status": "NEEDS_REVIEW",
+    "id": "manus_team_leader",
+    "name": "Team Leader Manus",
+    "status": "WORKING",
     "cadenceMinutes": 60,
-    "mission": "Receber handoffs, priorizar P0/P1, distribuir ao Antigravity e só resolver após evidência fresca do check exato; coordenação não representa execução de LLM/Antigravity.",
-    "handoffTo": "Antigravity / Team Leader",
-    "writePolicy": "Review-only; no automatic source writes/push",
-    "nextAction": "Consumir handoffs OPEN/reabertos e registrar ACK/IN_PROGRESS; pedir QA antes de VERIFIED."
+    "mission": "Revisar evidências dos 15 agentes, priorizar P0/P1, implementar somente após autorização operacional, testar, revisar diff e controlar commit/push.",
+    "handoffTo": "Manus Team Leader",
+    "writePolicy": "Único executor autorizado de alterações de código e publicação, sempre com validação e gate de release.",
+    "nextAction": "Consumir handoffs OPEN/reabertos, verificar evidência fresca e assumir a próxima correção segura."
   },
   "referenceTargets": [
     {
@@ -884,5 +899,27 @@
       "scope": "Contract/backlog only; no complete dossier implementation in this change",
       "reviewBeforeDistribution": "Review harnessCorrections/reviewHistory; do not redistribute old aria-modal-after-close or empty/unhydrated-tabs claims"
     }
+  },
+  "authority": {
+    "implementationOwner": "manus_team_leader",
+    "repository": "llfaraco/yardline",
+    "branch": "main",
+    "externalObserver": "Antigravity",
+    "externalObserverCanWriteCode": false,
+    "externalObserverCanCommit": false,
+    "externalObserverCanPush": false,
+    "externalObserverCanPublish": false,
+    "protectedPaths": [
+      "yardline-app/",
+      "server/src/",
+      "server/test/",
+      "sync-agent/",
+      "news-worker/",
+      "package.json",
+      "package-lock.json",
+      "Dockerfile",
+      ".env*"
+    ],
+    "allowedExternalInbox": "server/data/agent-handoffs/inbox/"
   }
 }
