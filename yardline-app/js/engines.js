@@ -2152,6 +2152,16 @@ if (typeof window !== 'undefined') {
       activeSleeperLeagueData = { ...snapshot.league, league_id: snapshot.league.providerLeagueId,
         roster_positions: snapshot.league.rosterPositions, settings: snapshot.league.settings, scoring_settings: snapshot.league.scoringSettings };
       activeNflState = snapshot.state; activeLeagueWeek = snapshot.state?.week ?? null;
+      const leaguePill = document.getElementById('topbar-league-pill');
+      if (leaguePill) {
+        const leagueStrong = leaguePill.querySelector('strong');
+        const leagueIdLabel = leaguePill.querySelector('span:last-child');
+        if (leagueStrong) leagueStrong.textContent = snapshot.league?.name || 'Liga Sleeper';
+        if (leagueIdLabel) leagueIdLabel.textContent = `(#${snapshot.league?.providerLeagueId || id})`;
+      }
+      const weekPill = document.getElementById('topbar-week-pill');
+      const weekLabel = weekPill?.querySelector('strong');
+      if (weekLabel) weekLabel.textContent = `Semana ${activeLeagueWeek ?? '—'}`;
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ ...r, roster_id: r.rosterId, owner_id: r.ownerId,
         ownerName: r.ownerName, players: r.players, starters: r.starters, reserve: r.reserve, taxi: r.taxi, settings: r.settings }));
       const wanted = (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)

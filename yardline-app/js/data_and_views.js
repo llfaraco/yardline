@@ -518,8 +518,29 @@ function renderHomeView() {
   });
 
   const activeUsername = typeof activeSleeperUsername !== "undefined" ? activeSleeperUsername : "Faraco";
+  const shell = window.YL_SHELL_SNAPSHOT || {};
+  const league = typeof activeSleeperLeagueData !== "undefined" ? activeSleeperLeagueData : (shell.league || {});
+  const leagueName = league?.name || shell.league?.name || 'Liga Sleeper';
+  const leagueId = league?.league_id || league?.providerLeagueId || shell.league?.providerLeagueId || localStorage.getItem('yl_active_league_id') || '—';
+  const leagueSeason = league?.season || shell.league?.season || shell.state?.season || '—';
+  const leagueWeek = typeof activeLeagueWeek !== 'undefined' && activeLeagueWeek != null ? activeLeagueWeek : (shell.state?.week || '—');
+  const leagueTeams = Array.isArray(shell.rosters) ? shell.rosters.length : (Array.isArray(activeSleeperRosters) ? activeSleeperRosters.length : 0);
 
   container.innerHTML = `
+    <div class="yl-card yl-dashboard-league-line" style="margin-bottom:18px;padding:13px 18px;border-left:4px solid var(--yl-crimson);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+          <span class="badge badge-green">SLEEPER · DADOS OFICIAIS</span>
+          <strong style="color:var(--yl-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(leagueName)}</strong>
+          <span style="font-size:11px;color:var(--text-muted);">#${esc(leagueId)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:11.5px;color:var(--text-muted);">
+          <span>Temporada <strong style="color:var(--yl-navy);">${esc(leagueSeason)}</strong></span>
+          <span>Semana <strong style="color:var(--yl-navy);">${esc(leagueWeek)}</strong></span>
+          <span><strong style="color:var(--yl-navy);">${esc(leagueTeams)}</strong> times</span>
+        </div>
+      </div>
+    </div>
     <!-- Filter Strip -->
     <div class="yl-card" style="margin-bottom:18px;padding:14px 20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
