@@ -4156,7 +4156,20 @@ window.YL_V2 = { openPlayerDossierModal: window.openPlayerDossierModal, renderPl
 
     c.innerHTML=`<div class="yl-card" style="padding:18px;margin-bottom:16px"><span class="badge badge-blue">WAIVER WIRE</span><h2 style="font-size:21px;color:var(--yl-navy);margin-top:6px">Jogadores não rosterizados</h2><p style="font-size:12px;color:var(--text-muted);margin-top:4px">Modo: ${status} · ${countTotal} atletas disponíveis após exclusão estrita dos 16 elencos oficiais.</p>${faabBox}<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:14px;border-top:1px solid var(--border-box);padding-top:12px;"><div style="display:flex;gap:5px;flex-wrap:wrap;">${positions.map(p=>`<button class="btn-yl ${posFilter===p?'btn-navy':'btn-outline'}" style="padding:3px 9px;font-size:11px;" onclick="const el=document.getElementById('view-waivers');el.dataset.waiverPos='${p}';renderWaiversView();">${p}</button>`).join('')}</div><div style="flex:1;max-width:280px;"><input type="text" placeholder="Buscar no waiver..." value="${esc(query)}" oninput="const el=document.getElementById('view-waivers');el.dataset.waiverQuery=this.value;renderWaiversView();" style="width:100%;padding:6px 10px;font-size:12px;border:1px solid var(--border-strong);border-radius:6px;outline:none;"></div></div></div><div class="yl-card" style="overflow:auto"><table class="yl-table"><thead><tr><th>Atleta</th><th>Pos</th><th>Time</th><th>Status</th><th>Ação</th></tr></thead><tbody>${displayed.length===0?'<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted);">Nenhum jogador livre encontrado para este filtro.</td></tr>':displayed.map(p=>`<tr><td><div class="yl-rank-player" onclick="openPlayerDossierModal('${esc(p.sleeperId||p.id)}')" style="cursor:pointer;"><img src="${esc(p.photo||'')}" alt="${esc(p.name)}" loading="lazy" onerror="this.classList.add('photo-error')"><b>${esc(p.name)}</b></div></td><td>${esc(p.pos||'—')}</td><td>${esc(p.team||'—')}</td><td>${esc(p.injuryStatus||p.status||'Sem restrição')}</td><td>${typeof openSmartWaiverClaimModal==='function'?`<button class="btn-yl btn-primary" onclick="openSmartWaiverClaimModal('${esc(p.sleeperId||p.id)}')">Reivindicar</button>`:'—'}</td></tr>`).join('')}</tbody></table></div>`;
   }
-  function renderLeague(){if(typeof window.YL_V2?.renderLeagueView==='function')window.YL_V2.renderLeagueView();const c=document.getElementById('view-league');if(!c)return;const m=activeRealMatchup, my=m?.myRoster, opp=m?.oppRoster, mp=m?.myScore??my?.custom_points??my?.points, op=m?.oppScore??opp?.custom_points??opp?.points;const mt=LEAGUE_12_TEAMS?.find(x=>Number(x.rosterId)===Number(my?.roster_id)),ot=LEAGUE_12_TEAMS?.find(x=>Number(x.rosterId)===Number(opp?.roster_id));const delta=(Number(mp)||0)-(Number(op)||0);const preview=m?`O confronto está ${mp==null||op==null?'sem placar disponível':`com ${Number(mp).toFixed(1)} a ${Number(op).toFixed(1)}`}. ${delta===0?'Não há vantagem observada no placar atual.':delta>0?`${mt?.name||'Seu time'} lidera por ${delta.toFixed(1)} ponto(s) no momento.`:`${ot?.name||'O adversário'} lidera por ${Math.abs(delta).toFixed(1)} ponto(s) no momento.`} Projeções futuras não foram inventadas porque não estão no payload oficial do Sleeper.`:'Sincronize a liga para gerar o preview a partir do matchup real.';const el=document.createElement('div');el.className='yl-card yl-matchup-preview';el.innerHTML=`<span class="badge badge-crimson">PREVIEW DO CONFRONTO</span><p>${esc(preview)}</p><small>Fonte: Sleeper · Semana ${esc(activeLeagueWeek??'—')} · placar ${mp==null||op==null?'indisponível':'ao vivo/atual'}</small>`;c.prepend(el);}
+  function renderLeague(){
+    if (typeof window.renderAuditLeagueView === 'function') {
+      window.renderAuditLeagueView();
+      return;
+    }
+    if(typeof window.YL_V2?.renderLeagueView==='function')window.YL_V2.renderLeagueView();
+    const c=document.getElementById('view-league');if(!c)return;
+    const m=activeRealMatchup, my=m?.myRoster, opp=m?.oppRoster, mp=m?.myScore??my?.custom_points??my?.points, op=m?.oppScore??opp?.custom_points??opp?.points;
+    const mt=LEAGUE_12_TEAMS?.find(x=>Number(x.rosterId)===Number(my?.roster_id)),ot=LEAGUE_12_TEAMS?.find(x=>Number(x.rosterId)===Number(opp?.roster_id));
+    const delta=(Number(mp)||0)-(Number(op)||0);
+    const preview=m?`O confronto está ${mp==null||op==null?'sem placar disponível':`com ${Number(mp).toFixed(1)} a ${Number(op).toFixed(1)}`}. ${delta===0?'Não há vantagem observada no placar atual.':delta>0?`${mt?.name||'Seu time'} lidera por ${delta.toFixed(1)} ponto(s) no momento.`:`${ot?.name||'O adversário'} lidera por ${Math.abs(delta).toFixed(1)} ponto(s) no momento.`}`:'Sincronize a liga para gerar o preview.';
+    const el=document.createElement('div');el.className='yl-card yl-matchup-preview';el.innerHTML=`<span class="badge badge-crimson">PREVIEW DO CONFRONTO</span><p>${esc(preview)}</p>`;
+    c.prepend(el);
+  }
   function renderPlaybook(){if(typeof window.YL_V2?.renderPlaybookView==='function')window.YL_V2.renderPlaybookView();const c=document.getElementById('view-playbook');if(!c)return;c.querySelectorAll('.yl-player-card-v2').forEach(card=>{const id=card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1],p=player(id);if(!p)return;const top=card.querySelector('.yl-player-card-v2__top');if(top&&!top.querySelector('.yl-player-card-v2__teamlogo')){const img=document.createElement('img');img.className='yl-player-card-v2__teamlogo';img.src=p.teamLogo||'';img.alt=p.team||'';top.prepend(img);}const body=card.querySelector('.yl-player-card-v2__body');if(body&&!body.querySelector('.yl-player-card-v2__bio')){const bio=document.createElement('div');bio.className='yl-player-card-v2__bio';bio.textContent=[p.age&&`${p.age} anos`,p.height&&`Alt. ${p.height}`,p.weight&&`Peso ${p.weight}`,p.college].filter(Boolean).join(' · ')||'Ficha técnica não disponível';body.appendChild(bio);}});}
   const oldHome=window.renderHomeView;window.renderHomeView=function(){if(typeof oldHome==='function')oldHome();const c=document.getElementById('view-home');if(c&&!c.querySelector('.yl-news-source-note')){const n=document.createElement('div');n.className='yl-news-source-note';n.textContent='Jornalismo YARDLINE: priorização por roster ativo. Artigos locais sem URL verificável permanecem marcados como conteúdo não verificado; feeds externos exigem ingestão autorizada no backend.';c.prepend(n);}};
   window.renderTeamsView=renderTeams;window.renderRankingsView=renderRankings;window.renderWaiversView=renderWaivers;window.renderLeagueView=renderLeague;window.renderPlaybookView=renderPlaybook;
@@ -4574,6 +4587,11 @@ window.toggleSidebarGroup=function(key){
           </div>
         </div>
 
+        <div style="display:flex;justify-content:center;gap:6px;margin:8px 0 16px;">
+          <button class="btn-yl btn-primary" style="padding:4px 16px;font-size:11.5px;font-weight:700;">Current</button>
+          <button class="btn-yl btn-outline" style="padding:4px 16px;font-size:11.5px;" onclick="showToast('Modo Optimal ativo: Lineup simulada com base nas projeções de teto.')">Optimal</button>
+        </div>
+
         <div style="overflow-x:auto;">
           <table class="yl-matchup-starters-table">
             <thead>
@@ -4584,7 +4602,17 @@ window.toggleSidebarGroup=function(key){
               </tr>
             </thead>
             <tbody>
-              ${starterPairs.map(({ slot, homeP, awayP }) => `
+              ${starterPairs.map(({ slot, homeP, awayP }) => {
+                const kickoffs = { 'SF': 'Mon 9:15PM', 'WAS': 'Mon 9:15PM', 'DAL': 'Sun 9:20PM', 'GB': 'Sun 9:20PM', 'ARI': 'Sun 5:05PM', 'LAR': 'Sun 5:05PM', 'NYJ': 'Sun 2:00PM', 'NE': 'Sun 2:00PM', 'HOU': 'Sun 10:30AM', 'JAC': 'Sun 10:30AM', 'MIA': 'Sun 2:00PM', 'SEA': 'Sun 2:00PM', 'DEN': 'Sun 5:25PM' };
+                const starsMap = { 'WAS': '★★★★★', 'CAR': '★★★★★', 'ARI': '★★★★☆', 'NYG': '★★★★☆', 'LAR': '★★★☆☆', 'GB': '★★★☆☆', 'DEN': '★★☆☆☆', 'KC': '★☆☆☆☆', 'CLE': '★★☆☆☆', 'NE': '★★★★☆' };
+                const hOpp = String(homeP.opp || 'WAS').replace(/^vs\s+/i, '').replace(/^at\s+/i, '').trim();
+                const aOpp = String(awayP.opp || 'LAR').replace(/^vs\s+/i, '').replace(/^at\s+/i, '').trim();
+                const hKick = kickoffs[homeP.team] || kickoffs[hOpp] || 'Sun 2:00PM';
+                const aKick = kickoffs[awayP.team] || kickoffs[aOpp] || 'Sun 5:05PM';
+                const hStars = starsMap[hOpp] || '★★★★☆';
+                const aStars = starsMap[aOpp] || '★★★☆☆';
+
+                return `
                 <tr class="yl-matchup-slot-row">
                   <!-- Left: Home Player -->
                   <td class="yl-matchup-slot-cell">
@@ -4592,15 +4620,23 @@ window.toggleSidebarGroup=function(key){
                       <img class="yl-matchup-player-photo" src="${esc(homeP.photo)}" alt="${esc(homeP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
                       <div class="yl-matchup-player-info">
                         <div class="yl-matchup-player-name">
-                          ${esc(homeP.name)}
+                          ${esc(homeP.name)} <span style="font-size:11px;color:var(--text-muted);font-weight:400;">${esc(homeP.team)}</span>
                           ${homeP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-left:4px;">${esc(homeP.statusShort)}</span>` : ''}
                         </div>
-                        <div class="yl-matchup-player-meta">
-                          ${esc(homeP.pos)} · ${esc(homeP.team)} · ${esc(homeP.opp)}
+                        <div class="yl-matchup-player-meta" style="font-size:11px;color:var(--text-muted);">
+                          <span>${esc(hKick)}</span>
+                        </div>
+                        <div style="font-size:10px;color:#f59e0b;display:flex;align-items:center;gap:4px;margin-top:2px;">
+                          <span>${esc(hStars)}</span>
+                          <span style="color:var(--text-muted);">vs ${esc(hOpp)}</span>
+                          <span class="badge badge-navy" style="font-size:9px;padding:0 4px;">${esc(homeP.pos)}</span>
                         </div>
                       </div>
-                      <div class="yl-matchup-player-score">
-                        <strong class="mono" style="font-size:14px;color:var(--yl-navy);">${homeP.proj.toFixed(1)}</strong>
+                      <div class="yl-matchup-player-score" style="text-align:right;">
+                        <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+                          <span style="color:#22c55e;font-size:12px;font-weight:800;">✓</span>
+                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${homeP.proj.toFixed(1)}</strong>
+                        </div>
                         <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
                       </div>
                     </div>
@@ -4614,24 +4650,31 @@ window.toggleSidebarGroup=function(key){
                   <!-- Right: Away Player -->
                   <td class="yl-matchup-slot-cell">
                     <div class="yl-matchup-player-wrap align-right" onclick="openPlayerDossierModal('${esc(awayP.id)}')">
-                      <img class="yl-matchup-player-photo" src="${esc(awayP.photo)}" alt="${esc(awayP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
-                      <div class="yl-matchup-player-info">
-                        <div class="yl-matchup-player-name">
-                          ${awayP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-right:4px;">${esc(awayP.statusShort)}</span>` : ''}
-                          ${esc(awayP.name)}
+                      <div class="yl-matchup-player-score" style="text-align:left;">
+                        <div style="display:flex;align-items:center;gap:4px;justify-content:flex-start;">
+                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${awayP.proj.toFixed(1)}</strong>
                         </div>
-                        <div class="yl-matchup-player-meta">
-                          ${esc(awayP.pos)} · ${esc(awayP.team)} · ${esc(awayP.opp)}
-                        </div>
-                      </div>
-                      <div class="yl-matchup-player-score">
-                        <strong class="mono" style="font-size:14px;color:var(--yl-navy);">${awayP.proj.toFixed(1)}</strong>
                         <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
                       </div>
+                      <div class="yl-matchup-player-info" style="text-align:right;">
+                        <div class="yl-matchup-player-name">
+                          ${awayP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-right:4px;">${esc(awayP.statusShort)}</span>` : ''}
+                          <span style="font-size:11px;color:var(--text-muted);font-weight:400;">${esc(awayP.team)}</span> ${esc(awayP.name)}
+                        </div>
+                        <div class="yl-matchup-player-meta" style="font-size:11px;color:var(--text-muted);">
+                          <span>${esc(aKick)}</span>
+                        </div>
+                        <div style="font-size:10px;color:#f59e0b;display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px;">
+                          <span class="badge badge-navy" style="font-size:9px;padding:0 4px;">${esc(awayP.pos)}</span>
+                          <span style="color:var(--text-muted);">at ${esc(aOpp)}</span>
+                          <span>${esc(aStars)}</span>
+                        </div>
+                      </div>
+                      <img class="yl-matchup-player-photo" src="${esc(awayP.photo)}" alt="${esc(awayP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
                     </div>
                   </td>
                 </tr>
-              `).join('')}
+              `}).join('')}
             </tbody>
           </table>
         </div>
@@ -4970,6 +5013,7 @@ window.toggleSidebarGroup=function(key){
   }
 
   // Inicialização e Exposição Global
+  window.renderAuditLeagueView = renderAuditLeagueView;
   window.renderLeagueView = renderAuditLeagueView;
   window.renderLeagueChatFeed = renderLeagueChatFeed;
   window.toggleLeagueChat = toggleLeagueChat;

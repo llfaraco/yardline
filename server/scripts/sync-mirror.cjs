@@ -6,6 +6,7 @@ const srcDir = 'c:\\Users\\png__\\OneDrive\\Área de Trabalho\\YARDLINE\\yardlin
 const dstDir = 'C:\\Users\\png__\\OneDrive\\Área de Trabalho\\live-yardline';
 
 const filesToCopy = [
+  'yardline-app/css/styles.css',
   'yardline-app/js/data_and_views.js',
   'yardline-app/js/engines.js',
   'server/src/contracts/dtos.js',
@@ -14,10 +15,11 @@ const filesToCopy = [
   'server/scripts/run-hourly-monitor.js',
   'server/scripts/sync-historical-stats.cjs',
   'server/scripts/test-card-news-dossier.cjs',
+  'server/scripts/test-parity-modal-matchup.cjs',
   'server/src/db/yardline.db',
   'server/data/hourly-reports/latest-report.json',
   'server/data/hourly-reports/MONITOR_LOG.md',
-  'server/data/hourly-reports/report-2026-10-16T19-09-25-468Z.json',
+  'server/data/hourly-reports/report-2026-10-16T19-41-22-141Z.json',
   'news-worker/data/nfl-news.json',
   'sleeper-snapshot.json'
 ];
