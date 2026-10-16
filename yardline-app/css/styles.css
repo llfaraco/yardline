@@ -787,3 +787,87 @@ body { background-color: var(--bg-canvas); color: var(--text-main); min-height: 
   outline: none;
 }
 
+/* ==========================================================================
+   WCAG 2.1 AA ACCESSIBILITY & INTERACTION LAYER (ETAPA 10)
+   ========================================================================== */
+
+/* Skip Link para navegação direta via teclado */
+.skip-link {
+  position: absolute;
+  top: -120px;
+  left: 20px;
+  background: var(--yl-navy);
+  color: #FFFFFF;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 99999;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border: 2px solid #00D4AA;
+  transition: top 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.skip-link:focus {
+  top: 14px;
+  outline: 3px solid #00D4AA;
+  outline-offset: 2px;
+}
+
+/* Indicador Universal de Foco Visível (WCAG 2.4.7) */
+:focus-visible {
+  outline: 2px solid var(--yl-blue, #0056B3);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible,
+.btn-yl:focus-visible,
+.fp-rail-item:focus-visible,
+.tab-pill:focus-visible {
+  outline: 2px solid #0056B3 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.25) !important;
+}
+
+/* Animação do Spinner SVG para Estados de Loading */
+@keyframes yl-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spinner {
+  animation: yl-spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Touch Targets Mínimos de 44x44px em Telas Touch / Mobile (WCAG 2.5.5) */
+@media (max-width: 768px) {
+  .btn-yl {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+  .fp-rail-item {
+    min-height: 44px;
+  }
+  .ticker-game {
+    min-height: 40px;
+    padding: 6px 12px;
+  }
+  .yl-search-field {
+    min-height: 44px;
+  }
+  .yl-sidebar-section {
+    min-height: 46px;
+  }
+  .yl-modal-card {
+    max-height: 95vh;
+    border-radius: var(--radius-md);
+  }
+}
+

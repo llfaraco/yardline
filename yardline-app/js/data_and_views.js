@@ -84,10 +84,73 @@ function showToast(msg) {
   window._tTimer = setTimeout(() => { t.style.display = "none"; }, 3800);
 }
 
+let _ylLastFocusedElement = null;
+
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  _ylLastFocusedElement = document.activeElement;
+  m.style.display = ""; // limpa conflito de estilo inline
+  m.classList.add("open");
+  m.setAttribute("aria-modal", "true");
+  m.setAttribute("role", "dialog");
+
+  // Trava foco no primeiro elemento interativo do modal
+  setTimeout(() => {
+    const focusable = m.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    if (focusable.length > 0) {
+      focusable[0].focus();
+    }
+  }, 40);
+}
+
 function closeModal(id) {
   const m = document.getElementById(id);
-  if (m) m.classList.remove("open");
+  if (m) {
+    m.classList.remove("open");
+    m.style.display = "";
+    m.removeAttribute("aria-modal");
+  }
+  if (_ylLastFocusedElement && typeof _ylLastFocusedElement.focus === "function") {
+    _ylLastFocusedElement.focus();
+    _ylLastFocusedElement = null;
+  }
 }
+
+// Trap de foco e fechamento por Escape para WCAG 2.1 AA
+document.addEventListener("keydown", function(e) {
+  const openModals = document.querySelectorAll(".yl-modal-overlay.open");
+  if (!openModals.length) return;
+  const activeModal = openModals[openModals.length - 1];
+
+  if (e.key === "Escape") {
+    e.preventDefault();
+    closeModal(activeModal.id);
+    return;
+  }
+
+  if (e.key === "Tab") {
+    const focusables = Array.from(activeModal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'))
+      .filter(el => el.offsetParent !== null);
+    if (!focusables.length) return;
+
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+
+    if (e.shiftKey) {
+      if (document.activeElement === first || !activeModal.contains(document.activeElement)) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last || !activeModal.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+});
+
 
 // 0. TOP NFL LIVE SCORE TICKER
 function renderTopTicker() {
@@ -1429,7 +1492,7 @@ function renderPlayersView() {
 }
 
 async function syncLiveSleeperApiPlayers() {
-  showToast("⏳ Conectando aos 2.800+ jogadores da API oficial do Sleeper...");
+  showToast("Conectando aos 2.800+ jogadores da API oficial do Sleeper...");
   try {
   // Limpar estado corrompido que causava "Vazio"
   const rawLineup = localStorage.getItem("yl_user_lineup");
@@ -1858,12 +1921,10 @@ function renderRankingsView() {
 async function openManagerDnaDetailModal(rosterId) {
   const modal = document.getElementById("manager-dna-modal");
   const content = document.getElementById("manager-dna-modal-content");
-  if (!modal || !content) return;
-
-  modal.style.display = "flex";
+  openModal("manager-dna-modal");
   content.innerHTML = `
     <div style="text-align:center;padding:34px;">
-      <div style="font-size:26px;margin-bottom:8px;">⏳</div>
+      <div style="margin-bottom:12px;color:var(--yl-blue);"><svg class="spinner" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div>
       <div style="font-size:14px;color:var(--yl-navy);font-weight:600;">Consultando Manager DNA na API YARDLINE...</div>
       <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Auditando transações, waivers e padrões de troca do oponente.</div>
     </div>
@@ -2283,18 +2344,13 @@ async function loadBackendPlans() {
 async function openCheckoutModal(planCode, method = "PIX") {
   const modal = document.getElementById("checkout-modal");
   const content = document.getElementById("checkout-modal-content");
-  if (!modal || !content) return;
-
-  const plan = activeBackendPlans.find(p => p.code === planCode) || activeBackendPlans[1];
-  const priceFormatted = (plan.price_cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
+  openModal("checkout-modal");
   content.innerHTML = `
-    <div style="text-align:center;padding:10px;">
-      <div style="font-size:24px;">⏳</div>
+    <div style="text-align:center;padding:16px;">
+      <div style="margin-bottom:8px;color:var(--yl-blue);"><svg class="spinner" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div>
       <div style="font-size:14px;color:var(--text-muted);margin-top:8px;">Gerando checkout seguro via API YARDLINE...</div>
     </div>
   `;
-  modal.style.display = "flex";
 
   try {
     // Obter sessão de checkout via Backend API (ou simular se offline)
@@ -2479,9 +2535,7 @@ let onboardingData = {
 
 function openOnboardingModal(step = 1) {
   currentOnboardingStep = step;
-  const modal = document.getElementById("onboarding-modal");
-  if (!modal) return;
-  modal.style.display = "flex";
+  openModal("onboarding-modal");
   renderOnboardingStep();
   if (step === 3 && onboardingData.userLeagues.length === 0) {
     executeSleeperUserLookup(false);
@@ -2905,12 +2959,8 @@ function openSmartWaiverClaimModal(playerId) {
     priority: "1"
   };
 
-  const modal = document.getElementById("waiver-modal");
-  const content = document.getElementById("waiver-modal-content");
-  if (!modal || !content) return;
-
   renderWaiverClaimContent();
-  modal.style.display = "flex";
+  openModal("waiver-modal");
 }
 
 function updateFaabSlider(val) {
@@ -3248,7 +3298,7 @@ function renderTeamsView() {
 }
 
 // ==========================================
-// ⏱ RELÓGIO & TICKER AO VIVO (ENGINE REAL)
+// RELÓGIO & TICKER AO VIVO (ENGINE REAL)
 // ==========================================
 let tickerClockSeconds = 4 * 60 + 12; // 04:12 Q3
 let tickerInterval = null;

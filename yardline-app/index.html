@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <!-- SKIP LINK PARA NAVEGAÇÃO ACESSÍVEL (WCAG 2.1 AA) -->
+  <a href="#stage-title" class="skip-link">Pular para o conteúdo principal</a>
+
   <!-- TOP NFL LIVE SCORE TICKER (ESTILO NFL.COM) -->
   <div class="nfl-live-ticker" id="nfl-live-ticker-strip"></div>
 
@@ -207,11 +210,11 @@
     </aside>
   </div>
 
-  <div class="yl-modal-overlay" id="article-reader-modal" onclick="if(event.target===this)closeModal('article-reader-modal')"><div class="yl-modal-card" id="article-modal-content"></div></div>
-  <div class="yl-modal-overlay" id="player-modal" onclick="if(event.target===this)closeModal('player-modal')"><div class="yl-modal-card" id="player-modal-content"></div></div>
+  <div class="yl-modal-overlay" id="article-reader-modal" role="dialog" aria-modal="true" aria-label="Visualizador de Artigo e Notícia NFL" onclick="if(event.target===this)closeModal('article-reader-modal')"><div class="yl-modal-card" id="article-modal-content"></div></div>
+  <div class="yl-modal-overlay" id="player-modal" role="dialog" aria-modal="true" aria-label="Dossiê Canônico do Atleta" onclick="if(event.target===this)closeModal('player-modal')"><div class="yl-modal-card" id="player-modal-content"></div></div>
 
   <!-- ONBOARDING MODAL (4 PASSOS) -->
-  <div class="yl-modal-overlay" id="onboarding-modal" onclick="if(event.target===this)closeModal('onboarding-modal')">
+  <div class="yl-modal-overlay" id="onboarding-modal" role="dialog" aria-modal="true" aria-label="Assistente de Configuração e Boas-Vindas" onclick="if(event.target===this)closeModal('onboarding-modal')">
     <div class="yl-modal-card" id="onboarding-modal-content" style="max-width:760px;padding:28px 32px;">
       <!-- Content rendered by renderOnboardingStep() -->
     </div>
@@ -219,27 +222,27 @@
 
   <!-- WAIVER & FAAB SMART MODAL (8 PASSOS) -->
   <!-- LINEUP SWAP MODAL (SUBSTITUIÇÃO GUIADA COM VALIDAÇÃO POSICIONAL) -->
-  <div class="yl-modal-overlay" id="lineup-swap-modal" onclick="if(event.target===this)closeModal('lineup-swap-modal')">
+  <div class="yl-modal-overlay" id="lineup-swap-modal" role="dialog" aria-modal="true" aria-label="Substituição Guiada de Escalação" onclick="if(event.target===this)closeModal('lineup-swap-modal')">
     <div class="yl-modal-card" id="lineup-swap-modal-content" style="max-width:680px;padding:26px 30px;">
       <!-- Content rendered by openLineupSwapModal() -->
     </div>
   </div>
 
-  <div class="yl-modal-overlay" id="waiver-modal" onclick="if(event.target===this)closeModal('waiver-modal')">
+  <div class="yl-modal-overlay" id="waiver-modal" role="dialog" aria-modal="true" aria-label="Reivindicação e Análise de Waiver FAAB" onclick="if(event.target===this)closeModal('waiver-modal')">
     <div class="yl-modal-card" id="waiver-modal-content" style="max-width:720px;padding:28px 32px;">
       <!-- Content rendered by openSmartWaiverClaimModal() -->
     </div>
   </div>
 
   <!-- CHECKOUT & PIX MODAL (PLANO MESTRE SEÇÃO 11) -->
-  <div class="yl-modal-overlay" id="checkout-modal" onclick="if(event.target===this)closeModal('checkout-modal')">
+  <div class="yl-modal-overlay" id="checkout-modal" role="dialog" aria-modal="true" aria-label="Checkout Seguro de Assinatura YARDLINE" onclick="if(event.target===this)closeModal('checkout-modal')">
     <div class="yl-modal-card" id="checkout-modal-content" style="max-width:520px;padding:26px 28px;">
       <!-- Content rendered by openCheckoutModal() -->
     </div>
   </div>
 
   <!-- MANAGER DNA INDIVIDUAL SCOUTING MODAL -->
-  <div class="yl-modal-overlay" id="manager-dna-modal" onclick="if(event.target===this)closeModal('manager-dna-modal')">
+  <div class="yl-modal-overlay" id="manager-dna-modal" role="dialog" aria-modal="true" aria-label="Perfil Tático Manager DNA" onclick="if(event.target===this)closeModal('manager-dna-modal')">
     <div class="yl-modal-card" id="manager-dna-modal-content" style="max-width:680px;padding:26px 30px;">
       <!-- Content rendered by openManagerDnaDetailModal() -->
     </div>

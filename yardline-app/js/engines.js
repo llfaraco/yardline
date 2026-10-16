@@ -293,7 +293,11 @@ function renderLineupSwapModal() {
     `;
   }
 
-  modal.style.display = "flex";
+  if (typeof openModal === "function") {
+    openModal("lineup-swap-modal");
+  } else {
+    modal.classList.add("open");
+  }
 }
 
 function executeLineupSwap(slotKey, newStarterId, benchedId) {
@@ -1129,7 +1133,7 @@ function indexSleeperPlayersCatalog(catalog) {
 }
 
 async function syncRealSleeperLeagueLiveLegacy() {
-  showToast("⏳ Conectando aos endpoints da Liga #1369770282776006656...");
+  showToast("Conectando aos endpoints da Liga #1369770282776006656...");
   try {
     // 1. GET endpoints reais: state/nfl, league, users, rosters
     const [stateRes, leagueRes, usersRes, rostersRes] = await Promise.all([
@@ -2208,7 +2212,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const originalResolve=window.resolveNFLPlayer;
   window.resolveNFLPlayer=function(id){const sid=String(id||''),raw=window.YL_CANONICAL.players[sid];if(raw){const p=Object.assign({},raw,{id:sid,sleeperId:sid,name:raw.full_name||raw.name||[raw.first_name,raw.last_name].filter(Boolean).join(' ')||`Jogador #${sid}`,pos:raw.position||raw.pos||raw.fantasy_positions?.[0]||'FLEX',team:raw.team||'FA',teamName:raw.team||'Free Agent',teamLogo:raw.teamLogo||teamLogo(raw.team),photo:raw.photoUrl||raw.photo||`https://sleepercdn.com/content/nfl/players/thumb/${sid}.jpg`,injuryStatus:raw.injury_status||raw.injuryStatus||(raw.status==='Active'?'Sem restrição':raw.status)||'Sem restrição'});const old=oldBySleeper(sid);return Object.assign({},old||{},p); }return oldBySleeper(sid)||(typeof originalResolve==='function'?originalResolve(sid):null);};
   window.syncRealSleeperLeagueLive=async function(){
-    showToast(`⏳ Carregando liga Sleeper #${REAL_SLEEPER_LEAGUE_ID}...`);
+    showToast(`Carregando liga Sleeper #${REAL_SLEEPER_LEAGUE_ID}...`);
     try{const [lr,ur,rr]=await Promise.all([timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/users`,9000),timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/rosters`,9000)]);if(!lr.ok||!ur.ok||!rr.ok)throw Error('Sleeper indisponível');activeSleeperLeagueData=await lr.json();activeSleeperUsers=await ur.json();activeSleeperRosters=await rr.json();activeLeagueWeek=Number(activeSleeperLeagueData.settings?.leg||activeSleeperLeagueData.settings?.last_scored_leg||1);const me=activeSleeperUsers.find(u=>String(u.display_name||u.username||'').toLowerCase()==='faraco');const mine=activeSleeperRosters.find(r=>String(r.owner_id)===String(me?.user_id))||null;userRealRoster=mine;selectedActiveRosterId=mine?.roster_id||null;userStarters=(mine?.starters||[]).map(String);userBenchList=(mine?.players||[]).map(String).filter(x=>!userStarters.includes(x));userBench=userBenchList.slice();userLineup={};(ROSTER_SLOTS_DEF||[]).forEach((s,i)=>{if(userStarters[i])userLineup[s.key]=userStarters[i];});LEAGUE_12_TEAMS=activeSleeperRosters.map(r=>{const u=activeSleeperUsers.find(x=>String(x.user_id)===String(r.owner_id)),m=u?.metadata||{};return{rosterId:r.roster_id,name:m.team_name||u?.display_name||`Roster #${r.roster_id}`,owner:u?.display_name?`@${u.display_name}`:'',record:`${r.settings?.wins||0}-${r.settings?.losses||0}`,wins:r.settings?.wins||0,losses:r.settings?.losses||0,ties:r.settings?.ties||0,fpts:String(r.settings?.fpts||0),fptsAgainst:String(r.settings?.fpts_against||0),isMyTeam:Boolean(mine && Number(r.roster_id)===Number(mine.roster_id)),roster:r};});let matchup=[];try{const mr=await timeout(`${API}/league/${REAL_SLEEPER_LEAGUE_ID}/matchups/${activeLeagueWeek}`,7000);if(mr.ok)matchup=await mr.json();}catch(e){}const mm=mine?matchup.find(x=>Number(x.roster_id)===Number(mine.roster_id)):null,opp=mm?.matchup_id!=null?matchup.find(x=>x.matchup_id===mm.matchup_id&&Number(x.roster_id)!==Number(mine?.roster_id)):null;activeRealMatchup={week:activeLeagueWeek,matchupId:mm?.matchup_id||null,myRoster:mine,oppRoster:opp,myScore:mm?.points||0,oppScore:opp?.points||0};activeRealMatchupWeek6=activeRealMatchup;if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();showToast(` Liga carregada: ${activeSleeperRosters.length} times · Semana ${activeLeagueWeek}`);timeout(`${API}/players/nfl`,12000).then(async r=>{if(!r.ok)return;window.YL_CANONICAL.players=await r.json();window.YL_CANONICAL.fetchedAt=Date.now();if(typeof indexSleeperPlayersCatalog==='function')indexSleeperPlayersCatalog(window.YL_CANONICAL.players);if(typeof renderLeagueView==='function')renderLeagueView();if(typeof renderPlaybookView==='function')renderPlaybookView();if(typeof renderPlayersView==='function')renderPlayersView();}).catch(e=>console.warn('Catálogo em segundo plano indisponível',e));}catch(e){console.error(e);showToast(' Não foi possível atualizar os dados da liga.');}
   };
 })();
@@ -2285,7 +2289,7 @@ if (typeof window !== 'undefined') {
         return body;
       } finally { clearTimeout(timer); }
     };
-    showToast(`⏳ Sincronizando liga #${id} pelo backend...`);
+    showToast(`Sincronizando liga #${id} pelo backend...`);
     try {
       await request('/api/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) });
       const snapshot = await request(`/api/leagues/${id}/shell`);
