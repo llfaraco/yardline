@@ -1148,3 +1148,8 @@ textarea:focus-visible,
   background: #EFF6FF;
   border-color: #93C5FD;
 }
+
+/* Official matchup score column */
+.yl-matchup-row b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yl-matchup-row span{white-space:nowrap}
+.yl-matchup-row strong{font-size:11px;color:var(--yl-navy);min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
