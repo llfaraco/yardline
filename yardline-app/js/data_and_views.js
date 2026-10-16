@@ -610,7 +610,7 @@ function getPlayerLeagueStatus(playerId) {
   // 1. Identificar informações dinâmicas do time ativo do usuário
   const myRosterId = (typeof userRealRoster !== "undefined" && userRealRoster?.roster_id) || 2;
   const myTeamObj = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS : []).find(t => t.rosterId === myRosterId || t.isMyTeam);
-  const myTeamName = myTeamObj?.name || "Gengar My Balls";
+  const myTeamName = myTeamObj?.name || "The Real Slim Brady";
   const myOwner = myTeamObj?.owner || "@Faraco";
 
   // 1.1 Titulares no userLineup
@@ -4986,7 +4986,107 @@ window.toggleSidebarGroup=function(key){
   // Executar imediatamente se o DOM já estiver pronto
   if (document.readyState === "complete" || document.readyState === "interactive") {
     renderLeagueChatFeed();
-    hydrateLeagueChat();
   }
 })();
+
+// ==========================================
+// 12. MULTI-LEAGUE & TEAM SWITCHER MODAL
+// ==========================================
+(function() {
+  const FARACO_LEAGUES = [
+    {
+      id: "1389356417462317056",
+      name: "RedZone8 🏈",
+      teamName: "The Real Slim Brady",
+      format: "HALF_PPR · 6 Times · 11 Titulares",
+      keyPlayers: "Josh Allen (QB), Jonathan Taylor (RB), Zay Flowers (WR), George Pickens (WR), Trey McBride (TE)",
+      status: "Principal (2026)"
+    },
+    {
+      id: "1369770282776006656",
+      name: "Neilo Pistola League",
+      teamName: "Gengar My Balls",
+      format: "PPR com IDP · 16 Times · 19 Titulares",
+      keyPlayers: "Brock Purdy (QB), George Kittle (TE), Drake London (WR), Defensores IDP",
+      status: "Secundária (IDP)"
+    },
+    {
+      id: "1389389170710949888",
+      name: "Calvary Fantasy League 🏈",
+      teamName: "The Real Slim Brady",
+      format: "HALF_PPR · 10 Titulares",
+      keyPlayers: "Trevor Lawrence (QB), Kenneth Walker (RB), Trey Benson (RB)",
+      status: "Ativa (2026)"
+    },
+    {
+      id: "1389358834799108096",
+      name: "La B",
+      teamName: "The Real Slim Brady",
+      format: "PPR · 16 Titulares",
+      keyPlayers: "Patrick Mahomes (QB), Puka Nacua (WR)",
+      status: "Ativa (2026)"
+    }
+  ];
+
+  window.openLeagueSwitcherModal = function() {
+    const modal = document.getElementById("league-switcher-modal");
+    const content = document.getElementById("league-switcher-modal-content");
+    if (!modal || !content) return;
+    const currentId = localStorage.getItem("yl_active_league_id") || "1389356417462317056";
+
+    content.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
+        <div>
+          <span class="badge badge-crimson" style="margin-bottom:6px;display:inline-block;">SLEEPER MULTI-LEAGUE</span>
+          <h2 style="font-size:20px;font-weight:700;color:var(--yl-navy);margin:0;">Alternar Liga & Elenco</h2>
+          <p style="font-size:12.5px;color:var(--text-muted);margin:4px 0 0;">Conta conectada: <strong>@Faraco</strong> · Selecione qual time e liga você deseja analisar no YARDLINE.</p>
+        </div>
+        <button type="button" class="btn-yl btn-outline" onclick="closeModal('league-switcher-modal')" style="padding:4px 10px;font-size:16px;">×</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+        ${FARACO_LEAGUES.map(lg => {
+          const isActive = lg.id === currentId;
+          return `
+            <div style="border:2px solid ${isActive ? '#C3112B' : 'var(--border-color)'};background:${isActive ? 'rgba(195,17,43,0.04)' : '#FFFFFF'};border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s ease;" onclick="switchLeague('${lg.id}')">
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <strong style="font-size:15px;color:var(--yl-navy);">${lg.name}</strong>
+                  ${isActive ? '<span class="badge badge-crimson" style="font-size:10px;">LIGA ATIVA</span>' : `<span class="badge badge-navy" style="font-size:10px;">${lg.status}</span>`}
+                </div>
+                <div style="font-size:13px;font-weight:600;color:#0F172A;margin-bottom:2px;">
+                  Seu time: <span style="color:#C3112B;">${lg.teamName}</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${lg.format}</div>
+                <div style="font-size:11px;color:var(--text-body);"><strong>Destaques:</strong> ${lg.keyPlayers}</div>
+              </div>
+              <div>
+                <button type="button" class="btn-yl ${isActive ? 'btn-primary' : 'btn-outline'}" style="white-space:nowrap;padding:7px 14px;font-size:12px;" onclick="event.stopPropagation();switchLeague('${lg.id}')">
+                  ${isActive ? '✓ Ativa' : 'Selecionar'}
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <div style="border-top:1px solid var(--border-color);padding-top:14px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:11.5px;color:var(--text-muted);">Sincronização 100% oficial com a API Sleeper v1</span>
+        <button type="button" class="btn-yl btn-navy" onclick="closeModal('league-switcher-modal')" style="padding:6px 16px;font-size:12px;">Fechar</button>
+      </div>
+    `;
+
+    modal.classList.add("open");
+  };
+
+  window.switchLeague = async function(leagueId) {
+    localStorage.setItem("yl_active_league_id", leagueId);
+    if (typeof closeModal === "function") closeModal("league-switcher-modal");
+    if (typeof showToast === "function") showToast("Alternando liga e sincronizando elenco...");
+    if (typeof window.syncRealSleeperLeagueLive === "function") {
+      await window.syncRealSleeperLeagueLive(leagueId);
+    }
+  };
+})();
+
 

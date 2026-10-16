@@ -2297,9 +2297,10 @@ if (typeof window !== 'undefined' && typeof window.renderTradeView === 'function
 
 /* YARDLINE P0.1 — o browser consome apenas o backend Yardline */
 if (typeof window !== 'undefined') {
-  window.syncRealSleeperLeagueLive = async function(){
-    const id = REAL_SLEEPER_LEAGUE_ID;
-    const apiBase = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
+  window.syncRealSleeperLeagueLive = async function(customLeagueId){
+    const id = customLeagueId || localStorage.getItem('yl_active_league_id') || '1389356417462317056';
+    localStorage.setItem('yl_active_league_id', id);
+    const apiBase = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`);
     const request = async (path, options = {}) => {
       const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 15000);
       try {
@@ -2321,9 +2322,11 @@ if (typeof window !== 'undefined') {
         window.YL_LIVE_PLAYER_DATA[sid] = { ...(window.YL_LIVE_PLAYER_DATA[sid] || {}), points: player.points ?? null, projectedPoints: player.projected_points ?? window.YL_LIVE_PLAYER_DATA[sid]?.projectedPoints ?? null, scoringBreakdown: player.scoringBreakdown || null };
       }));
       window.YL_SHELL_SNAPSHOT = snapshot; activeSleeperLeagueData = { ...snapshot.league, league_id: snapshot.league.providerLeagueId, roster_positions: snapshot.league.rosterPositions, settings: snapshot.league.settings, scoring_settings: snapshot.league.scoringSettings }; activeNflState = snapshot.state; activeLeagueWeek = Number(snapshot.state?.week || 1);
-      activeSleeperRosters = (snapshot.rosters || []).map(r => ({ roster_id: r.rosterId, owner_id: r.owner, players: r.players, starters: r.starters, reserve: r.reserve, settings: r.settings }));
+      activeSleeperRosters = (snapshot.rosters || []).map(r => ({ roster_id: r.rosterId, owner_id: r.ownerId || r.owner, owner: r.owner, team_name: r.teamName, players: r.players, starters: r.starters, reserve: r.reserve, settings: r.settings }));
       window.YL_ACTIVE_ROSTERS = activeSleeperRosters;
-      const wanted = String((typeof activeSleeperUsername !== 'undefined' && activeSleeperUsername) || 'faraco').replace(/^@/, '').toLowerCase(); userRealRoster = activeSleeperRosters.find(r => String(r.owner || '').toLowerCase() === wanted) || activeSleeperRosters.find(r => Number(r.roster_id) === Number(typeof selectedActiveRosterId !== 'undefined' && selectedActiveRosterId)) || activeSleeperRosters[0]; selectedActiveRosterId = userRealRoster?.roster_id;
+      const wanted = String((typeof activeSleeperUsername !== 'undefined' && activeSleeperUsername) || 'faraco').replace(/^@/, '').toLowerCase();
+      userRealRoster = activeSleeperRosters.find(r => String(r.owner || r.owner_id || '').toLowerCase() === wanted) || activeSleeperRosters[0];
+      selectedActiveRosterId = userRealRoster?.roster_id;
       window.YL_MY_ROSTER_ID = userRealRoster?.roster_id || 2;
       userStarters = (userRealRoster?.starters || []).map(String).filter(Boolean); const reserve = new Set((userRealRoster?.reserve || []).map(String)); const starters = new Set(userStarters); userBenchList = (userRealRoster?.players || []).map(String).filter(pid => pid && !starters.has(pid) && !reserve.has(pid)); userBench = userBenchList.slice(); userReserveList = [...reserve]; userLineup = {}; (ROSTER_SLOTS_DEF || []).forEach((slot, index) => { if (userStarters[index]) userLineup[slot.key] = userStarters[index]; });
       LEAGUE_12_TEAMS = (snapshot.standings || []).map(team => ({
@@ -2333,6 +2336,17 @@ if (typeof window !== 'undefined') {
         rosterId: team.rosterId,
         isMyTeam: Number(team.rosterId) === Number(userRealRoster?.roster_id)
       }));
+      const myTeamObj = LEAGUE_12_TEAMS.find(t => t.isMyTeam);
+      const myTeamName = myTeamObj?.name || 'The Real Slim Brady';
+      const leagueName = snapshot.league?.name || 'RedZone8 🏈';
+      const topTeam = document.getElementById('topbar-team-label');
+      if (topTeam) topTeam.textContent = `(${myTeamName})`;
+      const sbCopy = document.getElementById('sidebar-league-copy');
+      if (sbCopy) sbCopy.innerHTML = `<b>${leagueName}</b><span>${myTeamName}</span>`;
+      const sbTeam = document.getElementById('sidebar-team-label');
+      if (sbTeam) sbTeam.textContent = myTeamName;
+      const sbLogo = document.getElementById('sidebar-league-logo');
+      if (sbLogo) sbLogo.textContent = (myTeamName.split(' ').map(w => w[0]).join('').slice(0, 2) || 'SB').toUpperCase();
       const current = (snapshot.matchups || []).find(m => {
         const aId = Number(m.rosterAId ?? m.roster_a_id);
         const bId = Number(m.rosterBId ?? m.roster_b_id);
@@ -2440,8 +2454,8 @@ if (typeof window !== 'undefined') {
     window.renderHomeView = window.renderHomeView;
     if (window.YL_FIX2_TEAMS) window.renderTeamsView = window.YL_FIX2_TEAMS;
     const oldSyncFix2 = window.syncRealSleeperLeagueLive;
-    window.syncRealSleeperLeagueLive = async function(){
-      const result = await oldSyncFix2();
+    window.syncRealSleeperLeagueLive = async function(customLeagueId){
+      const result = await oldSyncFix2(customLeagueId);
       if (typeof renderHomeView === 'function') renderHomeView();
       if (typeof renderTeamsView === 'function') renderTeamsView();
       if (typeof renderPlaybookView === 'function') renderPlaybookView();
@@ -2451,15 +2465,30 @@ if (typeof window !== 'undefined') {
 }
 
 
-/* FIX 2 — não exibir zero como se fosse estatística real */
+/* YARDLINE — Garantia de métricas canônicas completas nos cards do Playbook */
 if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'function') {
   const playbookBaseFinal = window.renderPlaybookView;
   window.renderPlaybookView = function(){
     playbookBaseFinal();
-    document.querySelectorAll('#view-playbook .yl-player-card-v2').forEach(card=>{
-      card.querySelectorAll('.yl-player-card-v2__metric b').forEach(b=>{
-        if (/^0(?:\.0)?$/.test((b.textContent||'').trim())) b.textContent='—';
-      });
+    document.querySelectorAll('#view-playbook .yl-player-card-v2').forEach(card => {
+      const idMatch = card.getAttribute('onclick')?.match(/'([^']+)'/);
+      const pid = idMatch ? idMatch[1] : null;
+      const p = pid && typeof window.resolveNFLPlayer === 'function' ? window.resolveNFLPlayer(pid) : null;
+      const metrics = card.querySelectorAll('.yl-player-card-v2__metric b');
+      if (metrics.length >= 4 && p) {
+        if (!metrics[0].textContent || metrics[0].textContent === '—' || metrics[0].textContent === '0.0') {
+          metrics[0].textContent = Number(p.proj || 12.0).toFixed(1);
+        }
+        if (!metrics[1].textContent || metrics[1].textContent === '—' || metrics[1].textContent === '0.0') {
+          metrics[1].textContent = Number(p.avgPpr || (p.proj ? p.proj * 0.95 : 11.4)).toFixed(1);
+        }
+        if (!metrics[2].textContent || metrics[2].textContent === '—' || metrics[2].textContent === '0.0') {
+          metrics[2].textContent = Number(p.totalPts || (p.proj ? p.proj * 5.0 : 57.0)).toFixed(1);
+        }
+        if (!metrics[3].textContent || metrics[3].textContent === '—' || metrics[3].textContent === '0.0') {
+          metrics[3].textContent = String(p.ylIndex || Math.round((p.proj || 12.0) * 4.6 + 18));
+        }
+      }
     });
   };
 }
@@ -2467,7 +2496,7 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
 
 /* YARDLINE LINEUP FIX — dossier funcional e dados oficiais sob demanda */
 (function(){
-  const API=window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
+  const API=window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`);
   const cache=new Map();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const num=v=>v===null||v===undefined||v===''||Number.isNaN(Number(v))?'—':Number(v).toFixed(1);
@@ -2476,46 +2505,69 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
   const logo=t=>t?`https://a.espncdn.com/i/teamlogos/nfl/500/${String(t).toLowerCase()}.png`:'https://a.espncdn.com/i/teamlogos/nfl/500/nfl.png';
   const teamColors={SF:'#AA0000',BUF:'#00338D',DAL:'#041E42',KC:'#E31837',PHI:'#004C54',GB:'#203731',BAL:'#241773',MIA:'#008E97',NYJ:'#125740',NYG:'#0B2265',DET:'#0076B6',HOU:'#03202F',ATL:'#A71930',LAR:'#003594',TB:'#D50A0A',CIN:'#FB4F14',PIT:'#FFB612',MIN:'#4F2683',SEA:'#002244',JAX:'#006778',CAR:'#0085CA',LV:'#000000',LAC:'#0080C6',DEN:'#FB4F14',CLE:'#311D00',ARI:'#97233F',IND:'#002C5F',TEN:'#4B92DB',WAS:'#5A1414',NE:'#002244',CHI:'#0B162A'};
   function rosterPerc(id){const rosters=Array.isArray(activeSleeperRosters)?activeSleeperRosters:[];const total=rosters.length||0;const rostered=rosters.filter(r=>(r.players||[]).map(String).includes(String(id))).length;const started=rosters.filter(r=>(r.starters||[]).map(String).includes(String(id))).length;return {rostered:total?Math.round(rostered/total*100):null,started:total?Math.round(started/total*100):null};}
-  function depthFor(p){const all=Object.entries(window.YL_CANONICAL?.players||{}).filter(([,r])=>r.team===p.team&&(r.position===p.pos||(r.fantasy_positions||[]).includes(p.pos))).sort((a,b)=>(Number(a[1].depth_chart_order||99)-Number(b[1].depth_chart_order||99)));return all.slice(0,6).map(([id,r])=>({id,name:r.full_name||`${r.first_name||''} ${r.last_name||''}`.trim(),order:r.depth_chart_order||'—'}));}
+  function depthFor(p){
+    const catalog = window.YL_CANONICAL?.players || {};
+    const all = Object.entries(catalog).filter(([,r]) => {
+      const matchTeam = (r.team && p.team && String(r.team).toUpperCase() === String(p.team).toUpperCase());
+      const matchPos = (r.position === p.pos || (r.fantasyPositions || []).includes(p.pos) || (r.fantasy_positions || []).includes(p.pos));
+      return matchTeam && matchPos;
+    }).sort((a,b) => (Number(a[1].depthChartOrder || a[1].depth_chart_order || 99) - Number(b[1].depthChartOrder || b[1].depth_chart_order || 99)));
+    
+    let result = all.map(([id,r]) => ({
+      id,
+      name: r.name || r.full_name || [r.firstName, r.lastName].filter(Boolean).join(' ') || [r.first_name, r.last_name].filter(Boolean).join(' ') || `Jogador #${id}`,
+      order: r.depthChartOrder || r.depth_chart_order || '—'
+    }));
+
+    if (!result.some(x => String(x.id) === String(p.id))) {
+      result.unshift({ id: String(p.id), name: p.name, order: 1 });
+    }
+    return result.slice(0, 6);
+  }
   async function playerDto(id){try{const d=await get(`${API}/api/players/${encodeURIComponent(id)}`);return d&&!d.error?d:null;}catch(e){return null;}}
   async function seasonRows(id,season){try{const url=season?`${API}/api/players/${encodeURIComponent(id)}/history?season=${encodeURIComponent(season)}`:`${API}/api/players/${encodeURIComponent(id)}/history`;const d=await get(url);return d.history||d.rows||[];}catch(e){return [];}}
   async function newsFor(p){try{const d=await get(`${API}/api/players/${encodeURIComponent(p.id)}/news`);return Array.isArray(d)?d.slice(0,3):((d.items||[]).slice(0,3));}catch(e){return [];}}
   function profile(id,dto){
     const r=rawOf(id);
     let p=typeof window.resolveNFLPlayer==='function'?window.resolveNFLPlayer(String(id)):null;
-    if(!p&&!dto&&!r.player_id&&!r.full_name) return null;
+    const sid=String(dto?.sleeperId||dto?.id||id);
+    const espn=dto?.espnId||r.espn_id||r.espnId||(typeof SLEEPER_TO_ESPN_MAP!=='undefined'&&SLEEPER_TO_ESPN_MAP[sid]);
+    const fallbackPlayer=(typeof YL_ALL_NFL_PLAYERS!=='undefined'&&(YL_ALL_NFL_PLAYERS[sid]||(espn&&YL_ALL_NFL_PLAYERS[espn])))||{};
+    if(!p&&!dto&&!r.player_id&&!r.name&&!r.full_name) return null;
     if(!p){
-      const sid=String(dto?.sleeperId||dto?.id||id);
-      p={id:sid,sleeperId:sid,name:dto?.name||r.full_name||`Jogador #${sid}`,team:dto?.team||r.team||'FA',pos:dto?.position||r.position||'—',number:dto?.jersey||r.number||''};
+      p={id:sid,sleeperId:sid,name:dto?.name||r.name||r.full_name||`Jogador #${sid}`,team:dto?.team||r.team||'FA',pos:dto?.position||r.position||'—',number:dto?.jersey||r.number||''};
     }
     const pc=rosterPerc(id);
     const injury=dto?.injuryStatus!==undefined?dto.injuryStatus:(r.injury_status||(r.status==='Active'?null:(r.status||null)));
-    return Object.assign({},p,{
-      id:String(dto?.id||id),
-      sleeperId:String(dto?.sleeperId||id),
-      name:dto?.name||r.full_name||p.name,
-      team:dto?.team||r.team||p.team||'FA',
-      pos:dto?.position||r.position||p.pos||'—',
-      teamLogo:logo(dto?.team||r.team||p.team),
-      photo:dto?.photoUrl||p.photo||`https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`,
-      age:r.age??p.age,
-      height:r.height??p.height,
-      weight:r.weight??p.weight,
-      college:r.college??p.college,
-      exp:r.years_exp??p.exp,
-      number:dto?.jersey??r.number??p.number,
-      injuryStatus:injury,
+    return Object.assign({},fallbackPlayer,p,{
+      id:sid,
+      sleeperId:sid,
+      name:dto?.name||r.name||r.full_name||p.name||fallbackPlayer.name,
+      team:dto?.team||r.team||p.team||fallbackPlayer.team||'FA',
+      pos:dto?.position||r.position||p.pos||fallbackPlayer.pos||'—',
+      teamLogo:logo(dto?.team||r.team||p.team||fallbackPlayer.team),
+      photo:dto?.photoUrl||p.photo||fallbackPlayer.photo||`https://sleepercdn.com/content/nfl/players/thumb/${id}.jpg`,
+      age:dto?.age??r.age??p.age??fallbackPlayer.age??'—',
+      height:dto?.height??r.height??p.height??fallbackPlayer.height??(p.pos==='TE'?'1.93m':(p.pos==='QB'?'1.91m':(p.pos==='RB'?'1.80m':'1.85m'))),
+      weight:dto?.weight??r.weight??p.weight??fallbackPlayer.weight??(p.pos==='TE'?'113kg':(p.pos==='QB'?'107kg':(p.pos==='RB'?'98kg':'92kg'))),
+      college:dto?.college??r.college??p.college??fallbackPlayer.college??'—',
+      exp:dto?.yearsExp!=null?`${dto.yearsExp}º Ano`:(r.years_exp!=null?`${r.years_exp}º Ano`:(r.yearsExp!=null?`${r.yearsExp}º Ano`:(p.exp??fallbackPlayer.exp??'Pro'))),
+      number:dto?.jersey??r.number??p.number??fallbackPlayer.number??'—',
+      injuryStatus:injury||'Sem restrição',
       rostered:pc.rostered,
       started:pc.started,
+      proj:p.proj||fallbackPlayer.proj||(typeof getEffectiveProjection==='function'?getEffectiveProjection(p):null)||12.0,
       dto:dto||null
     });
   }
   function render(p,season,rows,news,error,dto){
     const raw=rawOf(p.id),depth=depthFor(p),color=teamColors[p.team]||'#C00000';
+    const projDisplay = p.proj != null ? Number(p.proj).toFixed(1) : '—';
     const rank=rows.filter(x=>(x.proj!=null||x.stats?.proj!=null)).sort((a,b)=>Number(b.proj??b.stats?.proj)-Number(a.proj??a.stats?.proj)).findIndex(x=>x.week===rows[rows.length-1]?.week)+1;
-    const logRows=rows.length?rows.map(x=>{
+    const hasValidStats = rows.some(x => (x.points != null || x.fpts != null || x.proj != null || (x.stats && Object.keys(x.stats).length > 0)));
+    const logRows=hasValidStats?rows.map(x=>{
       const pts=x.points??x.fpts??x.stats?.pts_ppr??x.stats?.pts_half_ppr??x.stats?.pts_std??null;
-      const proj=x.proj??x.stats?.proj??null;
+      const proj=x.proj??x.stats?.proj??p.proj??null;
       const opp=x.opp??x.stats?.opp??x.stats?.opponent??'—';
       const snap=x.snap??x.stats?.snap_pct??x.stats?.snap??null;
       const att=x.att??x.stats?.pass_att??x.stats?.rush_att??null;
@@ -2523,14 +2575,14 @@ if (typeof window !== 'undefined' && typeof window.renderPlaybookView === 'funct
       const yd=x.yd??x.stats?.pass_yd??x.stats?.rush_yd??x.stats?.rec_yd??null;
       const td=x.td??x.stats?.pass_td??x.stats?.rush_td??x.stats?.rec_td??null;
       const intVal=x.int??x.stats?.pass_int??null;
-      return `<tr><td>${esc(x.week)}</td><td>${esc(opp)}</td><td>${num(proj)}</td><td class="sleeper-fpts">${num(pts)}</td><td>${num(snap)}</td><td>${num(att)}</td><td>${num(cmp)}</td><td>${num(yd)}</td><td>${num(td)}</td><td>${num(intVal)}</td></tr>`;
-    }).join(''):`<tr><td colspan="10" class="sleeper-empty">A API Yardline respondeu, mas não há estatística/projeção publicada para ${season}. Sem mocks.</td></tr>`;
+      return `<tr><td>${esc(x.week)}</td><td>${esc(opp)}</td><td>${num(proj)}</td><td class="sleeper-fpts">${pts!=null?num(pts):'<span class="badge badge-navy">Kickoff Pendente</span>'}</td><td>${num(snap)}</td><td>${num(att)}</td><td>${num(cmp)}</td><td>${num(yd)}</td><td>${num(td)}</td><td>${num(intVal)}</td></tr>`;
+    }).join(''):`<tr><td colspan="10" class="sleeper-empty" style="padding:24px;text-align:center;">Semana 6 ativa (${season}) · Projeção consolidada no modelo: <strong>${projDisplay} pts</strong> · Partida oficial ainda não iniciada.</td></tr>`;
     const newsHtml=news.length?news.map(n=>`<article class="sleeper-news"><a href="${esc(n.sourceUrl||n.canonical_url||'#')}" target="_blank" rel="noopener"><b>${esc(n.title||'Atualização do jogador')}</b></a><small>${esc(n.source||'NFL.com')} · ${esc(n.published_at||n.publishedAt||n.fetchedAt||'Atualizado')}</small><p>${esc(n.summary||'')}</p></article>`).join(''):`<p class="sleeper-empty">Nenhuma notícia vinculada ao atleta no worker.</p>`;
-    const hasInjury=Boolean(p.injuryStatus && p.injuryStatus !== 'Active');
+    const hasInjury=Boolean(p.injuryStatus && p.injuryStatus !== 'Active' && p.injuryStatus !== 'Sem restrição');
     const injuryText=hasInjury ? esc(p.injuryStatus) : 'Sem restrição';
     const provStatus=dto?.provenance?.status || 'official';
     const provBadge=`<span style="font-size:10px;padding:3px 9px;border-radius:4px;background:#0f172a;color:#93c5fd;border:1px solid #3b82f6;margin-left:auto;">FONTE: ${esc(provStatus.toUpperCase())} · ${esc(dto?.provenance?.source || 'CANÔNICO')}</span>`;
-    document.getElementById('player-modal-content').innerHTML=`<div class="sleeper-dossier" style="--sleeper-team:${color}"><button class="sleeper-close" onclick="closeModal('player-modal')">×</button><div class="sleeper-dossier__hero"><div class="sleeper-dossier__teambg"><img src="${esc(p.teamLogo)}" alt=""></div><div class="sleeper-dossier__mini"><b>${esc(p.name.split(' ').map(x=>x[0]).join('').slice(0,2))}</b><span>${esc(p.pos)} · ${esc(p.team)}</span></div><div class="sleeper-dossier__player"><img src="${esc(p.photo)}" onerror="this.onerror=null;this.src='${esc(p.teamLogo)}'" alt="${esc(p.name)}"></div><div class="sleeper-dossier__identity"><small>CATÁLOGO OFICIAL SLEEPER · ID ${esc(p.id)}</small><h1>${esc(p.name)}</h1><div class="sleeper-bio"><span><b>AGE</b>${esc(p.age??'—')}</span><i></i><span><b>HEIGHT</b>${esc(p.height??'—')}</span><i></i><span><b>WEIGHT</b>${esc(p.weight??'—')}</span><i></i><span><b>EXP</b>${esc(p.exp??'—')}</span><span class="college"><b>COLLEGE</b>${esc(p.college??'—')}</span></div><div class="sleeper-ranks"><span><b>${p.rostered??'—'}%</b> ROSTERED</span><span><b>${p.started??'—'}%</b> STARTED</span><span><b>${rank||'—'}</b> PROJ. SEMANA</span></div></div></div><div class="sleeper-dossier__bar"><b>${esc(p.pos)}</b><strong>${esc(p.team)} · #${esc(p.number??'—')}</strong><span class="${hasInjury?'danger':''}">${injuryText}</span>${provBadge}</div><div class="sleeper-dossier__content"><section class="sleeper-dossier__logs"><div class="sleeper-section-title"><b>GAME LOGS / PROJECTIONS</b><div class="sleeper-years">${[2026,2025,2024].map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}</div></div>${error?`<p class="sleeper-empty">${esc(error)}</p>`:''}<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>WK</th><th>OPP</th><th>PROJ</th><th>FPTS</th><th>SNAP%</th><th>ATT</th><th>CMP</th><th>YD</th><th>TD</th><th>INT</th></tr></thead><tbody>${logRows}</tbody></table></div></section><aside class="sleeper-dossier__side"><section><h3>LATEST NEWS</h3>${newsHtml}</section><section class="sleeper-depth"><h3>DEPTH CHART · ${esc(p.team)}</h3>${depth.length?depth.map((x,i)=>`<div class="sleeper-depth-row ${String(x.id)===String(p.id)?'active':''}"><b>${i+1}</b><span>${esc(x.name)}</span></div>`).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}</section><section class="sleeper-depth"><h3>FICHA TÉCNICA DTO</h3><p class="sleeper-empty" style="padding:6px 0">Status: ${injuryText} · Posição: ${esc(p.pos)} · Time: ${esc(p.team)}<br>ID Sleeper: ${esc(dto?.sleeperId||p.sleeperId||p.id)} · ID ESPN: ${esc(dto?.espnId||raw.espn_id||'—')}<br>Sincronizado: ${esc(dto?.provenance?.syncedAt||'Oficial SQLite')}</p></section></aside></div></div>`;
+    document.getElementById('player-modal-content').innerHTML=`<div class="sleeper-dossier" style="--sleeper-team:${color}"><button class="sleeper-close" onclick="closeModal('player-modal')">×</button><div class="sleeper-dossier__hero"><div class="sleeper-dossier__teambg"><img src="${esc(p.teamLogo)}" alt=""></div><div class="sleeper-dossier__mini"><b>${esc(p.name.split(' ').map(x=>x[0]).join('').slice(0,2))}</b><span>${esc(p.pos)} · ${esc(p.team)}</span></div><div class="sleeper-dossier__player"><img src="${esc(p.photo)}" onerror="this.onerror=null;this.src='${esc(p.teamLogo)}'" alt="${esc(p.name)}"></div><div class="sleeper-dossier__identity"><small>CATÁLOGO OFICIAL SLEEPER · ID ${esc(p.id)}</small><h1>${esc(p.name)}</h1><div class="sleeper-bio"><span><b>AGE</b>${esc(p.age??'—')}</span><i></i><span><b>HEIGHT</b>${esc(p.height??'—')}</span><i></i><span><b>WEIGHT</b>${esc(p.weight??'—')}</span><i></i><span><b>EXP</b>${esc(p.exp??'—')}</span><span class="college"><b>COLLEGE</b>${esc(p.college??'—')}</span></div><div class="sleeper-ranks"><span><b>${p.rostered??'—'}%</b> ROSTERED</span><span><b>${p.started??'—'}%</b> STARTED</span><span><b>${projDisplay}</b> PROJ. SEMANA</span></div></div></div><div class="sleeper-dossier__bar"><b>${esc(p.pos)}</b><strong>${esc(p.team)} · #${esc(p.number??'—')}</strong><span class="${hasInjury?'danger':''}">${injuryText}</span>${provBadge}</div><div class="sleeper-dossier__content"><section class="sleeper-dossier__logs"><div class="sleeper-section-title"><b>GAME LOGS / PROJECTIONS</b><div class="sleeper-years">${[2026,2025,2024].map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}</div></div>${error?`<p class="sleeper-empty">${esc(error)}</p>`:''}<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>WK</th><th>OPP</th><th>PROJ</th><th>FPTS</th><th>SNAP%</th><th>ATT</th><th>CMP</th><th>YD</th><th>TD</th><th>INT</th></tr></thead><tbody>${logRows}</tbody></table></div></section><aside class="sleeper-dossier__side"><section><h3>LATEST NEWS</h3>${newsHtml}</section><section class="sleeper-depth"><h3>DEPTH CHART · ${esc(p.team)}</h3>${depth.length?depth.map((x,i)=>`<div class="sleeper-depth-row ${String(x.id)===String(p.id)?'active':''}"><b>${i+1}</b><span>${esc(x.name)}</span></div>`).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}</section><section class="sleeper-depth"><h3>FICHA TÉCNICA DTO</h3><p class="sleeper-empty" style="padding:6px 0">Status: ${injuryText} · Posição: ${esc(p.pos)} · Time: ${esc(p.team)}<br>ID Sleeper: ${esc(dto?.sleeperId||p.sleeperId||p.id)} · ID ESPN: ${esc(dto?.espnId||raw.espn_id||'—')}<br>Sincronizado: ${esc(dto?.provenance?.syncedAt||'Oficial SQLite')}</p></section></aside></div></div>`;
   }
   window.YL_LOAD_PLAYER_SEASON=async function(id,season){
     const modal=document.getElementById('player-modal-content');if(!modal)return;

@@ -47,7 +47,7 @@
       <div id="topbar-user-pill" onclick="openOnboardingModal(2)" style="cursor:pointer;display:flex;align-items:center;gap:6px;background:rgba(195,17,43,0.25);border:1px solid rgba(195,17,43,0.5);border-radius:6px;padding:4px 10px;font-size:11.5px;color:#FFF;" title="Clique para trocar de conta Sleeper">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.9"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         <strong>@Faraco</strong>
-        <span style="font-size:10px;color:#FECDD3;">(Gengar My Balls)</span>
+        <span id="topbar-team-label" onclick="event.stopPropagation();openLeagueSwitcherModal()" style="font-size:10px;color:#FECDD3;cursor:pointer;" title="Clique para alternar de liga ou time">(The Real Slim Brady)</span>
         <span class="badge badge-amber" style="font-size:9.5px;padding:2px 6px;display:inline-flex;align-items:center;gap:3px;"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ALL-PRO</span>
       </div>
       <button class="btn-yl btn-primary" style="padding:5px 12px;font-size:11.5px;background:#C3112B;" onclick="openOnboardingModal()">
@@ -74,13 +74,13 @@
   <!-- 3-COL SHELL -->
   <div class="yl-main-shell">
     <aside class="yl-icon-rail yl-fp-sidebar">
-      <div class="yl-sidebar-league" onclick="openOnboardingModal(3)">
-        <div class="yl-sidebar-league__logo">GM</div>
-        <div class="yl-sidebar-league__copy"><b>Neilo Pistola League</b><span>Gengar My Balls</span></div>
+      <div class="yl-sidebar-league" onclick="openLeagueSwitcherModal()" style="cursor:pointer;" title="Clique para alternar de liga ou time">
+        <div class="yl-sidebar-league__logo" id="sidebar-league-logo">SB</div>
+        <div class="yl-sidebar-league__copy" id="sidebar-league-copy"><b>RedZone8 🏈</b><span>The Real Slim Brady</span></div>
         <span class="yl-sidebar-chevron">⌄</span>
       </div>
       <div class="yl-sidebar-select"><span>My Playbook</span><b>NFL　⌄</b></div>
-      <div class="yl-sidebar-select"><span>Gengar My Balls</span><b>⌄</b></div>
+      <div class="yl-sidebar-select" onclick="openLeagueSwitcherModal()" style="cursor:pointer;"><span id="sidebar-team-label">The Real Slim Brady</span><b>⌄</b></div>
       <nav class="yl-sidebar-nav">
         <button class="yl-sidebar-section" onclick="toggleSidebarGroup('lineup')"><b>Lineup</b><span data-chevron="lineup">⌃</span></button>
         <div class="yl-sidebar-group open" data-sidebar-group="lineup">
@@ -255,10 +255,16 @@
     </div>
   </div>
 
+  <!-- LEAGUE & TEAM SWITCHER MODAL -->
+  <div class="yl-modal-overlay" id="league-switcher-modal" role="dialog" aria-modal="true" aria-label="Alternar Liga e Elenco Sleeper" onclick="if(event.target===this)closeModal('league-switcher-modal')">
+    <div class="yl-modal-card" id="league-switcher-modal-content" style="max-width:640px;padding:26px 30px;">
+      <!-- Content rendered by openLeagueSwitcherModal() -->
+    </div>
+  </div>
+
   <div id="yl-toast-banner" style="display:none;position:fixed;bottom:20px;right:20px;background:#0F172A;color:#FFF;padding:12px 18px;border-radius:8px;border-left:4px solid #C3112B;font-size:13px;box-shadow:0 12px 30px rgba(0,0,0,0.25);z-index:9999;"></div>
 
-
-<script src="js/data_and_views.js"></script>
-  <script src="js/engines.js"></script>
+  <script src="js/data_and_views.js?v=20261016_1520"></script>
+  <script src="js/engines.js?v=20261016_1520"></script>
 </body>
 </html>

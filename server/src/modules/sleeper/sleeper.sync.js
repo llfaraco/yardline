@@ -30,6 +30,11 @@ export function normalizeSleeperPlayer(playerId, rawPlayer = {}) {
     number: rawPlayer.number != null ? rawPlayer.number : null,
     college: rawPlayer.college || null,
     age: rawPlayer.age != null ? rawPlayer.age : null,
+    height: rawPlayer.height || null,
+    weight: rawPlayer.weight || null,
+    yearsExp: rawPlayer.years_exp != null ? rawPlayer.years_exp : null,
+    depthChartOrder: rawPlayer.depth_chart_order != null ? rawPlayer.depth_chart_order : null,
+    depthChartPosition: rawPlayer.depth_chart_position || null,
     sleeperId: String(rawPlayer.player_id || playerId),
     espnId,
     photoUrl: getPlayerPhoto({ espnId, team: rawPlayer.team, photoUrl: rawPlayer.photoUrl })
@@ -475,6 +480,12 @@ export const sleeperSyncService = {
       if (cachedPlayersCatalog) return cachedPlayersCatalog;
       return {};
     }
+  },
+
+  getCachedPlayer(id) {
+    if (!cachedPlayersCatalog) return null;
+    const sid = String(id);
+    return cachedPlayersCatalog[sid] || Object.values(cachedPlayersCatalog).find(p => p.espnId === sid || p.sleeperId === sid) || null;
   },
 
   // Conectar conta do Sleeper ao usuário YARDLINE

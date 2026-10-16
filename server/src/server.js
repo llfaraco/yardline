@@ -215,19 +215,28 @@ app.get('/api/players/:playerId', (req, res) => {
     const identities = db.prepare('SELECT provider, provider_player_id FROM player_identities WHERE player_id = ?').all(player.id);
     const sleeperIdentity = identities.find(i => i.provider === 'sleeper');
     const espnIdentity = identities.find(i => i.provider === 'espn');
+    const catalogPlayer = sleeperSyncService.getCachedPlayer(playerId) || sleeperSyncService.getCachedPlayer(player.id);
+    const resolvedEspnId = espnIdentity?.provider_player_id || catalogPlayer?.espnId || null;
+    const resolvedSleeperId = sleeperIdentity?.provider_player_id || catalogPlayer?.sleeperId || (player.id.length <= 6 ? player.id : null);
 
     const latestProjection = db.prepare('SELECT projection FROM projections WHERE player_id = ? ORDER BY season DESC, week DESC, created_at DESC LIMIT 1').get(player.id);
 
     const card = createPlayerCardDTO({
       id: player.id,
-      sleeperId: sleeperIdentity?.provider_player_id || (player.id.length <= 6 ? player.id : null),
-      espnId: espnIdentity?.provider_player_id || null,
-      name: player.canonical_name,
-      position: player.position,
-      team: player.team,
-      jersey: player.number,
-      injuryStatus: player.status !== 'Active' ? player.status : null,
-      photoUrl: player.photo_url,
+      sleeperId: resolvedSleeperId,
+      espnId: resolvedEspnId,
+      name: player.canonical_name || catalogPlayer?.name,
+      position: player.position || catalogPlayer?.position,
+      team: player.team || catalogPlayer?.team,
+      jersey: player.number ?? catalogPlayer?.number,
+      injuryStatus: (player.status && player.status !== 'Active') ? player.status : (catalogPlayer?.injuryStatus || null),
+      photoUrl: player.photo_url || catalogPlayer?.photoUrl,
+      height: catalogPlayer?.height || null,
+      weight: catalogPlayer?.weight || null,
+      yearsExp: catalogPlayer?.yearsExp || null,
+      college: catalogPlayer?.college || null,
+      age: catalogPlayer?.age || null,
+      depthChartOrder: catalogPlayer?.depthChartOrder || null,
       metrics: createMetricDTO({
         projectedPoints: latestProjection?.projection != null ? Number(latestProjection.projection) : null,
         provenance: createDataStatusDTO({
