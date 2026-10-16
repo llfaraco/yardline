@@ -10,6 +10,8 @@ import { calculateLeagueBaselines, computeVBD } from './modules/engines/vbd.engi
 import { scorePlayerStats, normalizeScoringSettings } from './modules/engines/scoring.engine.js';
 import { billingService } from './modules/billing/billing.service.js';
 import { newsService } from './modules/news/news.service.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   DATA_STATUS,
   INJURY_STATUS,
@@ -20,6 +22,10 @@ import {
   createMatchupDTO,
   createLeagueShellDTO
 } from './contracts/dtos.js';
+import { commandCenterRouter } from './modules/command-center/command-center.routes.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Inicializar banco de dados
 initDatabase();
@@ -750,6 +756,16 @@ app.post('/api/webhooks/payment/:provider', async (req, res) => {
     console.error('[Billing Webhook Error]:', err.message);
     res.status(400).json({ error: err.message });
   }
+});
+
+// ==========================================
+// 8. COMMAND CENTER OPERATIONAL API & STATIC
+// ==========================================
+app.use('/api/command-center', commandCenterRouter);
+const commandCenterStaticPath = path.resolve(__dirname, '../../yardline-app/agent-command-center');
+app.use('/agent-command-center', express.static(commandCenterStaticPath));
+app.get('/agent-command-center', (req, res) => {
+  res.sendFile(path.join(commandCenterStaticPath, 'index.html'));
 });
 
 // Health Check
