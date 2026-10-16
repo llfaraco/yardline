@@ -1,0 +1,888 @@
+{
+  "schemaVersion": 1,
+  "mode": "POLLING_READ_ONLY",
+  "cadenceMinutes": 60,
+  "leagueId": "1369770282776006656",
+  "maxCycleMinutes": 10,
+  "referenceConcurrency": 3,
+  "referenceTimeoutMs": 10000,
+  "allowedReferenceHosts": [
+    "docs.sleeper.com",
+    "api.sleeper.app",
+    "www.fantasypros.com",
+    "www.nfl.com",
+    "sports.yahoo.com"
+  ],
+  "agents": [
+    {
+      "id": "agent_po",
+      "name": "Product Owner / Requirements Agent",
+      "role": "Transformação de visão em requisitos testáveis e critérios de aceite",
+      "mission": "Manter requisitos testáveis e priorizar paridade liga Sleeper + dossier profundo Yardline, sem copiar marca/assets/código proprietário.",
+      "status": "NEEDS_REVIEW",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.unit",
+        "qa.dossier"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Product + Team Leader",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_sleeper_ref",
+      "name": "Sleeper Reference Agent",
+      "role": "Auditoria de comportamento observável na Sleeper API e League 1369770282776006656",
+      "mission": "Auditar API pública read-only, liga real, players/rosters/matchups/transactions/drafts/stats; distinguir catálogo vazio de falha e preservar nulos.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "sleeper.*"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Sleeper Integration + Data",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_fantasypros_ref",
+      "name": "FantasyPros Reference Agent",
+      "role": "Auditoria de padrões de Start/Sit Assistant, filtros e busca de atletas",
+      "mission": "Observar rankings/projections/player comparison, gates, filtros, cards e UX pública. Registrar limites de HTML estático e nunca copiar assets ou código proprietário.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "fantasypros.*",
+        "qa.dossier"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Frontend + Product",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_nfl_news",
+      "name": "NFL News Reference Agent",
+      "role": "Ingestão, deduplicação e vínculo de notícias oficiais da NFL a atletas",
+      "mission": "Monitorar news/injuries/transactions/scores/schedule/standings, canonical URL, freshness e mídia degradada; atribuir editorial NFL.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "nfl.*",
+        "qa.news"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / News + Data",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_yahoo_news",
+      "name": "Yahoo News Reference Agent",
+      "role": "Monitoramento e auditoria comparativa de cobertura e canonical URLs do Yahoo Sports",
+      "mission": "Cruzar cobertura Yahoo/NFL, preservar canonical URLs/timestamps, deduplicar e sinalizar divergência editorial como INFERRED, não verdade oficial.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "yahoo.*",
+        "qa.news"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / News + Data",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_qa_senior",
+      "name": "Senior QA / E2E Tester",
+      "role": "Validação de ponta a ponta em múltiplos viewports, teclado e estresse com poder de veto",
+      "mission": "Executar testes reais recorrentes: smoke, X/ESC/backdrop/reopen/focus, Sleeper sync, dossier/abas, busca, filtros. Responsive é NOT_VERIFIABLE sem viewport real. Vetar P0/P1.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.*"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Team Leader + QA",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_backend_lead",
+      "name": "Backend / API Lead",
+      "role": "Arquitetura de API Gateway, DTOs, autenticação JWT, billing e rate limiting",
+      "mission": "Auditar contratos REST, falhas/latência e rotas do código atual; entregar correções ao time escritor Antigravity após revisão.",
+      "status": "WAITING_DEPENDENCY",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.api",
+        "qa.unit"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Backend",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_data_engineer",
+      "name": "Data Engineer / Database Lead",
+      "role": "Modelagem SQLite, integridade referencial, idempotência de sync e crosswalk de IDs",
+      "mission": "Auditar integridade, null/proveniência, migrations e persistência; não usar fixture como dado oficial.",
+      "status": "WAITING_DEPENDENCY",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.catalog",
+        "qa.unit"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Data",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_sleeper_integration",
+      "name": "Sleeper Integration Specialist",
+      "role": "Conector com a Sleeper API, parsing de regras de liga, waivers e draft picks",
+      "mission": "Confrontar integração local com liga real e garantir proteção de snapshot vazio/erro; apenas sync local explicitamente autorizado.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "sleeper.*",
+        "qa.sync",
+        "qa.unit"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Sleeper Integration",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_scoring_engineer",
+      "name": "Scoring and Fantasy Rules Engineer",
+      "role": "Regras de pontuação PPR, IDP, Kicking, Bônus, status unsupported e solver combinatório",
+      "mission": "Reavaliar regras oficiais de scoring, isolamento do banco e cálculos derivados transparentes; nunca derivado como oficial.",
+      "status": "NEEDS_REVIEW",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.unit",
+        "qa.dossier"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Scoring",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_frontend_lead",
+      "name": "Frontend Lead",
+      "role": "Arquitetura SPA, consumo de DTOs canônicos, 12 abas, responsividade e estabilidade",
+      "mission": "Auditar modais/cards/tabs e contexto de liga + profundidade do dossier; escritores pausados até handoff revisado.",
+      "status": "WAITING_DEPENDENCY",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.modal.*",
+        "qa.dossier"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Frontend",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_design_system",
+      "name": "Design System / UI Lead",
+      "role": "Identidade visual própria, tokens, tipografia tabular, densidade de dados e sobriedade",
+      "mission": "Auditar densidade, layout original e states loading/empty/error/gated. Não afirmar paridade visual sem navegador real.",
+      "status": "NEEDS_REVIEW",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.responsive.*",
+        "qa.dossier"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Design + Frontend",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_accessibility",
+      "name": "Accessibility and Interaction Agent",
+      "role": "Conformidade WCAG 2.1 AA, navegação completa por teclado, foco visível e touch targets",
+      "mission": "Auditar interação X/ESC/backdrop/reopen/focus trap/restoration e navegação por teclado; sem atalhos para mascarar falha.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.modal.*",
+        "qa.unit"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Accessibility + Frontend",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_security",
+      "name": "Security and Privacy Agent",
+      "role": "Auditoria de segurança, sanitização contra XSS, proteção de tokens e isolamento PII",
+      "mission": "Auditar read-only externo, ausência de login/mutação e proteção de handoffs, sem coletar segredos e sem copiar código de referência.",
+      "status": "NEEDS_REVIEW",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.unit"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / Security",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    },
+    {
+      "id": "agent_devops",
+      "name": "DevOps / Release Agent",
+      "role": "Automação de CI/CD, sincronização periódica GitHub, integridade de branches e health checks",
+      "mission": "Orquestrar polling horário via runtime local declarado, manter evidência atual, vetar release sem QA, separar Git fetch de implementação e nunca auto-push.",
+      "status": "WORKING",
+      "cadenceMinutes": 60,
+      "monitorTargets": [
+        "qa.unit",
+        "qa.api"
+      ],
+      "allowedActions": [
+        "READ_CODE",
+        "GET_PUBLIC_REFERENCE",
+        "RUN_LOCAL_QA",
+        "WRITE_REPORT",
+        "UPSERT_HANDOFF"
+      ],
+      "evidenceRequired": [
+        "cycleId",
+        "currentCommit",
+        "startedAt/finishedAt",
+        "observed vs inferred vs not-verifiable",
+        "URL/HTTP status/latency or test command + log"
+      ],
+      "handoffTo": "Antigravity / DevOps + Team Leader",
+      "writePolicy": "Somente relatórios/handoffs. Código de implementação pertence ao Antigravity após revisão do Team Leader. Sem push automático.",
+      "stopConditions": [
+        "Parar se operador pausar runtime",
+        "Não executar login, compra ou mutação externa",
+        "Conflito/concurrent code write bloqueia release"
+      ],
+      "reopenRules": [
+        "Mesmo checkId recorrente reutiliza handoff",
+        "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
+        "COMPLETED não se aplica ao ciclo contínuo"
+      ],
+      "nextAction": "Executar próximo polling; revisar evidências e handoffs com Team Leader."
+    }
+  ],
+  "coordinator": {
+    "id": "team_leader",
+    "name": "Team Leader",
+    "status": "NEEDS_REVIEW",
+    "cadenceMinutes": 60,
+    "mission": "Receber handoffs, priorizar P0/P1, distribuir ao Antigravity e só resolver após evidência fresca do check exato; coordenação não representa execução de LLM/Antigravity.",
+    "handoffTo": "Antigravity / Team Leader",
+    "writePolicy": "Review-only; no automatic source writes/push",
+    "nextAction": "Consumir handoffs OPEN/reabertos e registrar ACK/IN_PROGRESS; pedir QA antes de VERIFIED."
+  },
+  "referenceTargets": [
+    {
+      "id": "sleeper.docs",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://docs.sleeper.com/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.state",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/state/nfl",
+      "kind": "json",
+      "emptyPolicy": "fail",
+      "cadenceMinutes": 60,
+      "expected": "state",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.league",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/league/{leagueId}",
+      "kind": "json",
+      "emptyPolicy": "fail",
+      "cadenceMinutes": 60,
+      "expected": "league",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.players",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/players/nfl",
+      "kind": "json",
+      "emptyPolicy": "fail",
+      "cadenceMinutes": 1440,
+      "expected": "players",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.rosters",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/league/{leagueId}/rosters",
+      "kind": "json",
+      "emptyPolicy": "fail",
+      "cadenceMinutes": 60,
+      "expected": "rosters",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.matchups",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/league/{leagueId}/matchups/{week}",
+      "kind": "json",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": "matchups",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.transactions",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/league/{leagueId}/transactions/{week}",
+      "kind": "json",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": "transactions",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.drafts",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/league/{leagueId}/drafts",
+      "kind": "json",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": "drafts",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.draft-picks",
+      "agentId": "agent_sleeper_ref",
+      "url": "https://api.sleeper.app/v1/draft/{draftId}/picks",
+      "kind": "json",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": "picks",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "sleeper.stats",
+      "agentId": "agent_sleeper_ref",
+      "url": null,
+      "kind": "unavailable",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": "stats",
+      "method": "GET",
+      "sourceDocumentation": "https://docs.sleeper.com/"
+    },
+    {
+      "id": "fantasypros.rankings",
+      "agentId": "agent_fantasypros_ref",
+      "url": "https://www.fantasypros.com/nfl/rankings/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.fantasypros.com/nfl/rankings/"
+    },
+    {
+      "id": "fantasypros.projections",
+      "agentId": "agent_fantasypros_ref",
+      "url": "https://www.fantasypros.com/nfl/projections/qb.php",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.fantasypros.com/nfl/projections/qb.php"
+    },
+    {
+      "id": "fantasypros.compare",
+      "agentId": "agent_fantasypros_ref",
+      "url": "https://www.fantasypros.com/nfl/start/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.fantasypros.com/nfl/start/"
+    },
+    {
+      "id": "nfl.news",
+      "agentId": "agent_nfl_news",
+      "url": "https://www.nfl.com/news/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.nfl.com/news/"
+    },
+    {
+      "id": "nfl.scores",
+      "agentId": "agent_nfl_news",
+      "url": "https://www.nfl.com/scores/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.nfl.com/scores/"
+    },
+    {
+      "id": "nfl.injuries",
+      "agentId": "agent_nfl_news",
+      "url": "https://www.nfl.com/injuries/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.nfl.com/injuries/"
+    },
+    {
+      "id": "nfl.transactions",
+      "agentId": "agent_nfl_news",
+      "url": "https://www.nfl.com/transactions/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.nfl.com/transactions/"
+    },
+    {
+      "id": "nfl.schedules",
+      "agentId": "agent_nfl_news",
+      "url": "https://www.nfl.com/schedules/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.nfl.com/schedules/"
+    },
+    {
+      "id": "nfl.standings",
+      "agentId": "agent_nfl_news",
+      "url": "https://www.nfl.com/standings/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://www.nfl.com/standings/"
+    },
+    {
+      "id": "yahoo.news",
+      "agentId": "agent_yahoo_news",
+      "url": "https://sports.yahoo.com/nfl/news/",
+      "kind": "html",
+      "emptyPolicy": "valid",
+      "cadenceMinutes": 60,
+      "expected": null,
+      "method": "GET",
+      "sourceDocumentation": "https://sports.yahoo.com/nfl/news/"
+    }
+  ],
+  "dossierContract": {
+    "provenance": {
+      "official": "Sleeper identity/roster/scoring",
+      "derived": "Yardline calculations with breakdown/confidence",
+      "editorial": "NFL/Yahoo canonical URL + timestamp"
+    },
+    "requiredTabs": [
+      "Latest News",
+      "Game Logs",
+      "Season Stats",
+      "Outlook",
+      "News & Analysis",
+      "Depth Chart",
+      "Leagues",
+      "Full Profile"
+    ],
+    "requiredSections": [
+      "league sidebar/recent players/my roster",
+      "red original hero with photo/name/position/team/bye/rostered/age/rank/projection/matchup/ROS/scoring selector",
+      "Consensus Sentiment / Coach AI: overall/upside/bust/confidence/explainable narrative/expert note",
+      "game logs + season stats tables"
+    ],
+    "states": [
+      "loading",
+      "empty",
+      "error",
+      "gated"
+    ],
+    "interactions": [
+      "X",
+      "ESC",
+      "backdrop",
+      "reopen",
+      "focus trap",
+      "focus restoration"
+    ],
+    "rule": "Acceptance requirement, NOT current implementation. A missing tab/context is FAIL only after real card/opener, canonical DOM identity, open modal and hydration. Unobservable dependency is BLOCKED/NOT_VERIFIABLE, not eight absent tabs. Explicit combined contexts may share a canonical tab.",
+    "playerAudit": {
+      "path": "docs/fantasypros-bijan-yardline-audit.md",
+      "player": "Bijan Robinson",
+      "classification": [
+        "OBSERVED",
+        "INFERRED",
+        "NOT_VERIFIABLE"
+      ],
+      "policy": "Historical external audit is a reference, not current Yardline PASS; no proprietary code/assets"
+    },
+    "implementationHandoff": {
+      "path": "docs/player-dossier-team-leader-handoff.md",
+      "target": "Antigravity / Team Leader + Frontend + Data + Senior QA",
+      "status": "REQUIRES_TEAM_LEADER_REVIEW",
+      "scope": "Contract/backlog only; no complete dossier implementation in this change",
+      "reviewBeforeDistribution": "Review harnessCorrections/reviewHistory; do not redistribute old aria-modal-after-close or empty/unhydrated-tabs claims"
+    }
+  }
+}

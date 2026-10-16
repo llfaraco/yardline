@@ -448,6 +448,14 @@ body {
   border-radius: 3px;
 }
 
+/* Real cycle evidence can be long; never let it hide the state/next action. */
+.cc-card pre, .cc-modal-body pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 360px; overflow-y: auto; font-size: 11px; }
+.cc-card p, .cc-table td, .cc-modal-body { overflow-wrap: anywhere; }
+.cc-card details { border-top: 1px solid var(--cc-border-subtle); padding: 10px 0; }
+.cc-card summary { cursor: pointer; }
+.cc-handoff-row { border-top: 1px solid var(--cc-border-subtle); padding: 12px 0; }
+.cc-handoff-row .badge, .cc-handoff-row button { margin-left: 8px; }
+
 /* Responsive */
 @media (max-width: 1024px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }

@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Yardline Antigravity Handoff Queue",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "sourceAgent",
+      "targetAgent",
+      "priority",
+      "title",
+      "observed",
+      "expected",
+      "reproduction",
+      "evidence",
+      "affectedFiles",
+      "proposedNextStep",
+      "status",
+      "createdAt",
+      "updatedAt",
+      "checkId",
+      "fingerprint"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^handoff-[a-f0-9]{20}$"
+      },
+      "sourceAgent": {
+        "type": "string"
+      },
+      "targetAgent": {
+        "type": "string"
+      },
+      "priority": {
+        "enum": [
+          "P0",
+          "P1",
+          "P2",
+          "P3"
+        ]
+      },
+      "title": {
+        "type": "string"
+      },
+      "observed": {
+        "type": "string"
+      },
+      "expected": {
+        "type": "string"
+      },
+      "reproduction": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "evidence": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object"
+        }
+      },
+      "affectedFiles": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "proposedNextStep": {
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "OPEN",
+          "ACKNOWLEDGED",
+          "IN_PROGRESS",
+          "VERIFIED",
+          "RETRACTED"
+        ]
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "checkId": {
+        "type": "string"
+      },
+      "fingerprint": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "reopenedCount": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "occurrences": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "reviewHistory": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "qaStatus": {
+        "enum": [
+          "PASS",
+          "FAIL",
+          "BLOCKED",
+          "NOT_VERIFIABLE"
+        ]
+      },
+      "issueType": {
+        "type": "string"
+      }
+    }
+  }
+}

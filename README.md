@@ -72,3 +72,7 @@ Acesse a SPA em: `http://localhost:3000/`
 - **Formato:** 16 Times, Keeper PPR com IDP (3 DL, 3 LB, 3 DB, 1 IDP FLEX)
 - **Semana:** 6
 - **Time do Usuário:** Gengar My Balls (Roster 2 · Faraco)
+
+## Agent Command Center: polling real e handoffs Antigravity
+
+O painel `/agent-command-center/` usa evidência real com LIVE/STALE, cadência e handoffs. Veja [o contrato operacional e os comandos](server/AGENT-ORCHESTRATION.md). Ciclo único: `cd server && npm run monitor:once`. Serviço declarado no runtime local: `npm run monitor:continuous`; não é uma garantia de execução persistente no sandbox. GitHub sync é fetch-only e nunca faz push automático de código sem revisão.

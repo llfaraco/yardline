@@ -38,3 +38,8 @@ sync-agent/data/
 # Local legacy backups
 legacy_prototype/
 yardline_backup_pre_correction/
+
+# Operational orchestration evidence/queues (inside repo; contain only reviewed exports in Git)
+server/data/agent-runtime/
+server/data/agent-handoffs/handoffs.json
+server/data/agent-handoffs/*.lock/

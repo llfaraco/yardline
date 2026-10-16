@@ -23,204 +23,68 @@ function formatDate(iso) {
   }
 }
 
+function renderPlayerDossierReference(store) {
+  const references = store.orchestration?.playerDossierReference || store.contracts?.playerDossierReference;
+  const contract = store.orchestration?.dossierContract || store.contracts?.dossierContract;
+  if (!references || !contract) return '<div class="cc-card">Referência do dossier / Bijan Robinson: NOT_VERIFIABLE — contrato ainda indisponível.</div>';
+  const documents = Object.entries(references).map(([kind, doc]) => {
+    // Endpoint is locally constructed from a fixed allowlist, never an external evidence URL.
+    const href = `${store.apiBase || '/api/command-center'}/player-dossier/${kind === 'audit' ? 'audit' : 'handoff'}`;
+    return `<p><strong>${esc(doc.title)}</strong> · ${esc(doc.status)}<br><code>${esc(doc.path)}</code>${doc.available ? ` · <a href="${esc(href)}" target="_blank" rel="noopener noreferrer">Ler documento versionado</a>` : ' · Arquivo não fornecido; não inventar observações.'}</p>`;
+  }).join('');
+  return `<div class="cc-card"><div class="cc-card-header"><strong>Bijan Robinson · contrato do dossier profundo</strong><span class="badge badge-amber">Team Leader → Antigravity</span></div>
+    ${documents}<p>Classificação da referência: <strong>OBSERVED / INFERRED / NOT_VERIFIABLE</strong>. Disponibilidade do relatório não é PASS atual de Yardline.</p>
+    <p><strong>Oito contextos esperados:</strong> ${(contract.requiredTabs || []).map(esc).join(' · ')}. Equivalentes combinados explícitos podem compartilhar uma aba; QA registra os botões reais.</p>
+    <p><strong>Mescla:</strong> sidebar de liga/roster/jogadores recentes, hero, tabs, sentiment explicável, expert note, logs e stats. Sleeper = liga/roster/scoring; Yardline = cálculos; NFL/Yahoo = editorial.</p>
+    <p>Revisar correções de harness antes de distribuir. RETRACTED não é VERIFIED de produto. Nenhum dossier completo foi implementado por esta correção.</p>
+  </div>`;
+}
+
 // 1. DASHBOARD GERAL
 function renderDashboardView(store) {
   const d = store.dashboard;
-  if (!d) return `<div class="cc-card"><p>Carregando telemetria operacional do Command Center...</p></div>`;
-
-  const healthBadge = d.overallHealth === 'HEALTHY'
-    ? `<span class="badge badge-green">HEALTHY</span>`
-    : d.overallHealth === 'BLOCKED / CRITICAL'
-      ? `<span class="badge badge-red">BLOCKED / CRITICAL</span>`
-      : `<span class="badge badge-amber">${esc(d.overallHealth)}</span>`;
-
-  const releaseBadge = d.releaseStatus === 'RELEASE APROVADA'
-    ? `<span class="badge badge-green" style="font-size:12px;padding:3px 8px;">RELEASE APROVADA</span>`
-    : `<span class="badge badge-red" style="font-size:12px;padding:3px 8px;">RELEASE BLOQUEADA</span>`;
-
-  return `
-    <!-- Top Alert Banner if Release is Blocked -->
-    <div class="cc-card" style="border-left:4px solid var(--cc-crimson);background:rgba(239, 68, 68, 0.05);">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          ${releaseBadge}
-          <div>
-            <strong style="color:#f87171;font-size:13.5px;">Diretiva do Team Leader & Senior QA em Vigor</strong>
-            <div style="color:var(--cc-text-muted);font-size:12px;margin-top:2px;">
-              ${esc(d.releaseBlockingReason)}
-            </div>
-          </div>
-        </div>
-        <button class="btn-cc btn-cc-outline" onclick="window.ccStore.setTab('release')">Ver Checklist dos 5 Portões →</button>
-      </div>
-    </div>
-
-    <!-- 4 Stat Counters -->
-    <div class="grid-4" style="margin-bottom:18px;">
-      <div class="cc-stat-box border-blue">
-        <div class="cc-stat-label">Agentes Operando</div>
-        <div class="cc-stat-value">${d.agentsSummary.total}</div>
-        <div class="cc-stat-sub">${d.agentsSummary.active} ativos · ${d.agentsSummary.completed} concluídos · ${d.agentsSummary.blocked} bloqueados</div>
-      </div>
-      <div class="cc-stat-box border-red">
-        <div class="cc-stat-label">Bugs P0 (Bloqueiam Release)</div>
-        <div class="cc-stat-value" style="color:#f87171;">${d.bugsSummary.p0}</div>
-        <div class="cc-stat-sub">${d.bugsSummary.p1} bugs P1 · ${d.bugsSummary.p2} bugs P2 em triagem</div>
-      </div>
-      <div class="cc-stat-box border-green">
-        <div class="cc-stat-label">Bateria de Testes QA</div>
-        <div class="cc-stat-value" style="color:#34d399;">${d.qaSummary.pass} / ${d.qaSummary.total}</div>
-        <div class="cc-stat-sub">100% dos testes executados aprovados</div>
-      </div>
-      <div class="cc-stat-box border-amber">
-        <div class="cc-stat-label">Saúde Geral da Plataforma</div>
-        <div class="cc-stat-value" style="font-size:18px;margin-top:8px;">${healthBadge}</div>
-        <div class="cc-stat-sub">Sincronização com origin/main ativa</div>
-      </div>
-    </div>
-
-    <!-- Services & Daemons Health Grid -->
-    <div class="cc-card">
-      <div class="cc-card-header">
-        <div class="cc-card-title">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-          Daemons em Segundo Plano & Infraestrutura Local
-        </div>
-        <span class="badge badge-green">TODOS ONLINE (200 OK)</span>
-      </div>
-      <div class="grid-3">
-        <div style="background:#0b1120;padding:12px;border-radius:6px;border:1px solid var(--cc-border-subtle);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong>Backend Core API</strong>
-            <span class="badge badge-green">PORT 3001</span>
-          </div>
-          <div class="mono" style="font-size:11.5px;color:var(--cc-text-muted);margin-top:4px;">Express + SQLite (WAL mode)</div>
-          <div style="font-size:11px;color:var(--cc-text-dim);margin-top:2px;">Latência: ${d.services.backend.latencyMs}ms · 26 testes verdes</div>
-        </div>
-
-        <div style="background:#0b1120;padding:12px;border-radius:6px;border:1px solid var(--cc-border-subtle);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong>Frontend Shell SPA</strong>
-            <span class="badge badge-green">PORT 8080</span>
-          </div>
-          <div class="mono" style="font-size:11.5px;color:var(--cc-text-muted);margin-top:4px;">Live Server Local</div>
-          <div style="font-size:11px;color:var(--cc-text-dim);margin-top:2px;">12 abas integradas · 100% SHA-256 match</div>
-        </div>
-
-        <div style="background:#0b1120;padding:12px;border-radius:6px;border:1px solid var(--cc-border-subtle);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong>GitHub Sync Agent</strong>
-            <span class="badge badge-green">PORT 8788</span>
-          </div>
-          <div class="mono" style="font-size:11.5px;color:var(--cc-text-muted);margin-top:4px;">Daemon de 10 minutos</div>
-          <div style="font-size:11px;color:var(--cc-text-dim);margin-top:2px;">Último push: commit ${d.lastBuild.commit}</div>
-        </div>
-
-        <div style="background:#0b1120;padding:12px;border-radius:6px;border:1px solid var(--cc-border-subtle);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong>NFL News Worker</strong>
-            <span class="badge badge-green">PORT 8787</span>
-          </div>
-          <div class="mono" style="font-size:11.5px;color:var(--cc-text-muted);margin-top:4px;">Ingestão e Deduplicação</div>
-          <div style="font-size:11px;color:var(--cc-text-dim);margin-top:2px;">24 notícias vinculadas a atletas</div>
-        </div>
-
-        <div style="background:#0b1120;padding:12px;border-radius:6px;border:1px solid var(--cc-border-subtle);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong>Sleeper Live Stack</strong>
-            <span class="badge badge-green">PORT 3000</span>
-          </div>
-          <div class="mono" style="font-size:11.5px;color:var(--cc-text-muted);margin-top:4px;">Single-File Sync Engine</div>
-          <div style="font-size:11px;color:var(--cc-text-dim);margin-top:2px;">Liga #1369770282776006656</div>
-        </div>
-
-        <div style="background:#0b1120;padding:12px;border-radius:6px;border:1px solid var(--cc-border-subtle);">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <strong>Banco SQLite Operacional</strong>
-            <span class="badge badge-green">YARDLINE.DB</span>
-          </div>
-          <div class="mono" style="font-size:11.5px;color:var(--cc-text-muted);margin-top:4px;">16 Rosters · 8 Matchups W6</div>
-          <div style="font-size:11px;color:var(--cc-text-dim);margin-top:2px;">480 escolhas de draft persistidas</div>
-        </div>
-      </div>
-    </div>
-  `;
+  if (!d) return `<div class="cc-card">${esc(store.lastTransportError || 'Aguardando telemetria real; nenhum PASS presumido.')}</div>`;
+  const cycle = d.lastCycle;
+  return `<div class="cc-card">
+    <div class="cc-card-header"><strong>Monitoramento recorrente / read-only</strong><span class="badge ${d.liveState === 'LIVE' ? 'badge-blue' : 'badge-amber'}">${esc(d.liveState)}</span></div>
+    <p>Cadência ${esc(d.cadenceMinutes)} min · depende do runtime online. ${esc(d.releaseStatus)}</p>
+    <p><strong>Último ciclo real:</strong> <code>${esc(cycle?.cycleId || 'Nenhum')}</code> · ${esc(cycle?.status || 'NOT_VERIFIABLE')}</p>
+    <p>Início ${formatDate(cycle?.startedAt)} · Fim ${formatDate(cycle?.finishedAt)} · Commit <code>${esc(cycle?.currentCommit || 'Não observado')}</code></p>
+    <p><strong>Último erro:</strong> ${esc(store.lastTransportError || d.lastError || 'Nenhum erro registrado no último ciclo')}</p>
+    <p>${esc(d.releaseBlockingReason)}</p>
+    <p>Estado do agente não é resultado QA. Polling/JSDOM não confirma login, fluxo privado, viewport real ou 100% de cobertura.</p>
+  </div>
+  <div class="grid-4">
+    <div class="cc-stat-box border-blue"><div class="cc-stat-label">Agentes contínuos</div><div class="cc-stat-value">${d.agentsSummary.total}</div><div>${d.agentsSummary.active} trabalhando/revisando · ${d.agentsSummary.blocked} dependências/bloqueados</div></div>
+    <div class="cc-stat-box border-red"><div class="cc-stat-label">Handoffs abertos</div><div class="cc-stat-value">${d.handoffsSummary.open}</div><div>${d.handoffsSummary.reopened} reabertos históricos · ${d.handoffsSummary.reopenedInLastCycle} neste ciclo</div></div>
+    <div class="cc-stat-box border-green"><div class="cc-stat-label">QA atual</div><div class="cc-stat-value">${d.qaSummary.pass}/${d.qaSummary.total}</div><div>${d.qaSummary.fail} FAIL · ${d.qaSummary.blocked} BLOCKED · ${d.qaSummary.notVerifiable} NOT_VERIFIABLE</div></div>
+    <div class="cc-stat-box border-amber"><div class="cc-stat-label">Veto P0/P1</div><div class="cc-stat-value">${d.bugsSummary.p0}/${d.bugsSummary.p1}</div><div>${esc(d.overallHealth)}</div></div>
+  </div>
+  <div class="cc-card"><strong>Infraestrutura observada, sem presumir daemons online</strong>
+    ${Object.entries(d.services).map(([name, service]) => `<p>${esc(name)}: <span class="badge badge-gray">${esc(service.status)}</span> ${service.latencyMs == null ? '' : `${esc(service.latencyMs)} ms`}${service.metrics ? ` · ${esc(JSON.stringify(service.metrics))}` : ''}</p>`).join('')}
+    <p>GitHub: fetch separado de implementação; commit/push somente revisados manualmente.</p>
+  </div>${renderHandoffsView(store, true)}`;
 }
 
 // 2. TELA DE AGENTES (15 PAPÉIS)
 function renderAgentsView(store) {
   const agents = store.agents || [];
   const search = store.agentSearch.toLowerCase();
-  const filter = store.agentStatusFilter;
-
-  const filtered = agents.filter(a => {
-    const matchesSearch = !search || a.name.toLowerCase().includes(search) || a.role.toLowerCase().includes(search) || a.currentTask.toLowerCase().includes(search);
-    const matchesFilter = filter === 'ALL' || a.status === filter;
-    return matchesSearch && matchesFilter;
-  });
-
-  return `
-    <div class="cc-filter-strip">
-      <input type="text" class="cc-search-input" placeholder="Buscar por agente, função ou tarefa..." value="${esc(store.agentSearch)}" oninput="window.ccStore.agentSearch = this.value; window.ccStore.notify();" />
-      <select class="cc-select" onchange="window.ccStore.agentStatusFilter = this.value; window.ccStore.notify();">
-        <option value="ALL" ${filter === 'ALL' ? 'selected' : ''}>Todos os Status (${agents.length})</option>
-        <option value="WORKING" ${filter === 'WORKING' ? 'selected' : ''}>WORKING</option>
-        <option value="COMPLETED" ${filter === 'COMPLETED' ? 'selected' : ''}>COMPLETED</option>
-        <option value="BLOCKED" ${filter === 'BLOCKED' ? 'selected' : ''}>BLOCKED</option>
-        <option value="IDLE" ${filter === 'IDLE' ? 'selected' : ''}>IDLE</option>
-      </select>
-      <span style="margin-left:auto;font-size:12px;color:var(--cc-text-muted);">
-        Exibindo <strong>${filtered.length}</strong> de ${agents.length} agentes
-      </span>
-    </div>
-
-    <div class="cc-table-container">
-      <table class="cc-table">
-        <thead>
-          <tr>
-            <th style="width:220px;">Agente & Função</th>
-            <th style="width:110px;">Status</th>
-            <th>Tarefa Atual</th>
-            <th style="width:70px;">Prio</th>
-            <th style="width:100px;">Progresso</th>
-            <th style="width:140px;">Última Atualização</th>
-            <th style="width:110px;text-align:right;">Ação</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${filtered.map(a => {
-            const statusClass = a.status === 'COMPLETED' ? 'badge-green' : a.status === 'WORKING' ? 'badge-blue' : a.status === 'BLOCKED' ? 'badge-red' : 'badge-gray';
-            return `
-              <tr>
-                <td>
-                  <strong>${esc(a.name)}</strong>
-                  <div style="font-size:11px;color:var(--cc-text-muted);margin-top:2px;">${esc(a.role)}</div>
-                </td>
-                <td><span class="badge ${statusClass}">${esc(a.status)}</span></td>
-                <td>
-                  <div>${esc(a.currentTask)}</div>
-                  ${a.nextAction ? `<div style="font-size:11px;color:var(--cc-text-dim);margin-top:2px;">Próximo: ${esc(a.nextAction)}</div>` : ''}
-                </td>
-                <td><span class="badge badge-gray mono">${esc(a.priority)}</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:6px;">
-                    <div class="cc-progress" style="width:50px;">
-                      <div class="cc-progress-fill" style="width:${a.progress}%;"></div>
-                    </div>
-                    <span class="mono" style="font-size:11px;">${a.progress}%</span>
-                  </div>
-                </td>
-                <td class="mono" style="font-size:11px;color:var(--cc-text-muted);">${formatDate(a.updatedAt)}</td>
-                <td style="text-align:right;">
-                  <button class="btn-cc btn-cc-outline" style="padding:3px 8px;font-size:11px;" onclick='window.ccStore.openModal("agent", ${JSON.stringify(a)})'>Relatório →</button>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const filtered = agents.filter(a => (!search || `${a.name} ${a.role} ${a.currentTask}`.toLowerCase().includes(search)) && (store.agentStatusFilter === 'ALL' || a.status === store.agentStatusFilter));
+  return `<div class="cc-filter-strip">
+    <input class="cc-search-input" placeholder="Buscar agente/mission..." value="${esc(store.agentSearch)}" oninput="window.ccStore.agentSearch=this.value;window.ccStore.notify()">
+    <select class="cc-select" onchange="window.ccStore.agentStatusFilter=this.value;window.ccStore.notify()">${['ALL','WORKING','BLOCKED','NEEDS_REVIEW','WAITING_DEPENDENCY'].map(status => `<option ${status === store.agentStatusFilter ? 'selected' : ''}>${status}</option>`).join('')}</select>
+    <span>Estado de execução ≠ QA. COMPLETED não é estado de ciclo contínuo.</span>
+  </div><div class="cc-table-container"><table class="cc-table"><thead><tr><th>Agente / mission</th><th>Agente / freshness</th><th>QA</th><th>Cadência / referência</th><th>Handoffs / Antigravity</th><th>Última execução / erro</th><th>Evidência</th></tr></thead><tbody>
+  ${filtered.map(a => `<tr>
+    <td><strong>${esc(a.name)}</strong><div>${esc(a.currentTask)}</div><small>Próximo: ${esc(a.nextAction)}</small></td>
+    <td><span class="badge ${a.status === 'BLOCKED' ? 'badge-red' : 'badge-blue'}">${esc(a.status)}</span><br><span class="badge ${a.liveState === 'LIVE' ? 'badge-blue' : 'badge-amber'}">${esc(a.liveState)}</span></td>
+    <td><span class="badge ${a.qaResult === 'PASS' ? 'badge-green' : a.qaResult === 'FAIL' ? 'badge-red' : 'badge-gray'}">${esc(a.qaResult)}</span></td>
+    <td>${esc(a.cadenceMinutes)} min<br>${(a.monitorTargets || []).map(esc).join('<br>')}</td>
+    <td>${esc(a.openHandoffs)} abertos · ${esc(a.reopenedHandoffs)} reabertos<br>${esc(a.handoffTo)}</td>
+    <td>${formatDate(a.updatedAt)}<br><code>${esc(a.cycleId || 'Sem ciclo')}</code><br>${esc(a.lastError || '—')}</td>
+    <td><button class="btn-cc btn-cc-outline" onclick="window.ccStore.openItem('agent','${esc(a.id)}')">Ver evidência</button></td>
+  </tr>`).join('')}</tbody></table></div>`;
 }
 
 // 3. TELA DE QA SENIOR
@@ -283,7 +147,7 @@ function renderQAView(store) {
                 </td>
                 <td><span class="badge ${statusClass}">${esc(t.status)}</span></td>
                 <td style="text-align:right;">
-                  <button class="btn-cc btn-cc-outline" style="padding:3px 8px;font-size:11px;" onclick='window.ccStore.openModal("qa", ${JSON.stringify(t)})'>Ver Detalhes →</button>
+                  <button class="btn-cc btn-cc-outline" style="padding:3px 8px;font-size:11px;" onclick="window.ccStore.openItem('qa','${esc(t.id)}')">Ver Detalhes →</button>
                 </td>
               </tr>
             `;
@@ -342,7 +206,7 @@ function renderBugsView(store) {
                 </td>
                 <td><span class="badge ${statClass}">${esc(b.status)}</span></td>
                 <td style="text-align:right;">
-                  <button class="btn-cc btn-cc-outline" style="padding:3px 8px;font-size:11px;" onclick='window.ccStore.openModal("bug", ${JSON.stringify(b)})'>Ver Ciclo →</button>
+                  <button class="btn-cc btn-cc-outline" style="padding:3px 8px;font-size:11px;" onclick="window.ccStore.openItem('bug','${esc(b.id)}')">Ver Ciclo →</button>
                 </td>
               </tr>
             `;
@@ -355,35 +219,22 @@ function renderBugsView(store) {
 
 // 5. TELA DE REFERÊNCIAS EXTERNAS
 function renderReferencesView(store) {
-  const refs = store.references || [];
+  return `${renderPlayerDossierReference(store)}<div class="cc-card">GET público / read-only. OBSERVED é resposta observada; INFERRED é inferência/cache declarado; NOT_VERIFIABLE não é sucesso. Sem login, compra, cópia de assets ou execução de código proprietário.</div>
+  ${(store.references || []).map(r => `<div class="cc-card"><div class="cc-card-header"><strong>${esc(r.name || r.sourceName)} · ${esc(r.domain)}</strong><span class="badge badge-purple">${esc(r.liveState)} / ${esc(r.observationType)} / ${esc(r.status)}</span></div><p>${esc(r.handoffTo)}</p>
+    ${(r.checks || []).map(c => `<details><summary>${esc(c.id)} · ${esc(c.status)} · HTTP ${esc(c.httpStatus ?? '—')} · ${esc(c.latencyMs ?? '—')} ms · ${formatDate(c.checkedAt)}</summary>
+      <p>URL: ${esc(c.url || 'Sem rota pública documentada')}</p><p>Erro: ${esc(c.error || '—')}</p><p>Freshness: ${esc(JSON.stringify(c.freshness))}</p><pre>${esc(JSON.stringify(c.evidence, null, 2))}</pre><p>${esc(c.limitations)}</p>
+    </details>`).join('') || '<p>Nenhuma observação atual disponível.</p>'}
+  </div>`).join('')}`;
+}
 
-  return `
-    <div class="cc-card" style="border-left:4px solid var(--cc-navy);">
-      <div style="font-size:13px;color:var(--cc-text-main);">
-        <strong>Diretiva de Integridade Intelectual:</strong> As referências abaixo foram auditadas exclusivamente para compreensão comportamental e requisitos de produto. Nenhuma marca, logo, texto editorial, css proprietário ou código de terceiro é copiado no Yardline.
-      </div>
-    </div>
-
-    <div class="grid-2">
-      ${refs.map(r => `
-        <div class="cc-card">
-          <div class="cc-card-header">
-            <div>
-              <span class="badge badge-purple">${esc(r.observationType)}</span>
-              <h3 style="font-size:16px;font-weight:700;color:#fff;margin-top:4px;">${esc(r.sourceName)}</h3>
-            </div>
-            <a href="${esc(r.url)}" target="_blank" class="badge badge-gray" style="text-decoration:none;">${esc(r.domain)} ↗</a>
-          </div>
-          <div style="font-size:12px;display:flex;flex-direction:column;gap:8px;">
-            <div><strong style="color:var(--cc-text-muted);">Fluxo Auditado:</strong> ${esc(r.testedFlow)}</div>
-            <div><strong style="color:var(--cc-text-muted);">Comportamento de Loading:</strong> ${esc(r.loadingBehavior)}</div>
-            <div><strong style="color:var(--cc-text-muted);">Diferencial Yardline:</strong> <span style="color:#38bdf8;">${esc(r.differencesVsYardline)}</span></div>
-            <div><strong style="color:var(--cc-text-muted);">Evidência:</strong> <code style="font-size:11px;">${esc(r.evidence)}</code></div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `;
+function renderHandoffsView(store, compact = false) {
+  const rows = (store.handoffs || []).filter(h => !compact || !['VERIFIED', 'RETRACTED'].includes(h.status));
+  const retracted = (store.handoffs || []).filter(h => h.status === 'RETRACTED');
+  return `${renderPlayerDossierReference(store)}<div class="cc-card"><div class="cc-card-header"><strong>Fila Team Leader → Antigravity</strong><span class="badge badge-amber">${rows.length} handoffs ${compact ? 'ativos' : 'registrados'}</span></div>
+    <p>${retracted.length} falso(s) positivo(s) RETRACTED, com evidência/histórico preservados e fora da distribuição ativa. Não são correções VERIFIED de produto.</p>
+    <p>ACK → IN_PROGRESS → VERIFIED exige QA fresco do check exato. Sem auto-implementação, auto-resolved ou auto-push. API de escrita: ${esc(store.orchestration?.handoffWriteAPI || 'Não verificada')}.</p>
+    ${(compact ? rows.slice(0, 8) : rows).map(h => `<div class="cc-handoff-row"><strong>${esc(h.priority)} · ${esc(h.title)}</strong><span class="badge badge-gray">${esc(h.status)}</span>${h.reopenedCount ? `<span class="badge badge-amber">REABERTO ${esc(h.reopenedCount)}x</span>` : ''}<p>${esc(h.sourceAgent)} → ${esc(h.targetAgent)}</p><p>${esc(h.observed)}</p><small>${formatDate(h.updatedAt)} · ${esc(h.lastSeenCycleId)}</small><button class="btn-cc btn-cc-outline" onclick="window.ccStore.openItem('handoff','${esc(h.id)}')">Reprodução / evidência</button></div>`).join('') || '<p>Sem handoffs registrados; não implica QA aprovado.</p>'}
+  </div>`;
 }
 
 // 6. TIMELINE DE ATIVIDADE DOS AGENTES
@@ -425,6 +276,7 @@ function renderContractsView(store) {
   if (!c) return `<div class="cc-card"><p>Carregando especificações de contratos...</p></div>`;
 
   return `
+    ${renderPlayerDossierReference(store)}
     <!-- 10 Innegotiable Guarantees -->
     <div class="cc-card" style="border-left:4px solid #10b981;">
       <div class="cc-card-header">
@@ -521,6 +373,10 @@ function renderModalContent(store) {
   const type = store.modalType;
   if (!item || !type) return '';
 
+  if (type === 'handoff') {
+    return `<div class="cc-modal-header"><h3>${esc(item.priority)} · ${esc(item.title)}</h3><button class="btn-cc btn-cc-outline" onclick="window.ccStore.closeModal()" aria-label="Fechar">X</button></div><div class="cc-modal-body"><p><strong>Estado:</strong> ${esc(item.status)} · Reaberturas ${esc(item.reopenedCount)}</p><p><strong>Check exato:</strong> <code>${esc(item.checkId)}</code> · ${esc(item.qaStatus || 'Legado: revisar evidência')} · ${esc(item.issueType || 'Revisão pendente')}</p><p>${esc(item.sourceAgent)} → ${esc(item.targetAgent)}</p><p><strong>Observado:</strong> ${esc(item.observed)}</p><p><strong>Esperado:</strong> ${esc(item.expected)}</p><p><strong>Reprodução:</strong></p>${item.reproduction.map(r => `<p>${esc(r)}</p>`).join('')}<p><strong>Arquivos:</strong> ${item.affectedFiles.map(esc).join(', ')}</p><pre>${esc(JSON.stringify(item.evidence, null, 2))}</pre><details><summary>Histórico de revisão / retratação (não é VERIFIED de produto)</summary><pre>${esc(JSON.stringify(item.reviewHistory || [], null, 2))}</pre></details><p><strong>Referências:</strong> ${(item.referenceDocuments || []).map(esc).join(' · ') || '—'}</p><p><strong>Próximo:</strong> ${esc(item.proposedNextStep)}</p><code>${esc(item.id)}</code></div>`;
+  }
+
   if (type === 'agent') {
     return `
       <div class="cc-modal-header">
@@ -532,10 +388,10 @@ function renderModalContent(store) {
         <button class="btn-cc btn-cc-outline" onclick="window.ccStore.closeModal()">✕</button>
       </div>
       <div class="cc-modal-body" style="font-size:12.5px;display:flex;flex-direction:column;gap:12px;">
-        <div><strong>Status Atual:</strong> <span class="badge badge-green">${esc(item.status)}</span> (${item.progress}% concluído)</div>
-        <div><strong>Tarefa em Execução:</strong> ${esc(item.currentTask)}</div>
+        <div><strong>Status Atual:</strong> <span class="badge badge-blue">${esc(item.status)}</span> · ${esc(item.liveState)} · QA ${esc(item.qaResult)}</div>
+        <div><strong>Tarefa em Execução:</strong> ${esc(item.currentTask)}</div><div><strong>Cadência / Antigravity:</strong> ${esc(item.cadenceMinutes)} min · ${esc(item.handoffTo)}</div><div><strong>Último erro:</strong> ${esc(item.lastError || '—')}</div>
         <div><strong>Arquivos Alterados:</strong> ${item.filesModified.map(f => `<code style="display:block;margin-top:2px;">${esc(f)}</code>`).join('')}</div>
-        <div><strong>Testes Executados:</strong> ${item.testsRun.map(t => `<div style="color:#34d399;">✓ ${esc(t)}</div>`).join('')}</div>
+        <div><strong>Testes Executados:</strong> ${item.testsRun.map(t => `<div>${esc(t)}</div>`).join('')}</div>
         <div><strong>Evidência Auditada:</strong> <div style="background:#0b1120;padding:8px;border-radius:4px;margin-top:4px;color:#e2e8f0;">${esc(item.evidence || 'Nenhuma')}</div></div>
         <div><strong>Limitações e Limites de Escopo:</strong> ${esc(item.limitations || 'Sem limitações específicas')}</div>
       </div>
@@ -601,6 +457,7 @@ function renderCommandCenter() {
     case 'agents': html = renderAgentsView(store); break;
     case 'qa': html = renderQAView(store); break;
     case 'bugs': html = renderBugsView(store); break;
+    case 'handoffs': html = renderHandoffsView(store); break;
     case 'references': html = renderReferencesView(store); break;
     case 'activity': html = renderActivityView(store); break;
     case 'contracts': html = renderContractsView(store); break;

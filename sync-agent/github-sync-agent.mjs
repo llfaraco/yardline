@@ -5,21 +5,11 @@
  * Repositório: https://github.com/llfaraco/yardline
  * Branch: main
  *
- * Ciclo:
- * 1. Monitora o repositório remoto a cada 10 minutos (configurável via GITHUB_SYNC_INTERVAL_MS).
- * 2. Faz fetch do GitHub e compara commits locais e remotos.
- * 3. Se houver novidades no GitHub:
- *    - Preserva arquivos locais modificados via stash
- *    - Executa git pull --rebase origin main
- *    - Restaura stash com segurança
- *    - Replica arquivos atualizados para c:\Users\png__\OneDrive\Área de Trabalho\live-yardline
- *    - Atualiza timestamp do live-server para recarregar a página (http://127.0.0.1:8080/)
- * 4. Se houver commits locais pendentes:
- *    - Executa git push origin main
- * 5. Expõe servidor HTTP na porta 8788:
- *    - GET /health
- *    - GET /api/status
- *    - POST /api/trigger (dispara sincronização manual imediata)
+ * Serviço explícito de observação de repositório (runtime local).
+ * Faz SOMENTE git fetch/log/status/rev-list; não stash, pull, checkout, commit ou push.
+ * Divergências são pendingReview. Team Leader revisa implementação via agent-handoffs.
+ * Integração/push de código é um comando MANUAL fora deste daemon, após QA/revisão.
+ * GET /health, GET /api/status, POST /api/trigger (fetch-only).
  */
 
 import { execFile } from 'node:child_process';
@@ -138,50 +128,11 @@ async function runSyncCycle(isManual = false) {
 
     let updated = false;
 
-    // 3. Se houver commits no GitHub, fazer pull rebase com preservação
-    if (commitsToPull > 0) {
-      log(`[Sync] Encontrados ${commitsToPull} novos commits no GitHub. Integrando com pull --rebase...`);
-
-      // Verificar working tree suja
-      const { stdout: statusOut } = await runGit(['status', '--porcelain']);
-      let didStash = false;
-
-      // Se houver arquivos modificados (ex: db ou news cache), faz checkout nos db locks se necessário e stash
-      if (statusOut.length > 0) {
-        try {
-          await runGit(['checkout', 'server/src/db/yardline.db', 'server/src/db/yardline.db-shm', 'server/src/db/yardline.db-wal']);
-        } catch {}
-        await runGit(['stash', 'push', '-u', '-m', `agent-sync-${Date.now()}`]);
-        didStash = true;
-      }
-
-      // Pull rebase
-      await runGit(['pull', '--rebase', REMOTE, BRANCH]);
-
-      // Restaurar stash se foi criado
-      if (didStash) {
-        try {
-          await runGit(['stash', 'pop']);
-        } catch (stashErr) {
-          log(`[Sync Warn] Stash pop gerou aviso ou foi preservado: ${stashErr.message}`);
-        }
-      }
-
-      // Replicar paridade com pasta live
-      syncToLiveYardline();
-      updated = true;
-      log(`[Sync Success] ${commitsToPull} commit(s) incorporado(s) com sucesso.`);
-    } else {
-      log('[Sync] O repositório local já está atualizado com o GitHub.');
-    }
-
-    // 4. Se houver commits locais pendentes de push, fazer push
-    if (commitsToPush > 0) {
-      log(`[Sync] Encontrados ${commitsToPush} commit(s) locais pendentes. Enviando via git push origin ${BRANCH}...`);
-      await runGit(['push', REMOTE, BRANCH]);
-      log('[Sync Success] Push executado com sucesso.');
-      updated = true;
-    }
+    // Repository observation is deliberately separate from Antigravity implementation.
+    // NEVER integrate/stash/checkout/push dirty or unreviewed agent code automatically.
+    syncState.pendingReview = { remoteCommits: commitsToPull, localCommits: commitsToPush };
+    syncState.writePolicy = 'FETCH_ONLY; integration/commit/push require manual Team Leader review';
+    if (commitsToPull || commitsToPush) log(`[Review required] Remote=${commitsToPull}; local=${commitsToPush}. No automatic source mutation or push.`);
 
     // 5. Ler último commit local
     const { stdout: headLog } = await runGit(['log', '-n', '1', '--format=%h|%s']);
@@ -199,15 +150,15 @@ async function runSyncCycle(isManual = false) {
     syncState.history.unshift({
       timestamp: syncState.lastSyncAt,
       type: isManual ? 'manual' : 'scheduled',
-      pulled: commitsToPull,
-      pushed: commitsToPush,
+      pulled: 0,
+      pushed: 0,
       commit: syncState.lastCommitHash,
       subject: syncState.lastCommitSubject
     });
     if (syncState.history.length > 20) syncState.history.length = 20;
 
     persistState();
-    return { ok: true, updated, pulled: commitsToPull, pushed: commitsToPush, commit: syncState.lastCommitHash };
+    return { ok: true, updated, pulled: 0, pushed: 0, commit: syncState.lastCommitHash };
   } catch (err) {
     syncState.status = 'error';
     syncState.consecutiveErrors += 1;

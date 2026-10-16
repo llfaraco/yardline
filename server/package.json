@@ -7,13 +7,17 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "DATABASE_PATH=:memory: node --test test/**/*.test.js"
+    "test": "DATABASE_PATH=:memory: node --test test/**/*.test.js",
+    "monitor:once": "node scripts/run-hourly-monitor.js",
+    "monitor:continuous": "node scripts/run-hourly-monitor.js --continuous",
+    "handoff": "node scripts/agent-handoff.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
-    "express": "^5.3.0"
-  },
-  "devDependencies": {
+    "express": "^5.3.0",
     "jsdom": "^29.1.1"
+  },
+  "engines": {
+    "node": ">=22.13.0"
   }
 }
