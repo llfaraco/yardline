@@ -222,7 +222,8 @@ export const newsService = {
     rosterPlayerIds = null,
     limit = 20,
     offset = 0,
-    includeAthletes = true
+    includeAthletes = true,
+    leagueContext = null
   } = {}) {
     let sql = "SELECT DISTINCT n.* FROM news_items n";
     const conditions = ["n.status = 'published'"];
@@ -291,6 +292,7 @@ export const newsService = {
           sleeperId: p.sleeperId || (p.id.length <= 6 ? p.id : null),
           espnId: p.espnId || null
         })),
+        leagueContext,
         provenance: createDataStatusDTO({
           status: DATA_STATUS.OFFICIAL,
           source: item.source,

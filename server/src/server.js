@@ -808,7 +808,13 @@ app.get('/api/news', (req, res) => {
       rosterPlayerIds,
       limit: parseInt(limit, 10) || 20,
       offset: parseInt(offset, 10) || 0,
-      includeAthletes: true
+      includeAthletes: true,
+      leagueContext: {
+        leagueId: leagueId ? String(leagueId) : null,
+        week: Number.isInteger(Number(week)) ? Number(week) : null,
+        rosterId: rosterId ? Number(rosterId) : null,
+        filter: filter || 'ALL'
+      }
     });
 
     res.json(news);

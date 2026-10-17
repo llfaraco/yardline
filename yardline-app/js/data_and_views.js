@@ -16,9 +16,14 @@ if (typeof window !== "undefined" && !window.esc) {
   window.esc = esc;
 }
 
-const YL_API_BASE = (typeof window !== "undefined" && (window.YL_API_BASE || (window.YL_CONFIG && window.YL_CONFIG.apiBaseUrl)))
-  || (typeof YL_BACKEND_URL !== "undefined" && YL_BACKEND_URL)
-  || ((typeof window !== "undefined" && window.location && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) ? "http://127.0.0.1:3001/api" : "/api");
+const YL_API_BASE = (() => {
+  const configured = (typeof window !== "undefined" && (window.YL_API_BASE || (window.YL_CONFIG && window.YL_CONFIG.apiBaseUrl)))
+    || (typeof YL_BACKEND_URL !== "undefined" && YL_BACKEND_URL)
+    || ((typeof window !== "undefined" && window.location && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) ? "http://127.0.0.1:3001/api" : "/api");
+  const value = String(configured).replace(/\/+$/, '');
+  return /\/api$/i.test(value) ? value : `${value}/api`;
+})();
+if (typeof window !== "undefined") window.YL_API_BASE = YL_API_BASE;
 
 const CANONICAL_SLEEPER_TO_ESPN = {
   "7523": "4360310", // Trevor Lawrence (JAX)
@@ -401,6 +406,7 @@ function renderEmptyPlayerNews() {
 // 1. HOME TAB: NOTÍCIAS CONECTADAS AO ELENCO & CANONICAL API
 // ==========================================
 let YL_LIVE_NEWS_CACHE = null;
+let YL_NEWS_FETCH_STATE = 'pending';
 
 function formatTimeAgo(isoString) {
   try {
@@ -419,11 +425,11 @@ function formatTimeAgo(isoString) {
 
 async function fetchLiveNews() {
   try {
-    const apiBase = (typeof YL_API_BASE !== "undefined" && YL_API_BASE) || "http://127.0.0.1:3001/api";
+    const apiBase = YL_API_BASE;
     const res = await fetch(`${apiBase}/news?limit=40`, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (Array.isArray(data) && data.length > 0) {
+    if (Array.isArray(data)) {
       const incoming = data.map(item => ({
         id: item.id,
         source: item.source || 'NFL.com',
@@ -431,38 +437,29 @@ async function fetchLiveNews() {
         sourceColor: (item.source || '').includes('Yahoo') ? '#6001D2' : ((item.source || '').includes('ESPN') ? '#CC0000' : '#013369'),
         category: item.category || 'Geral',
         isBreaking: item.category === 'breaking' || item.title?.toLowerCase().includes('urgente') || false,
-        timeAgo: item.published_at ? formatTimeAgo(item.published_at) : 'Hoje',
+        timeAgo: item.publishedAt || item.published_at ? formatTimeAgo(item.publishedAt || item.published_at) : 'Data indisponível',
         author: item.author || (item.source + ' Intel'),
-        headline: item.title,
+        headline: item.title || 'Título indisponível',
         summary: item.summary || '',
         heroImg: item.image_url || 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nfl.png&w=350&h=254',
         linkedPlayers: (item.linkedPlayers || []).map(p => String(p.id || p.sleeperId || p.espnId)),
         _linkedAthleteObjects: item.linkedPlayers || [],
-        fullBody: [item.summary, 'Publicação oficial e canônica verificada pela YARDLINE Intelligence Network.']
+        linkedTeams: item.linkedTeams || [],
+        canonicalUrl: item.canonicalUrl || item.canonical_url || null,
+        leagueContext: item.leagueContext || null,
+        provenance: item.provenance || null,
+        fullBody: [item.summary].filter(Boolean)
       }));
 
-      // Preservar base rica de notícias canônicas e unir com feeds em tempo real
-      const baseArticles = (typeof YL_NFL_NEWS_DATABASE !== "undefined" && Array.isArray(YL_NFL_NEWS_DATABASE)) ? YL_NFL_NEWS_DATABASE : [];
-      const mergedMap = new Map();
-      baseArticles.forEach(a => mergedMap.set(a.headline, a));
-      incoming.forEach(a => {
-        if (!mergedMap.has(a.headline)) {
-          mergedMap.set(a.headline, a);
-        } else {
-          const ex = mergedMap.get(a.headline);
-          if (ex.linkedPlayers && ex.linkedPlayers.length > 0 && (!a.linkedPlayers || a.linkedPlayers.length === 0)) {
-            a.linkedPlayers = ex.linkedPlayers;
-            a._linkedAthleteObjects = ex._linkedAthleteObjects;
-          }
-          mergedMap.set(a.headline, a);
-        }
-      });
-
-      YL_LIVE_NEWS_CACHE = Array.from(mergedMap.values());
-      renderHomeView();
+      YL_LIVE_NEWS_CACHE = incoming;
     }
+    YL_NEWS_FETCH_STATE = 'synced';
+    renderHomeView();
   } catch (err) {
-    console.warn('[YARDLINE NEWS] Utilizando base canônica inicial:', err.message);
+    YL_NEWS_FETCH_STATE = 'unavailable';
+    YL_LIVE_NEWS_CACHE = [];
+    console.warn('[YARDLINE NEWS] Backend indisponível; conteúdo estático não será apresentado:', err.message);
+    renderHomeView();
   }
 }
 
@@ -474,9 +471,7 @@ function renderHomeView() {
   const container = document.getElementById("view-home");
   if (!container) return;
 
-  const currentDatabase = (Array.isArray(YL_LIVE_NEWS_CACHE) && YL_LIVE_NEWS_CACHE.length > 0)
-    ? YL_LIVE_NEWS_CACHE
-    : (typeof YL_NFL_NEWS_DATABASE !== "undefined" ? YL_NFL_NEWS_DATABASE : []);
+  const currentDatabase = Array.isArray(YL_LIVE_NEWS_CACHE) ? YL_LIVE_NEWS_CACHE : [];
 
   const myRosterIds = getActiveRosterPlayerIds();
   const opponentIds = getOpponentRosterPlayerIds();
@@ -569,11 +564,12 @@ function renderHomeView() {
     <div class="grid-2">
       ${filtered.length === 0 ? `
         <div class="yl-card" style="grid-column:1/-1;padding:32px;text-align:center;">
-          <strong style="font-size:15px;color:var(--yl-navy);">Nenhuma notícia encontrada para este filtro.</strong>
-          <p style="color:var(--text-muted);margin-top:6px;font-size:13px;">Selecione 'Todas da NFL' ou sincronize novas publicações.</p>
+          <strong style="font-size:15px;color:var(--yl-navy);">${YL_NEWS_FETCH_STATE === 'unavailable' ? 'Feed jornalístico indisponível.' : 'Nenhuma notícia encontrada para este filtro.'}</strong>
+          <p style="color:var(--text-muted);margin-top:6px;font-size:13px;">${YL_NEWS_FETCH_STATE === 'unavailable' ? 'A API Yardline não respondeu; nenhum conteúdo local foi apresentado como se fosse oficial.' : YL_NEWS_FETCH_STATE === 'pending' ? 'Aguardando resposta da API Yardline.' : 'Selecione outro filtro ou aguarde nova ingestão editorial.'}</p>
         </div>
       ` : filtered.map(art => {
         const pids = art.linkedPlayers || [];
+        const teamCodes = [...new Set((art.linkedTeams || []).map(t => t.code || t.team || t.name).filter(Boolean))];
         return `
           <div class="yl-card" style="display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;" onclick="openArticleModal('${art.id}')">
             <div>
@@ -630,9 +626,9 @@ function renderHomeView() {
               </div>
             </div>
 
-            <div style="padding:10px 18px;border-top:1px solid var(--border-box);background:var(--bg-subtle);display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:11.5px;color:var(--text-muted);">${art.source}</span>
-              <span style="font-size:12px;color:var(--yl-crimson);font-weight:500;">Ler Matéria Completa →</span>
+            <div style="padding:10px 18px;border-top:1px solid var(--border-box);background:var(--bg-subtle);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <span style="font-size:11.5px;color:var(--text-muted);">${esc(art.source)} · ${teamCodes.length ? `franquias: ${teamCodes.map(esc).join(', ')}` : 'franquia não vinculada'} · ${art.leagueContext ? `liga #${esc(art.leagueContext.leagueId)} · sem. ${esc(art.leagueContext.week)}` : 'contexto de liga indisponível'}</span>
+              ${art.canonicalUrl ? `<a href="${esc(art.canonicalUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="font-size:12px;color:var(--yl-crimson);font-weight:500;">Fonte canônica ↗</a>` : '<span class="badge badge-amber">URL canônica indisponível</span>'}
             </div>
           </div>
         `;
@@ -642,11 +638,9 @@ function renderHomeView() {
 }
 
 function openArticleModal(articleId) {
-  const currentDatabase = (Array.isArray(YL_LIVE_NEWS_CACHE) && YL_LIVE_NEWS_CACHE.length > 0)
-    ? YL_LIVE_NEWS_CACHE
-    : (typeof YL_NFL_NEWS_DATABASE !== "undefined" ? YL_NFL_NEWS_DATABASE : []);
+  const currentDatabase = Array.isArray(YL_LIVE_NEWS_CACHE) ? YL_LIVE_NEWS_CACHE : [];
 
-  const art = currentDatabase.find(article => String(article.id) === String(articleId)) || (typeof YL_NFL_NEWS_DATABASE !== "undefined" ? YL_NFL_NEWS_DATABASE.find(a => String(a.id) === String(articleId)) : null);
+  const art = currentDatabase.find(article => String(article.id) === String(articleId));
   if (!art) {
     if (typeof showToast === "function") showToast("Notícia não encontrada ou removida.");
     return;

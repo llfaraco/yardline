@@ -335,6 +335,7 @@ export function createNewsItemDTO(raw = {}) {
     status: raw.status ?? 'published',
     relevanceScore: raw.relevanceScore ?? raw.relevance_score ?? null,
     linkedPlayers: Array.isArray(raw.linkedPlayers) ? raw.linkedPlayers : [],
+    linkedTeams: Array.isArray(raw.linkedTeams) ? raw.linkedTeams : [...new Map((Array.isArray(raw.linkedPlayers) ? raw.linkedPlayers : []).filter(p => p?.team).map(p => [String(p.team), { code: String(p.team), name: p.teamName ?? null }])).values()],
     leagueContext: raw.leagueContext ?? null,
     ...contractMetadata(raw, provenance, { source: raw.source || 'news_feed' }),
     provenance,
