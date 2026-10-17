@@ -4178,6 +4178,69 @@ window.toggleSidebarGroup=function(key){
     const container = document.getElementById("view-league");
     if (!container) return;
 
+    // Fonte de verdade: o matchup hidratado pelo backend/Sleeper. O bloco legado
+    // abaixo contém fixtures históricas da Semana 6 e nunca deve sobrescrever
+    // rosters, jogadores, placares ou status oficiais em produção.
+    const liveMatchup = window.activeRealMatchup || (typeof activeRealMatchup !== 'undefined' ? activeRealMatchup : null);
+    if (liveMatchup?.myRoster && liveMatchup?.oppRoster) {
+      const liveRows = Array.isArray(liveMatchup.snapshot?.players) ? liveMatchup.snapshot.players : [];
+      const liveByRoster = rosterId => new Map(
+        liveRows.filter(row => Number(row.roster_id) === Number(rosterId))
+          .map(row => [String(row.player_id), row])
+      );
+      const liveTeam = roster => LEAGUE_16_STANDINGS.find(team => Number(team.rosterId) === Number(roster?.roster_id))
+        || LEAGUE_12_TEAMS?.find(team => Number(team.rosterId) === Number(roster?.roster_id))
+        || { name: `Roster #${roster?.roster_id ?? '—'}`, owner: '', record: '' };
+      const livePlayer = (id, row) => {
+        const resolved = resolveMatchupPlayer(String(id));
+        return {
+          ...resolved,
+          id: String(id),
+          name: row?.name || resolved.name || `Jogador ${id}`,
+          pos: row?.position || resolved.pos || '—',
+          team: resolved.team || '—',
+          photo: row?.photoUrl || resolved.photo || '',
+          points: Number.isFinite(Number(row?.points)) ? Number(row.points) : null,
+          projected: Number.isFinite(Number(row?.projected_points)) ? Number(row.projected_points) : null,
+          status: row?.status || resolved.status || 'Status não informado'
+        };
+      };
+      const liveRosterRows = roster => {
+        const byId = liveByRoster(roster.roster_id);
+        return (roster.starters || []).map((id, index) => {
+          const row = byId.get(String(id));
+          const player = livePlayer(id, row);
+          return { player, slot: ROSTER_SLOTS_DEF?.[index]?.label || player.pos || '—' };
+        });
+      };
+      const renderLivePlayer = (entry, alignRight = false) => {
+        const p = entry.player;
+        const hasOfficial = p.points !== null;
+        const value = hasOfficial ? p.points : p.projected;
+        const label = hasOfficial ? 'oficial' : p.projected !== null ? 'proj.' : 'indisponível';
+        return `<div class="yl-matchup-player-wrap ${alignRight ? 'align-right' : ''}" onclick="openPlayerDossierModal('${esc(p.id)}')">
+          ${alignRight ? '' : `<img class="yl-matchup-player-photo" src="${esc(p.photo)}" alt="${esc(p.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">`}
+          <div class="yl-matchup-player-info" style="text-align:${alignRight ? 'right' : 'left'}">
+            <div class="yl-matchup-player-name">${alignRight ? '' : ''}${esc(p.name)} <span style="font-size:11px;color:var(--text-muted);font-weight:400;">${esc(p.team)}</span></div>
+            <div class="yl-matchup-player-meta" style="font-size:11px;color:var(--text-muted);">${esc(p.status || 'Status não informado')}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px;"><span class="badge badge-navy" style="font-size:9px;padding:0 4px;">${esc(entry.slot)}</span></div>
+          </div>
+          <div class="yl-matchup-player-score" style="text-align:${alignRight ? 'left' : 'right'}"><strong class="mono" style="font-size:15px;color:var(--yl-navy);">${value === null ? '—' : formatMatchupNumber(value)}</strong><div style="font-size:9.5px;color:var(--text-muted);">${label}</div></div>
+          ${alignRight ? `<img class="yl-matchup-player-photo" src="${esc(p.photo)}" alt="${esc(p.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">` : ''}
+        </div>`;
+      };
+      const myTeam = liveTeam(liveMatchup.myRoster);
+      const oppTeam = liveTeam(liveMatchup.oppRoster);
+      const myEntries = liveRosterRows(liveMatchup.myRoster);
+      const oppEntries = liveRosterRows(liveMatchup.oppRoster);
+      const officialStatus = liveRows.some(row => row.points !== null && row.points !== undefined) ? 'Pontuação oficial disponível' : 'Pontuação oficial ainda não publicada pelo Sleeper';
+      const initials = name => String(name).split(/\s+/).map(word => word[0]).join('').slice(0, 2).toUpperCase() || '—';
+      container.innerHTML = `<div class="yl-card" style="padding:16px 20px;margin-bottom:16px;background:#fff"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><span class="badge badge-green">SLEEPER · SNAPSHOT OFICIAL</span><h2 style="font-size:22px;font-weight:700;color:var(--yl-navy);margin-top:6px">${esc(activeSleeperLeagueData?.name || 'Minha Liga')}</h2><div style="font-size:12px;color:var(--text-muted);margin-top:2px">Semana ${esc(typeof activeLeagueWeek !== 'undefined' ? activeLeagueWeek : '—')} · ${esc(officialStatus)}</div></div><button class="btn-yl btn-primary" onclick="syncRealSleeperLeagueLive().catch(err => showToast(err.message || 'Falha ao sincronizar'))">↻ Atualizar Sleeper</button></div></div>
+        <div class="yl-matchup-hero"><div class="yl-matchup-hero__top"><span class="badge badge-crimson">CONFRONTO OFICIAL</span><span style="font-size:12px;opacity:.85">${esc(officialStatus)}</span></div><div class="yl-matchup-hero__teams"><div class="yl-matchup-team-card team-left"><div class="yl-matchup-team-card__logo">${esc(initials(myTeam.name))}</div><div><h3 style="font-size:18px;font-weight:700;margin:0">${esc(myTeam.name)}</h3><div style="font-size:12px;opacity:.8;margin-top:2px">${esc(myTeam.owner || '')}</div><div class="mono" style="font-size:26px;font-weight:700;color:#38BDF8;margin-top:6px">${formatMatchupNumber(liveMatchup.myScore)} <span style="font-size:12px;opacity:.8;font-weight:400">pts oficiais</span></div></div></div><div class="yl-matchup-vs-badge"><div style="background:rgba(255,255,255,.12);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800">VS</div></div><div class="yl-matchup-team-card team-right"><div class="yl-matchup-team-card__logo logo-opponent">${esc(initials(oppTeam.name))}</div><div><h3 style="font-size:18px;font-weight:700;margin:0">${esc(oppTeam.name)}</h3><div style="font-size:12px;opacity:.8;margin-top:2px">${esc(oppTeam.owner || '')}</div><div class="mono" style="font-size:26px;font-weight:700;color:#CBD5E1;margin-top:6px">${formatMatchupNumber(liveMatchup.oppScore)} <span style="font-size:12px;opacity:.8;font-weight:400">pts oficiais</span></div></div></div></div></div>
+        <div class="yl-card" style="padding:20px 22px;margin-bottom:20px"><span class="badge badge-crimson">TITULARES LADO A LADO</span><h3 style="font-size:17px;font-weight:700;color:var(--yl-navy);margin-top:4px">Slots oficiais do roster Sleeper</h3><div style="font-size:12px;color:var(--text-muted);margin:4px 0 14px">Clique em qualquer atleta para abrir o dossiê. Dados ausentes permanecem como “—”; nenhum mock é exibido como oficial.</div><div style="overflow-x:auto"><table class="yl-matchup-starters-table"><thead><tr><th style="text-align:left;padding:6px 12px;width:45%">${esc(myTeam.name)}</th><th style="text-align:center;padding:6px 4px;width:10%">Slot</th><th style="text-align:right;padding:6px 12px;width:45%">${esc(oppTeam.name)}</th></tr></thead><tbody>${Array.from({length:Math.max(myEntries.length, oppEntries.length)}, (_, index) => `<tr class="yl-matchup-slot-row"><td class="yl-matchup-slot-cell">${myEntries[index] ? renderLivePlayer(myEntries[index]) : '—'}</td><td class="yl-matchup-slot-center"><span class="yl-matchup-slot-badge slot-badge-offense">${esc(myEntries[index]?.slot || oppEntries[index]?.slot || '—')}</span></td><td class="yl-matchup-slot-cell">${oppEntries[index] ? renderLivePlayer(oppEntries[index], true) : '—'}</td></tr>`).join('')}</tbody></table></div></div>`;
+      return;
+    }
+
     const activeMatchupId = window.selectedLeagueMatchupId || 7;
     const currentMatchup = WEEK6_ALL_MATCHUPS.find(m => m.id === activeMatchupId) || WEEK6_ALL_MATCHUPS[6];
 
