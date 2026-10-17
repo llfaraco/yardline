@@ -946,6 +946,8 @@ function simulateWaiverAddition(claimedPlayerId) {
 // League ID: 1369770282776006656 · Time: Gengar My Balls (@Faraco)
 // ==========================================
 const REAL_SLEEPER_LEAGUE_ID = "1369770282776006656";
+// Identidade informada para a liga configurada no Yardline; não é aplicada a outras ligas.
+const REAL_SLEEPER_USERNAME = "Faraco";
 let activeNflState = null;
 let activeLeagueWeek = 6;
 let activeSleeperLeagueData = null;
@@ -2166,7 +2168,9 @@ if (typeof window !== 'undefined') {
         ownerName: r.ownerName, players: r.players, starters: r.starters, reserve: r.reserve, taxi: r.taxi, settings: r.settings }));
       const shellUserLabel = document.getElementById('topbar-user-pill')?.textContent || '';
       const shellUser = shellUserLabel.match(/@([A-Za-z0-9_]+)/)?.[1] || null;
-      const wanted = (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
+      const configuredOwner = String(id) === REAL_SLEEPER_LEAGUE_ID ? REAL_SLEEPER_USERNAME : null;
+      const wanted = configuredOwner
+        || (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
         || localStorage.getItem('yl_sleeper_username') || shellUser || null;
       let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
       if (!ownerId && wanted) {
