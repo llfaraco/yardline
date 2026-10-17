@@ -5,7 +5,7 @@ import { REPO_ROOT } from './orchestration-store.js';
 
 const DOCUMENTS = {
   audit: { path: 'docs/fantasypros-bijan-yardline-audit.md', title: 'FantasyPros · Bijan Robinson — auditoria externa', endpoint: 'player-dossier/audit' },
-  handoff: { path: 'docs/player-dossier-team-leader-handoff.md', title: 'Dossier profundo — Team Leader → Antigravity', endpoint: 'player-dossier/handoff' }
+  handoff: { path: 'docs/player-dossier-team-leader-handoff.md', title: 'Dossier profundo — Team Leader Manus', endpoint: 'player-dossier/handoff' }
 };
 
 export function playerDossierReference() {

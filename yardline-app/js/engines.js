@@ -2329,11 +2329,19 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
 
   function render(p,season,rows,news,error) {
     const raw = rawOf(p.id), depth = depthFor(p), color = teamColors[p.team] || '#C00000', dto = p;
-    const m = p.metrics, pc = rosterPerc(p.id), projDisplay = num(m.projectedPoints);
+    const m = p.metrics || {}, pc = rosterPerc(p.id), projDisplay = num(m.projectedPoints);
     const member = p.rosterContext.find(r => r.rosterId === selectedActiveRosterId);
     const isMyPlayer = Boolean(member && userRealRoster);
     const ownerTag = isMyPlayer ? 'Seu elenco' : p.rosterContext.length ? 'Rosterizado nesta liga' : window.YL_SHELL_SNAPSHOT?.rosters?.length ? 'Não rosterizado nesta liga' : 'Disponibilidade não validada';
     const validRows = rows.filter(row => window.YardlinePlayerCard.numberOrNull(row.fpts) !== null);
+    // Pontos oficiais do matchup também são produção observada quando stats brutos
+    // ainda não foram publicados; ausência continua sendo null, nunca zero.
+    const officialPoints = validRows.map(row => window.YardlinePlayerCard.numberOrNull(row.fpts)).filter(value => value !== null);
+    const observedTotal = officialPoints.length ? Number(officialPoints.reduce((sum, value) => sum + value, 0).toFixed(2)) : null;
+    const observedPpg = officialPoints.length ? Number((observedTotal / officialPoints.length).toFixed(2)) : null;
+    const observedPointsPerGame = m.pointsPerGame ?? observedPpg;
+    const observedTotalPoints = m.totalPoints ?? observedTotal;
+    const officialHistoryNote = officialPoints.length && m.pointsPerGame == null ? ` · ${officialPoints.length} semana(s) oficial(is) reconciliada(s) do matchup` : '';
     const sumStat = key => {
       const values = rows.map(row => window.YardlinePlayerCard.numberOrNull(row.stats?.[key])).filter(value => value !== null);
       return values.length ? values.reduce((sum,value) => sum + value,0) : null;
@@ -2436,7 +2444,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
             <div class="fp-stat-boxes">
               <div class="fp-stat-box">
                 <small>PPG OBSERVADO*</small>
-                <strong>${num(m.pointsPerGame)}</strong>
+                <strong>${num(observedPointsPerGame)}</strong>
               </div>
               <div class="fp-stat-box">
                 <small>PROJ. ${esc(p.context.projectionFormat || '—')}</small>
@@ -2448,7 +2456,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
               </div>
               <div class="fp-stat-box">
                 <small>TOTAL OBSERVADO*</small>
-                <strong>${num(m.totalPoints)}</strong>
+                <strong>${num(observedTotalPoints)}</strong>
               </div>
               <div class="fp-stat-box">
                 <small>% ROSTERS DA LIGA</small>
@@ -2494,7 +2502,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
                   ${[0,1,2].map(offset => Number(p.context.season || season) - offset).map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}
                 </div>
               </div>
-              <p class="sleeper-empty">${esc(window.YardlinePlayerCard.provenance(p))}</p>
+              <p class="sleeper-empty">${esc(window.YardlinePlayerCard.provenance(p) + officialHistoryNote)}</p>
               ${error?`<p class="sleeper-empty" role="status">${esc(error)}</p>`:''}
               <div class="sleeper-table-wrap">
                 <table class="sleeper-log">

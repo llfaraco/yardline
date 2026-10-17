@@ -19,7 +19,7 @@
       </div>
 
       <nav class="cc-sidebar-nav">
-        <button class="cc-nav-item" data-tab="handoffs" onclick="window.ccStore.setTab('handoffs')"><span>Handoffs → Antigravity</span></button>
+        <button class="cc-nav-item" data-tab="handoffs" onclick="window.ccStore.setTab('handoffs')"><span>Fila de decisão · Team Leader Manus</span></button>
         <button class="cc-nav-item active" data-tab="dashboard" onclick="window.ccStore.setTab('dashboard')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
           <span>Dashboard Geral</span>
@@ -50,7 +50,7 @@
 
         <button class="cc-nav-item" data-tab="activity" onclick="window.ccStore.setTab('activity')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-          <span>Atividade dos Agentes</span>
+          <span>Atividade, Commits & Alterações</span>
         </button>
 
         <button class="cc-nav-item" data-tab="contracts" onclick="window.ccStore.setTab('contracts')">
@@ -76,8 +76,8 @@
     <main class="cc-main-container">
       <header class="cc-topbar">
         <div class="cc-topbar-left">
-          <span class="badge badge-purple">TEAM LEADER AUTÔNOMO</span>
-          <span style="font-size:12px;color:var(--cc-text-muted);">Polling read-only / 60 min · depende do runtime ativo; telemetria LIVE/STALE</span>
+          <span class="badge badge-purple">TEAM LEADER MANUS · AUTORIDADE ÚNICA</span>
+          <span style="font-size:12px;color:var(--cc-text-muted);">Ciclos reais / 60 min · telemetria LIVE/STALE · somente o Team Leader Manus altera código</span>
         </div>
         <div class="cc-topbar-right">
           <button class="btn-cc btn-cc-primary" onclick="window.ccStore.triggerSync().then(c => alert(c ? 'Ciclo real registrado: ' + c.cycleId + ' / ' + c.status + '. Aguardando evidência.' : 'Não foi possível iniciar ciclo. Verifique último erro.'))">

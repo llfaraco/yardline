@@ -30,7 +30,11 @@ O repositório é composto pelos seguintes subsistemas integrados:
 ├── sleeper-single-file.ts      # Standalone Sleeper Single File Stack (Porta 3000)
 │   └── sleeper-snapshot.json   # Cache snapshot da Neilo Pistola League
 │
-├── AUDITORIA-TECNICA-SLEEPER-LEAGUE-MATCHUP.md  # Blueprint técnico e regras de scoring
+├── docs/                         # Auditorias, planos, governança e implementação
+│   ├── audits/
+│   ├── plans/
+│   ├── governance/
+│   └── implementation/
 └── .gitignore
 ```
 
@@ -73,6 +77,6 @@ Acesse a SPA em: `http://localhost:3000/`
 - **Semana:** 6
 - **Time do Usuário:** Gengar My Balls (Roster 2 · Faraco)
 
-## Agent Command Center: polling real e handoffs Antigravity
+## Agent Command Center: telemetria real e decisão do Team Leader Manus
 
-O painel `/agent-command-center/` usa evidência real com LIVE/STALE, cadência e handoffs. Veja [o contrato operacional e os comandos](server/AGENT-ORCHESTRATION.md). Ciclo único: `cd server && npm run monitor:once`. Serviço declarado no runtime local: `npm run monitor:continuous`; não é uma garantia de execução persistente no sandbox. GitHub sync é fetch-only e nunca faz push automático de código sem revisão.
+O painel `/agent-command-center/` mostra ciclo, commit, atividade, QA, bugs, referências e alterações com estados `LIVE/STALE`. Veja [a documentação do painel](docs/README.md) e [o contrato operacional](server/AGENT-ORCHESTRATION.md). Ciclo único: `cd server && npm run monitor:once`. Serviço contínuo enquanto o runtime estiver ativo: `npm run monitor:continuous`. **Somente o Team Leader Manus autoriza e executa alterações de código**; observadores externos entregam evidências e não publicam.

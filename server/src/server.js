@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { loadPersistedCatalog, buildPlayerData, buildPlayerCards, leagueCardContext, buildPlayerHistory, numberOrNull } from './modules/players/player-card.service.js';
+import { loadPersistedCatalog, buildPlayerData, mergeOfficialMatchupData, buildPlayerCards, leagueCardContext, buildPlayerHistory, numberOrNull } from './modules/players/player-card.service.js';
 import { initDatabase, db } from './db/database.js';
 import { authService } from './modules/auth/auth.service.js';
 import { sleeperSyncService, normalizeSleeperPlayer, normalizeLeague, normalizeManager, normalizeRoster, normalizeMatchup, getPlayerPhoto, calculateManagerDna, CANONICAL_SLEEPER_TO_ESPN } from './modules/sleeper/sleeper.sync.js';
@@ -439,7 +439,8 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
     stats: { status: persistedMetricStatus.stats || (latestRun?.status === 'ERROR' ? 'failed' : hasObjectPayload(statsRows) ? 'available' : statsRows.length ? 'empty' : 'unavailable') },
     projections: { status: persistedMetricStatus.projections || (latestRun?.status === 'ERROR' ? 'failed' : projectionRows.some(row => Number.isFinite(Number(row.value))) ? 'available' : projectionRows.length ? 'empty' : 'unavailable') }
   };
-  const playerData = buildPlayerData(db, { season: league.season, week, seasonType: league.season_type, scoringSettings: parse(league.scoring_settings_json, {}), catalog });
+  const playerData = mergeOfficialMatchupData(db, { leagueId: league.id, season: league.season, week,
+    playerData: buildPlayerData(db, { season: league.season, week, seasonType: league.season_type, scoringSettings: parse(league.scoring_settings_json, {}), catalog }), catalog });
   const cardContext = leagueCardContext(league, week, dataStatus);
   cardContext.metricAvailability = metricAvailability;
   const shellRosters = rosters.map(r => ({ rosterId: r.provider_roster_id, ownerId: r.owner_id || null, ownerName: r.display_name,

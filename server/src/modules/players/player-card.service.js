@@ -62,6 +62,43 @@ export function buildPlayerData(database, { season, week, seasonType = 'regular'
   return data;
 }
 
+// O Sleeper pode disponibilizar o placar do matchup antes do box score bruto.
+// Para cards e dossiês, a pontuação da liga é a fonte oficial nesse intervalo.
+export function mergeOfficialMatchupData(database, { leagueId, season, week, playerData = {}, catalog = {} }) {
+  const rows = database.prepare(`
+    SELECT mp.player_id, m.week, mp.points, mp.projected_points
+    FROM matchup_players mp
+    JOIN matchups m ON m.id = mp.matchup_id
+    WHERE m.league_id=? AND m.season=? AND m.week<=?
+    ORDER BY m.week, mp.captured_at DESC
+  `).all(leagueId, String(season), Number(week));
+  const byPlayer = new Map();
+  for (const row of rows) {
+    const id = String(row.player_id), points = numberOrNull(row.points);
+    if (!catalog[id] || points === null) continue;
+    const current = byPlayer.get(id) || new Map();
+    if (!current.has(Number(row.week))) current.set(Number(row.week), { points, projectedPoints: numberOrNull(row.projected_points) });
+    byPlayer.set(id, current);
+  }
+  for (const [id, weeks] of byPlayer) {
+    const observed = [...weeks.values()];
+    const totalPoints = Number(observed.reduce((sum, row) => sum + row.points, 0).toFixed(2));
+    const currentWeek = weeks.get(Number(week));
+    const existing = playerData[id] || { points: null, totalPoints: null, observedWeeks: null, pointsPerGame: null, projectedPoints: null, projectionFormat: null, source: { points: null, projection: null } };
+    playerData[id] = {
+      ...existing,
+      points: currentWeek?.points ?? existing.points ?? null,
+      totalPoints,
+      observedWeeks: observed.length,
+      pointsPerGame: Number((totalPoints / observed.length).toFixed(2)),
+      projectedPoints: currentWeek?.projectedPoints ?? existing.projectedPoints ?? null,
+      projectionFormat: existing.projectionFormat || null,
+      source: { ...(existing.source || {}), points: 'sleeper_matchups', projection: currentWeek?.projectedPoints !== null && currentWeek?.projectedPoints !== undefined ? 'sleeper_matchups' : (existing.source?.projection || null) }
+    };
+  }
+  return playerData;
+}
+
 export function leagueCardContext(league, week, dataStatus = null) {
   return { leagueId: league.provider_league_id, season: String(league.season), week,
     seasonType: league.season_type || null, scoringFormat: 'LEAGUE',

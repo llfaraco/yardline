@@ -32,7 +32,7 @@ function renderPlayerDossierReference(store) {
     const href = `${store.apiBase || '/api/command-center'}/player-dossier/${kind === 'audit' ? 'audit' : 'handoff'}`;
     return `<p><strong>${esc(doc.title)}</strong> · ${esc(doc.status)}<br><code>${esc(doc.path)}</code>${doc.available ? ` · <a href="${esc(href)}" target="_blank" rel="noopener noreferrer">Ler documento versionado</a>` : ' · Arquivo não fornecido; não inventar observações.'}</p>`;
   }).join('');
-  return `<div class="cc-card"><div class="cc-card-header"><strong>Bijan Robinson · contrato do dossier profundo</strong><span class="badge badge-amber">Team Leader → Antigravity</span></div>
+  return `<div class="cc-card"><div class="cc-card-header"><strong>Bijan Robinson · contrato do dossier profundo</strong><span class="badge badge-amber">Team Leader Manus · referência externa somente</span></div>
     ${documents}<p>Classificação da referência: <strong>OBSERVED / INFERRED / NOT_VERIFIABLE</strong>. Disponibilidade do relatório não é PASS atual de Yardline.</p>
     <p><strong>Oito contextos esperados:</strong> ${(contract.requiredTabs || []).map(esc).join(' · ')}. Equivalentes combinados explícitos podem compartilhar uma aba; QA registra os botões reais.</p>
     <p><strong>Mescla:</strong> sidebar de liga/roster/jogadores recentes, hero, tabs, sentiment explicável, expert note, logs e stats. Sleeper = liga/roster/scoring; Yardline = cálculos; NFL/Yahoo = editorial.</p>
@@ -75,7 +75,7 @@ function renderAgentsView(store) {
     <input class="cc-search-input" placeholder="Buscar agente/mission..." value="${esc(store.agentSearch)}" oninput="window.ccStore.agentSearch=this.value;window.ccStore.notify()">
     <select class="cc-select" onchange="window.ccStore.agentStatusFilter=this.value;window.ccStore.notify()">${['ALL','WORKING','BLOCKED','NEEDS_REVIEW','WAITING_DEPENDENCY'].map(status => `<option ${status === store.agentStatusFilter ? 'selected' : ''}>${status}</option>`).join('')}</select>
     <span>Estado de execução ≠ QA. COMPLETED não é estado de ciclo contínuo.</span>
-  </div><div class="cc-table-container"><table class="cc-table"><thead><tr><th>Agente / mission</th><th>Agente / freshness</th><th>QA</th><th>Cadência / referência</th><th>Handoffs / Antigravity</th><th>Última execução / erro</th><th>Evidência</th></tr></thead><tbody>
+  </div><div class="cc-table-container"><table class="cc-table"><thead><tr><th>Agente / mission</th><th>Agente / freshness</th><th>QA</th><th>Cadência / referência</th><th>Handoffs / decisão Manus</th><th>Última execução / erro</th><th>Evidência</th></tr></thead><tbody>
   ${filtered.map(a => `<tr>
     <td><strong>${esc(a.name)}</strong><div>${esc(a.currentTask)}</div><small>Próximo: ${esc(a.nextAction)}</small></td>
     <td><span class="badge ${a.status === 'BLOCKED' ? 'badge-red' : 'badge-blue'}">${esc(a.status)}</span><br><span class="badge ${a.liveState === 'LIVE' ? 'badge-blue' : 'badge-amber'}">${esc(a.liveState)}</span></td>
@@ -230,9 +230,9 @@ function renderReferencesView(store) {
 function renderHandoffsView(store, compact = false) {
   const rows = (store.handoffs || []).filter(h => !compact || !['VERIFIED', 'RETRACTED'].includes(h.status));
   const retracted = (store.handoffs || []).filter(h => h.status === 'RETRACTED');
-  return `${renderPlayerDossierReference(store)}<div class="cc-card"><div class="cc-card-header"><strong>Fila Team Leader → Antigravity</strong><span class="badge badge-amber">${rows.length} handoffs ${compact ? 'ativos' : 'registrados'}</span></div>
+  return `${renderPlayerDossierReference(store)}<div class="cc-card"><div class="cc-card-header"><strong>Fila de decisão do Team Leader Manus</strong><span class="badge badge-amber">${rows.length} handoffs ${compact ? 'ativos' : 'registrados'}</span></div>
     <p>${retracted.length} falso(s) positivo(s) RETRACTED, com evidência/histórico preservados e fora da distribuição ativa. Não são correções VERIFIED de produto.</p>
-    <p>ACK → IN_PROGRESS → VERIFIED exige QA fresco do check exato. Sem auto-implementação, auto-resolved ou auto-push. API de escrita: ${esc(store.orchestration?.handoffWriteAPI || 'Não verificada')}.</p>
+    <p>ACK → IN_PROGRESS → VERIFIED exige QA fresco do check exato. Sem auto-implementação, auto-resolved ou auto-push; toda alteração é autorizada e executada pelo Team Leader Manus. API de escrita: ${esc(store.orchestration?.handoffWriteAPI || 'Não verificada')}.</p>
     ${(compact ? rows.slice(0, 8) : rows).map(h => `<div class="cc-handoff-row"><strong>${esc(h.priority)} · ${esc(h.title)}</strong><span class="badge badge-gray">${esc(h.status)}</span>${h.reopenedCount ? `<span class="badge badge-amber">REABERTO ${esc(h.reopenedCount)}x</span>` : ''}<p>${esc(h.sourceAgent)} → ${esc(h.targetAgent)}</p><p>${esc(h.observed)}</p><small>${formatDate(h.updatedAt)} · ${esc(h.lastSeenCycleId)}</small><button class="btn-cc btn-cc-outline" onclick="window.ccStore.openItem('handoff','${esc(h.id)}')">Reprodução / evidência</button></div>`).join('') || '<p>Sem handoffs registrados; não implica QA aprovado.</p>'}
   </div>`;
 }
@@ -244,7 +244,7 @@ function renderActivityView(store) {
   return `
     <div class="cc-card">
       <div class="cc-card-header">
-        <div class="cc-card-title">Feed de Eventos e Comunicação Operacional</div>
+        <div><div class="cc-card-title">Feed de Eventos, Commits e Alterações Operacionais</div><div style="font-size:11px;color:var(--cc-text-muted);margin-top:3px;">Atualização automática a cada 15s enquanto esta página estiver aberta. O ciclo e o commit só são considerados reais quando aparecem na telemetria do backend.</div></div>
         <span class="badge badge-blue">${act.length} EVENTOS REGISTRADOS</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px;">
@@ -389,7 +389,7 @@ function renderModalContent(store) {
       </div>
       <div class="cc-modal-body" style="font-size:12.5px;display:flex;flex-direction:column;gap:12px;">
         <div><strong>Status Atual:</strong> <span class="badge badge-blue">${esc(item.status)}</span> · ${esc(item.liveState)} · QA ${esc(item.qaResult)}</div>
-        <div><strong>Tarefa em Execução:</strong> ${esc(item.currentTask)}</div><div><strong>Cadência / Antigravity:</strong> ${esc(item.cadenceMinutes)} min · ${esc(item.handoffTo)}</div><div><strong>Último erro:</strong> ${esc(item.lastError || '—')}</div>
+        <div><strong>Tarefa em Execução:</strong> ${esc(item.currentTask)}</div><div><strong>Cadência / autoridade Manus:</strong> ${esc(item.cadenceMinutes)} min · ${esc(item.handoffTo)}</div><div><strong>Último erro:</strong> ${esc(item.lastError || '—')}</div>
         <div><strong>Arquivos Alterados:</strong> ${item.filesModified.map(f => `<code style="display:block;margin-top:2px;">${esc(f)}</code>`).join('')}</div>
         <div><strong>Testes Executados:</strong> ${item.testsRun.map(t => `<div>${esc(t)}</div>`).join('')}</div>
         <div><strong>Evidência Auditada:</strong> <div style="background:#0b1120;padding:8px;border-radius:4px;margin-top:4px;color:#e2e8f0;">${esc(item.evidence || 'Nenhuma')}</div></div>
