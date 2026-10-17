@@ -19,17 +19,18 @@ class SleeperConnector {
       throw new Error(`[SleeperConnector] Circuit breaker ativo. Tente novamente em alguns segundos.`);
     }
 
+    const { timeoutMs = this.timeoutMs, maxRetries = this.maxRetries, ...fetchOptions } = options;
     const url = `${SLEEPER_BASE_URL}${endpoint}`;
     let attempt = 0;
 
-    while (attempt < this.maxRetries) {
+    while (attempt < maxRetries) {
       attempt++;
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         const res = await fetch(url, {
-          ...options,
+          ...fetchOptions,
           signal: controller.signal,
           headers: {
             'Accept': 'application/json',
@@ -65,7 +66,7 @@ class SleeperConnector {
 
         throw new Error(`Sleeper API respondeu com status ${res.status}: ${res.statusText}`);
       } catch (err) {
-        if (attempt >= this.maxRetries) {
+        if (attempt >= maxRetries) {
           this.consecutiveFailures++;
           if (this.consecutiveFailures >= 5) {
             this.circuitOpenUntil = Date.now() + 30000; // Abre circuito por 30 segundos
@@ -112,7 +113,8 @@ class SleeperConnector {
   }
 
   getPlayersCatalog() {
-    return this.request('/players/nfl');
+    // O catálogo público é grande e pode ultrapassar 10 MB; não bloquear as rotas comuns.
+    return this.request('/players/nfl', { timeoutMs: 90000, maxRetries: 1 });
   }
 
   getNflStats(season, week) {

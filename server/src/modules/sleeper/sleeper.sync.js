@@ -8,6 +8,7 @@ export { normalizeSleeperPlayer };
 // Cache em memória para catálogo de jogadores da NFL (TTL 24 horas)
 let cachedPlayersCatalog = null;
 let cachedPlayersTimestamp = 0;
+let playersRefreshInFlight = null;
 const PLAYERS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 export const CANONICAL_SLEEPER_TO_ESPN = {
@@ -460,6 +461,36 @@ function recordSourceProvenance({ entityType, entityId, source = 'sleeper', stat
   `).run(id, entityType, entityId, source, status, isEstimate, confidence, capturedAt, capturedAt);
 }
 
+async function refreshPlayersCatalog(now = Date.now()) {
+  try {
+    console.log('[SleeperSync] Atualizando catálogo oficial de jogadores da NFL em background...');
+    const rawCatalog = await sleeperConnector.getPlayersCatalog();
+    if (!rawCatalog || typeof rawCatalog !== 'object' || Array.isArray(rawCatalog)) {
+      throw new Error('Catálogo retornado pelo Sleeper é inválido.');
+    }
+
+    const normalized = {};
+    for (const [id, rawP] of Object.entries(rawCatalog)) {
+      if (rawP && typeof rawP === 'object' && !Array.isArray(rawP) && (rawP.active || rawP.team || ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].includes(rawP.position))) {
+        const player = normalizeSleeperPlayer(id, rawP);
+        if (player) normalized[id] = player;
+      }
+    }
+    if (!Object.keys(normalized).length) throw new Error('Sleeper retornou catálogo vazio; snapshot anterior preservado.');
+
+    cachedPlayersCatalog = normalized;
+    cachedPlayersTimestamp = now;
+    persistCatalog(normalized, new Date(now).toISOString());
+    console.log(`[SleeperSync] Catálogo atualizado com ${Object.keys(normalized).length} jogadores elegíveis.`);
+    return normalized;
+  } catch (err) {
+    console.error('[SleeperSync] Falha no refresh do catálogo; dados persistidos preservados:', err.message);
+    const persisted = loadPersistedCatalog(db);
+    cachedPlayersCatalog = Object.fromEntries(Object.entries(persisted).map(([id, player]) => [id, { ...player, dataStatus: 'stale' }]));
+    return cachedPlayersCatalog;
+  }
+}
+
 
 // ========================================================
 // 3. SERVICE PRINCIPAL DE INTEGRAÇÃO SLEEPER
@@ -498,44 +529,28 @@ export const sleeperSyncService = {
     return sleeperConnector.getNFLState();
   },
 
-  // Catálogo completo de jogadores da NFL com cache em memória e banco (TTL 24h)
+  // Catálogo completo da NFL: entrega persistido imediatamente e atualiza do Sleeper em background.
   async getNflPlayers() {
     const now = Date.now();
-    if (cachedPlayersCatalog && (now - cachedPlayersTimestamp < PLAYERS_CACHE_TTL_MS)) {
+    const persisted = cachedPlayersCatalog || loadPersistedCatalog(db);
+    const hasPersisted = Object.keys(persisted).length > 0;
+    const fresh = cachedPlayersCatalog && (now - cachedPlayersTimestamp < PLAYERS_CACHE_TTL_MS);
+
+    if (fresh) return cachedPlayersCatalog;
+
+    if (hasPersisted) {
+      cachedPlayersCatalog ||= Object.fromEntries(Object.entries(persisted).map(([id, player]) => [id, { ...player, dataStatus: 'stale' }]));
+      cachedPlayersTimestamp = now;
+      if (!playersRefreshInFlight) {
+        playersRefreshInFlight = refreshPlayersCatalog(now).finally(() => { playersRefreshInFlight = null; });
+      }
       return cachedPlayersCatalog;
     }
 
-    try {
-      console.log('[SleeperSync] Consultando catálogo oficial de jogadores da NFL (5MB)...');
-      const rawCatalog = await sleeperConnector.getPlayersCatalog();
-      if (!rawCatalog || typeof rawCatalog !== 'object' || Array.isArray(rawCatalog)) {
-        throw new Error('Catálogo retornado pelo Sleeper é inválido.');
-      }
-
-      const normalized = {};
-      for (const [id, rawP] of Object.entries(rawCatalog)) {
-        if (rawP && typeof rawP === 'object' && !Array.isArray(rawP) && (rawP.active || rawP.team || ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].includes(rawP.position))) {
-          normalized[id] = normalizeSleeperPlayer(id, rawP);
-        }
-      }
-
-      const persisted = cachedPlayersCatalog || loadPersistedCatalog(db);
-      if (!Object.keys(normalized).length && Object.keys(persisted).length) {
-        // Empty is not a valid replacement for a previously loaded catalog.
-        cachedPlayersCatalog = Object.fromEntries(Object.entries(persisted).map(([id, player]) => [id, { ...player, dataStatus: 'stale' }]));
-        cachedPlayersTimestamp = now;
-        return cachedPlayersCatalog;
-      }
-      cachedPlayersCatalog = normalized;
-      cachedPlayersTimestamp = now;
-      persistCatalog(normalized, new Date(now).toISOString());
-      console.log(`[SleeperSync] Catálogo armazenado em cache com ${Object.keys(normalized).length} atletas ativos.`);
-      return normalized;
-    } catch (err) {
-      console.error('[SleeperSync Error] Falha ao carregar catálogo da NFL:', err.message);
-      const persisted = cachedPlayersCatalog || loadPersistedCatalog(db);
-      return Object.fromEntries(Object.entries(persisted).map(([id, player]) => [id, { ...player, dataStatus: 'stale' }]));
+    if (!playersRefreshInFlight) {
+      playersRefreshInFlight = refreshPlayersCatalog(now).finally(() => { playersRefreshInFlight = null; });
     }
+    return playersRefreshInFlight;
   },
 
   getCachedPlayer(id) {
