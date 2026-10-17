@@ -77,6 +77,22 @@ test('VERIFIED requires fresh passing exact-check evidence; recurrence reopens s
   assert.equal(verified.status, 'VERIFIED');
   const reopened = store.upsertHandoff(bug(), cycle()); assert.equal(reopened.action, 'REOPENED'); assert.equal(reopened.handoff.id, initial.id); assert.equal(reopened.handoff.status, 'OPEN');
 });
+test('Aggregate modal and dossier handoffs are retracted only when every granular check passes', t => {
+  const store = isolated(t); const cycleId = cycle();
+  const modal = { ...bug('qa.modal.all'), evidence: [{ modalId: 'aggregate-modal', ariaModal: false }] };
+  const dossier = { ...bug('qa.dossier'), evidence: [{ tabs: [], hydrated: false, modalOpen: false }] };
+  store.upsertHandoff(modal, cycleId); store.upsertHandoff(dossier, cycleId);
+  const tabs = ['latest-news', 'game-logs', 'season-stats', 'outlook', 'news-analysis', 'depth-chart', 'leagues', 'full-profile'].map(tab => ({ id: `qa.dossier.tab.${tab}`, status: 'PASS', evidence: { hydrated: true, modalOpen: true }, testedAt: isoNow() }));
+  const checks = [
+    ...['player-modal', 'article-reader-modal', 'onboarding-modal', 'lineup-swap-modal', 'waiver-modal', 'checkout-modal', 'manager-dna-modal', 'start-sit-modal'].map(id => ({ id: `qa.modal.${id}`, status: 'PASS', evidence: { closedAriaRemoved: true }, testedAt: isoNow() })),
+    ...tabs,
+    { id: 'qa.dossier.observed.sentiment', status: 'PASS', evidence: { observed: true }, testedAt: isoNow() },
+  ];
+  const corrections = store.reconcileHarnessFalsePositives(checks, cycleId);
+  assert.equal(corrections.length, 2);
+  assert.ok(store.handoffs().every(row => row.status === 'RETRACTED'));
+  assert.ok(store.handoffs().every(row => row.retraction.actor.includes('NOT product verification')));
+});
 test('External network failure is NOT_VERIFIABLE with evidence, never invented HTTP/PASS', async () => {
   let options;
   const { check } = await observeReference(config.referenceTargets.find(t => t.id === 'fantasypros.rankings'), config, { fetchImpl: async (_url, opts) => { options = opts; throw new Error('test-only network denied'); } });

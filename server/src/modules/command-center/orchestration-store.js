@@ -112,13 +112,21 @@ export class OrchestrationStore {
   reconcileHarnessFalsePositives(checks, cycleId) {
     const corrections = []; const byId = new Map(checks.map(check => [check.id, check]));
     const dossier = byId.get('qa.dossier');
+    const dossierTabs = ['latest-news', 'game-logs', 'season-stats', 'outlook', 'news-analysis', 'depth-chart', 'leagues', 'full-profile'].map(tab => byId.get(`qa.dossier.tab.${tab}`));
+    const allDossierTabsPass = dossierTabs.length === 8 && dossierTabs.every(check => check?.status === 'PASS' && !check.reused);
+    const modalChecks = [...byId.values()].filter(check => check.id.startsWith('qa.modal.') && check.id !== 'qa.modal.all');
+    const allModalChecksPass = modalChecks.length > 0 && modalChecks.every(check => check.status === 'PASS' && !check.reused);
     this.transaction(rows => {
       for (const row of rows) {
         if (row.sourceAgent !== 'agent_qa_senior' || !isActiveHandoff(row)) continue;
         const prior = row.evidence?.find(e => e.modalId || Array.isArray(e.tabs));
         const check = byId.get(row.checkId);
         let reason; let retract = true;
-        if (row.checkId.startsWith('qa.modal.') && prior?.ariaModal === false && ['open', 'x', 'reopen', 'escape', 'backdrop', 'focusRestored', 'roleDialog'].every(k => prior[k] === true) && check?.status === 'PASS' && check.evidence?.ariaModal === true && check.evidence?.semanticsCaptured === 'immediately after openModal, before close' && check.evidence?.closedAriaRemoved === true) {
+        if (row.checkId === 'qa.modal.all' && allModalChecksPass) {
+          reason = 'SUPERSEDED_BY_GRANULAR_MODAL_CHECKS: every concrete modal check passed in the fresh cycle; aggregate blocker is retired with audit history.';
+        } else if (row.checkId === 'qa.dossier' && allDossierTabsPass && byId.get('qa.dossier.observed.sentiment')?.status === 'PASS') {
+          reason = 'SUPERSEDED_BY_GRANULAR_DOSSIER_CHECKS: all eight dossier tabs and observed sentiment passed in the fresh cycle; aggregate blocker is retired with audit history.';
+        } else if (row.checkId.startsWith('qa.modal.') && prior?.ariaModal === false && ['open', 'x', 'reopen', 'escape', 'backdrop', 'focusRestored', 'roleDialog'].every(k => prior[k] === true) && check?.status === 'PASS' && check.evidence?.ariaModal === true && check.evidence?.semanticsCaptured === 'immediately after openModal, before close' && check.evidence?.closedAriaRemoved === true) {
           reason = 'FALSE_POSITIVE_CLOSED_ARIA: old harness sampled aria-modal after close; fresh exact check captures open semantics and correct cleanup.';
         } else if (row.checkId.startsWith('qa.dossier.tab.') && prior?.tabs?.length === 0 && !prior.hydrated && !prior.modalOpen && dossier?.evidence?.openedVia === 'card/opener') {
           if (check?.evidence?.hydrated && check.evidence.modalOpen && !check.evidence.canonicalContextObserved && check.status === 'FAIL') {

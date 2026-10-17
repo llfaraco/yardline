@@ -68,6 +68,10 @@ export async function runMonitoringCycle({ store = orchestrationStore, cycleId, 
     report.playerDossierReference = playerDossierReference();
     for (const check of [...report.referenceChecks, ...report.qaResults]) {
       if (check.status === 'PASS') continue;
+      const dossierTabIds = ['latest-news', 'game-logs', 'season-stats', 'outlook', 'news-analysis', 'depth-chart', 'leagues', 'full-profile'].map(tab => `qa.dossier.tab.${tab}`);
+      const granularDossierPass = dossierTabIds.every(id => report.qaResults.some(result => result.id === id && result.status === 'PASS' && !result.reused)) && report.qaResults.some(result => result.id === 'qa.dossier.observed.sentiment' && result.status === 'PASS' && !result.reused);
+      const granularModalPass = report.qaResults.filter(result => result.id.startsWith('qa.modal.') && result.id !== 'qa.modal.all').length > 0 && report.qaResults.filter(result => result.id.startsWith('qa.modal.') && result.id !== 'qa.modal.all').every(result => result.status === 'PASS' && !result.reused);
+      if ((check.id === 'qa.dossier' && granularDossierPass) || (check.id === 'qa.modal.all' && granularModalPass)) continue;
       const isReference = !!check.agentId;
       const sourceAgent = check.agentId || 'agent_qa_senior';
       const agent = config.agents.find(a => a.id === sourceAgent);
