@@ -9,7 +9,7 @@ export class CommandCenterService {
   constructor(store = orchestrationStore, startCycle = startMonitoringCycle) { this.store = store; this.startCycle = startCycle; }
   getOrchestration() {
     const config = this.store.config(); const latest = this.store.latest();
-    return { ...config, playerDossierReference: playerDossierReference(), harnessCorrections: latest?.harnessCorrections || [], liveState: isCurrentReport(latest, config.cadenceMinutes) ? 'LIVE' : 'STALE', lastCycle: latest ? { cycleId: latest.cycleId, status: latest.status, currentCommit: latest.currentCommit, startedAt: latest.startedAt, finishedAt: latest.finishedAt, error: latest.error || null } : null, execution: 'Runtime-owned recurrent polling; no implicit AI writer activation', handoffWriteAPI: process.env.COMMAND_CENTER_WRITE_TOKEN ? 'TOKEN_REQUIRED' : 'DISABLED_USE_LOCAL_CLI' };
+    return { ...config, playerDossierReference: playerDossierReference(), harnessCorrections: latest?.harnessCorrections || [], liveState: isCurrentReport(latest, config.cadenceMinutes) ? 'LIVE' : 'STALE', lastCycle: latest ? { cycleId: latest.cycleId, status: latest.status, currentCommit: latest.currentCommit, startedAt: latest.startedAt, finishedAt: latest.finishedAt, error: latest.error || null } : null, execution: 'Runtime-owned recurrent polling; Team Leader Manus is the only code executor; no implicit external writer activation', handoffWriteAPI: process.env.COMMAND_CENTER_WRITE_TOKEN ? 'TOKEN_REQUIRED' : 'DISABLED_USE_LOCAL_CLI' };
   }
   getPlayerDossierDocument(kind) { return readPlayerDossierDocument(kind); }
   getHandoffs() { return this.store.handoffs(); }
