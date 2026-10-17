@@ -137,7 +137,7 @@
       "id": "agent_nfl_news",
       "name": "NFL News Reference Agent",
       "role": "Ingestão, deduplicação e vínculo de notícias oficiais da NFL a atletas",
-      "mission": "Monitorar news/injuries/transactions/scores/schedule/standings, canonical URL, freshness e mídia degradada; atribuir editorial NFL.",
+      "mission": "Monitorar news/injuries/transactions/scores/schedule/standings, canonical URL, freshness e mídia degradada; atribuir editorial NFL. A saída deve alimentar uma aba jornalística ligada ao contexto da liga, roster, atletas e adversário, com canonical URL e timestamp.",
       "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
@@ -177,7 +177,7 @@
       "id": "agent_yahoo_news",
       "name": "Yahoo News Reference Agent",
       "role": "Monitoramento e auditoria comparativa de cobertura e canonical URLs do Yahoo Sports",
-      "mission": "Cruzar cobertura Yahoo/NFL, preservar canonical URLs/timestamps, deduplicar e sinalizar divergência editorial como INFERRED, não verdade oficial.",
+      "mission": "Cruzar cobertura Yahoo/NFL, preservar canonical URLs/timestamps, deduplicar e sinalizar divergência editorial como INFERRED, não verdade oficial. A saída deve alimentar uma aba jornalística ligada ao contexto da liga, roster, atletas e adversário, com canonical URL e timestamp.",
       "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
@@ -217,7 +217,7 @@
       "id": "agent_qa_senior",
       "name": "Senior QA / E2E Tester",
       "role": "Validação de ponta a ponta em múltiplos viewports, teclado e estresse com poder de veto",
-      "mission": "Executar QA recorrente completo: sincronização Sleeper, catálogo de jogadores, Dashboard, Matchup, notícias NFL/Yahoo, player cards/dossier, X/ESC/backdrop/reopen/focus e múltiplas larguras quando observáveis. Veto P0/P1 e nunca converter NOT_VERIFIABLE em PASS.",
+      "mission": "Executar QA recorrente completo: sincronização Sleeper, catálogo de jogadores, Dashboard, Matchup, notícias NFL/Yahoo, player cards/dossier, X/ESC/backdrop/reopen/focus e múltiplas larguras quando observáveis. Veto P0/P1 e nunca converter NOT_VERIFIABLE em PASS. Tratar Dashboard sem análise visual, News sem vínculo à liga ou Matchup sem foto/dado real como falha de produto, não como detalhe cosmético.",
       "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
@@ -417,7 +417,7 @@
       "id": "agent_frontend_lead",
       "name": "Frontend Lead",
       "role": "Arquitetura SPA, consumo de DTOs canônicos, 12 abas, responsividade e estabilidade",
-      "mission": "Auditar a implementação frontend contra os contratos canônicos e a matriz visual Sleeper/FantasyPros: dashboard, matchup, notícias, cards, dossiê, modais, tabs, estados e responsividade; somente leitura, testes e handoffs ao Team Leader Manus.",
+      "mission": "Auditar a implementação frontend contra os contratos canônicos e a matriz visual Sleeper/FantasyPros: dashboard, matchup, notícias, cards, dossiê, modais, tabs, estados e responsividade; somente leitura, testes e handoffs ao Team Leader Manus. Priorizar Dashboard analítico com visualizações/motion, News contextualizada e Matchup com fotos corretas, dados reais e motion.",
       "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
@@ -457,7 +457,7 @@
       "id": "agent_design_system",
       "name": "Design System / UI Lead",
       "role": "Identidade visual própria, tokens, tipografia tabular, densidade de dados e sobriedade",
-      "mission": "Auditar continuamente o layout real da Yardline contra as referências Sleeper e FantasyPros: Dashboard, sidebar, linha da liga, Matchup, player cards/dossier, notícias, estados loading/empty/error/gated, tipografia, espaçamento, densidade, ícones, cores, hierarquia e responsividade. Usar as imagens de referência fornecidas como baseline visual; classificar cada achado como OBSERVED, INFERRED ou NOT_VERIFIABLE; nunca declarar paridade visual sem navegador/viewport real.",
+      "mission": "Auditar continuamente o layout real da Yardline contra as referências Sleeper e FantasyPros: Dashboard, sidebar, linha da liga, Matchup, player cards/dossier, notícias, estados loading/empty/error/gated, tipografia, espaçamento, densidade, ícones, cores, hierarquia e responsividade. Usar as imagens de referência fornecidas como baseline visual; classificar cada achado como OBSERVED, INFERRED ou NOT_VERIFIABLE; nunca declarar paridade visual sem navegador/viewport real. O Dashboard deve comunicar inteligência do time por meio de dashboards, visões, tendências e motion; News deve ser jornalístico e contextualizado; Matchup deve usar fotos reais e motion funcional.",
       "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
@@ -934,5 +934,10 @@
     "visualBaseline": "user_supplied_sleeper_fantasypros_references",
     "releaseGateUnchanged": true,
     "note": "WORKING significa que o agente participa do polling; NOT_VERIFIABLE continua bloqueando a aprovação visual."
+  },
+  "productMandates": {
+    "dashboard": "Área visual de inteligência do time: dashboards, visões analíticas, indicadores, tendências, comparações e motions sutis orientados a dados; não apenas cards estáticos.",
+    "news": "Aba jornalística real com notícias, timestamp, fonte/canonical URL, estados loading/empty/error e elo explícito com jogadores, roster, adversários e contexto da liga.",
+    "matchup": "Confronto da semana inspirado na clareza do FantasyPros, porém com identidade Yardline própria, dados reais, fotos corretas de jogadores e times, placares, projeções/progresso e motions úteis; nunca fixtures apresentados como oficiais."
   }
 }
