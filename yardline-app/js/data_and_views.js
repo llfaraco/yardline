@@ -3717,15 +3717,57 @@ function toggleArticleExpand(newsId) {
   // Competing V2 dossier removed; existing final dossier/layout retained.
   window.renderPlaybookView=function(){
     const c=document.getElementById('view-playbook'); if(!c)return;
-    const roster = userRealRoster, groups = window.YardlinePlayerCard.rosterGroups(roster);
-    const starters = groups.starters.map(getP).filter(Boolean), bench = groups.bench.map(getP).filter(Boolean);
-    const total = starters.length && starters.length === groups.starters.length && starters.every(p => p.metrics.projectedPoints !== null)
-      ? num(starters.reduce((sum, p) => sum + p.metrics.projectedPoints, 0)) : '—';
-    const wk = typeof activeLeagueWeek !== 'undefined' ? activeLeagueWeek ?? '—' : '—';
-    const opp=activeRealMatchup?.oppRoster; const oppTeam=opp?LEAGUE_12_TEAMS.find(t=>Number(t.rosterId)===Number(opp.roster_id)):null;
-    const myTeam = userRealRoster ? LEAGUE_12_TEAMS.find(t=>t.isMyTeam) : null;
-    c.innerHTML=`<div class="yl-card" style="margin-bottom:18px;padding:18px 20px"><div style="display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap"><div><span class="badge badge-crimson">FANTASY COMMAND CENTER</span><h2 style="font-size:21px;font-weight:700;color:var(--yl-navy);margin-top:6px">Sua escalação · Semana ${esc(wk)}</h2><div style="font-size:12px;color:var(--text-muted);margin-top:3px">${esc(myTeam?.name || 'Owner não identificado — roster não identificado; confira a conta Sleeper')} · formato ${esc(typeof activeScoringFormat!=='undefined'?activeScoringFormat:'PPR')} · ${oppTeam?`vs ${esc(oppTeam.name)}`:'confronto ainda não sincronizado'}</div></div><div style="display:flex;align-items:center;gap:14px"><div><div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Projeção dos titulares</div><strong class="mono" style="font-size:25px;color:var(--yl-navy)">${total}</strong> <span style="font-size:11px;color:var(--text-muted)">pts</span></div><button class="btn-yl btn-primary" disabled title="Otimização não validada nesta rodada">Otimização indisponível</button></div></div></div><div class="grid-sidebar"><div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px">${starters.map((p,i)=>card(p,(ROSTER_SLOTS_DEF?.[(roster?.starters || []).map(String).indexOf(p.id)]?.label || p.position))).join('')}</div><div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px"><h3 style="font-size:14px;color:var(--yl-navy)">Banco</h3><span class="badge badge-amber">${bench.length} atletas</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px">${bench.map(p=>card(p,'BN')).join('')}</div>${[['IR', groups.reserve], ['TAXI', groups.taxi]].map(([label, ids]) => ids.length ? `<h3 style="font-size:14px;margin:20px 0 10px">${label}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px">${ids.map(id => card(getP(id), label)).join('')}</div>` : '').join('')}</div><div style="display:flex;flex-direction:column;gap:14px"><div class="yl-card" style="padding:15px"><div class="yl-card-title">Recomendação da rodada</div><p style="font-size:12px;color:var(--text-body);line-height:1.5;margin-top:9px">A recomendação é calculada a partir do roster oficial, slots da liga e projeção disponível. O sistema não apresenta “consenso externo” quando a fonte não foi carregada.</p><span class="badge badge-blue">TRANSPARÊNCIA DE FONTE</span></div><div class="yl-card" style="padding:15px"><div class="yl-card-title">Duelo atual</div><div style="font-size:12px;color:var(--text-muted);margin-top:8px">${oppTeam?`${esc(oppTeam.name)} · placar ${activeRealMatchup.oppScore||0}`:'Nenhum adversário validado'}</div></div></div></div>`;
+    const shell=window.YL_SHELL_SNAPSHOT||{};
+    const roster=userRealRoster;
+    const groups=window.YardlinePlayerCard.rosterGroups(roster);
+    const starters=groups.starters.map(getP).filter(Boolean);
+    const bench=groups.bench.map(getP).filter(Boolean);
+    const wk=typeof activeLeagueWeek!=='undefined' ? activeLeagueWeek ?? null : null;
+    const standings=Array.isArray(shell.standings)?shell.standings:[];
+    const myStanding=standings.find(t=>Number(t.rosterId)===Number(roster?.roster_id))||null;
+    const opponent=activeRealMatchup?.oppRoster||null;
+    const opponentStanding=standings.find(t=>Number(t.rosterId)===Number(opponent?.roster_id))||null;
+    const points=v=>v===null||v===undefined||v===''?null:Number(v);
+    const projectionValues=starters.map(p=>points(p.metrics?.projectedPoints));
+    const projectionKnown=projectionValues.filter(Number.isFinite).length;
+    const projectionCoverage=starters.length?Math.round((projectionKnown/starters.length)*100):null;
+    const projectedTotal=projectionKnown===starters.length&&starters.length?projectionValues.reduce((a,b)=>a+b,0):null;
+    const actualPoints=points(myStanding?.fpts ?? roster?.fpts);
+    const opponentScore=points(activeRealMatchup?.oppScore);
+    const myScore=points(activeRealMatchup?.myScore);
+    const scoreDelta=Number.isFinite(myScore)&&Number.isFinite(opponentScore)?Number((myScore-opponentScore).toFixed(1)):null;
+    const asOf=shell.asOf||shell.syncedAt||shell.provenance?.asOf||null;
+    const asOfLabel=asOf&&!Number.isNaN(new Date(asOf).getTime())?new Date(asOf).toLocaleString('pt-BR'):'não disponível';
+    const playerData=window.YL_LIVE_PLAYER_DATA||{};
+    const observed=groups.starters.map(id=>playerData[String(id)]).filter(Boolean);
+    const historicalPoints=observed.map(x=>points(x.totalPoints)).filter(Number.isFinite);
+    const avgObserved=historicalPoints.length===observed.length&&historicalPoints.length?historicalPoints.reduce((a,b)=>a+b,0):null;
+    const metric=(label,value,detail,status='available')=>`<div class="yl-intel-metric ${status==='available'?'':'is-unavailable'}"><span>${label}</span><strong class="mono">${value===null?'—':esc(value)}</strong><small>${esc(detail)}</small></div>`;
+    const statusBadge=shell.dataStatus==='stale'||shell.provenance?.status==='stale'?'<span class="badge badge-amber">SNAPSHOT STALE</span>':'<span class="badge badge-green">SLEEPER · SNAPSHOT OFICIAL</span>';
+    const matchupText=scoreDelta===null?'Placar oficial ainda não disponível para comparação.':scoreDelta>0?`Seu time lidera por ${Math.abs(scoreDelta).toFixed(1)} pts.`:scoreDelta<0?`O adversário lidera por ${Math.abs(scoreDelta).toFixed(1)} pts.`:'Confronto empatado no snapshot.';
+    const insight=projectionCoverage===100&&scoreDelta!==null?`A leitura combina projeção completa dos titulares com o placar oficial da semana ${wk??'—'}.` : projectionCoverage!==null?`A projeção cobre ${projectionCoverage}% dos titulares; nenhuma conclusão é criada para os atletas sem fonte.`:'Projeção da rodada indisponível no snapshot atual.';
+    c.innerHTML=`
+      <section class="yl-dashboard-intel" aria-labelledby="yl-dashboard-title">
+        <div class="yl-dashboard-intel__hero">
+          <div><div class="yl-dashboard-kicker">YARDLINE INTELLIGENCE · DASHBOARD</div><h2 id="yl-dashboard-title">Leitura operacional da sua liga</h2><p>${esc(myStanding?.teamName||roster?.teamName||'Owner não identificado — roster não identificado')} · Semana ${wk===null?'—':esc(wk)} · ${esc(shell.league?.name||'Liga Sleeper')}</p></div>
+          <div class="yl-dashboard-intel__source">${statusBadge}<small>asOf: ${esc(asOfLabel)}</small></div>
+        </div>
+        <div class="yl-dashboard-intel__metrics">
+          ${metric('Pontos oficiais',actualPoints===null?null:actualPoints.toFixed(1),actualPoints===null?'Sem standings confiáveis':'fpts do roster/standings')}
+          ${metric('Projeção dos titulares',projectedTotal===null?null:projectedTotal.toFixed(1),projectionCoverage===100?'Cobertura completa':`${projectionKnown}/${starters.length||0} titulares com projeção`,projectedTotal===null?'unavailable':'available')}
+          ${metric('Posição na liga',myStanding?.rank??null,myStanding?.rank?`${standings.length} times no snapshot`:'Ranking indisponível',myStanding?.rank?'available':'unavailable')}
+          ${metric('Cobertura de dados',projectionCoverage===null?null:`${projectionCoverage}%`,`${starters.length} titulares identificados`,projectionCoverage===null?'unavailable':'available')}
+        </div>
+        <div class="yl-dashboard-intel__grid">
+          <article class="yl-card yl-dashboard-panel"><div class="yl-card-header"><div class="yl-card-title">Sinal do confronto</div><span class="badge ${scoreDelta===null?'badge-amber':scoreDelta>=0?'badge-green':'badge-crimson'}">${scoreDelta===null?'NÃO VERIFICÁVEL':scoreDelta>=0?'VANTAGEM':'DESVANTAGEM'}</span></div><div class="yl-dashboard-panel__body"><strong>${esc(opponentStanding?.teamName||opponent?.teamName||'Adversário não identificado')}</strong><p>${esc(matchupText)}</p><div class="yl-dashboard-compare"><span>${myScore===null?'—':myScore.toFixed(1)}</span><i></i><span>${opponentScore===null?'—':opponentScore.toFixed(1)}</span></div><small>Comparação somente com pontuação oficial; sem score não há probabilidade inventada.</small></div></article>
+          <article class="yl-card yl-dashboard-panel"><div class="yl-card-header"><div class="yl-card-title">Tendência observada</div><span class="badge badge-blue">HISTÓRICO</span></div><div class="yl-dashboard-panel__body"><strong>${avgObserved===null?'—':avgObserved.toFixed(1)} <small>${avgObserved===null?'sem série completa':'pts acumulados observados'}</small></strong><p>${observed.length}/${groups.starters.length||0} titulares possuem histórico persistido no snapshot.</p><div class="yl-dashboard-spark" aria-label="Tendência indisponível sem série temporal completa"><span style="height:${avgObserved===null?18:42}%"></span><span style="height:${avgObserved===null?18:58}%"></span><span style="height:${avgObserved===null?18:74}%"></span><span style="height:${avgObserved===null?18:66}%"></span><span style="height:${avgObserved===null?18:82}%"></span></div><small>${avgObserved===null?'Sem série temporal suficiente para afirmar alta ou queda.':'Série derivada de dados persistidos; não é consenso externo.'}</small></div></article>
+        </div>
+        <div class="yl-dashboard-insight"><span class="badge badge-navy">LEITURA DO SISTEMA</span><p>${esc(insight)}</p></div>
+      </section>
+      <div class="yl-dashboard-section-head"><div><h3>Titulares sincronizados</h3><p>Cards canônicos do roster Sleeper. Clique para abrir o dossiê.</p></div><span class="badge badge-navy">${starters.length} atletas</span></div>
+      <div class="grid-sidebar"><div><div class="yl-dashboard-player-grid">${starters.length?starters.map((p,i)=>card(p,(ROSTER_SLOTS_DEF?.[(roster?.starters||[]).map(String).indexOf(p.id)]?.label||p.position))).join(''):'<div class="yl-card" style="padding:24px">Roster oficial não identificado; nenhum titular será inventado.</div>'}</div><div class="yl-dashboard-section-head"><div><h3>Banco</h3><p>Atletas do roster, separados dos titulares.</p></div><span class="badge badge-amber">${bench.length}</span></div><div class="yl-dashboard-player-grid">${bench.map(p=>card(p,'BN')).join('')}</div></div><aside class="yl-dashboard-sidebar"><div class="yl-card yl-dashboard-panel"><div class="yl-card-header"><div class="yl-card-title">Integridade do snapshot</div></div><div class="yl-dashboard-panel__body"><p>Provider: <strong>${esc(shell.provider||shell.provenance?.provider||'sleeper')}</strong></p><p>Fonte: <strong>${esc(shell.source||shell.provenance?.source||'sleeper_sync')}</strong></p><p>Atualizado em: <strong>${esc(asOfLabel)}</strong></p><small>O Dashboard não substitui dados oficiais por fixtures nem converte indisponibilidade em zero.</small></div></div><div class="yl-card yl-dashboard-panel"><div class="yl-card-header"><div class="yl-card-title">Próxima ação</div></div><div class="yl-dashboard-panel__body"><p>${projectionCoverage===100?'Revisar delta entre projeção e placar após o fechamento da rodada.':'Aguardar nova sincronização de projeções antes de avaliar eficiência.'}</p><span class="badge badge-crimson">SEM RECOMENDAÇÃO FABRICADA</span></div></div></aside></div>`;
   };
+
   window.renderLeagueView=function(){
     const c=document.getElementById('view-league'); if(!c)return;
     const wk=typeof activeLeagueWeek!=='undefined'&&activeLeagueWeek||'—', my=LEAGUE_12_TEAMS.find(t=>t.isMyTeam), opp=activeRealMatchup?.oppRoster, oppTeam=opp&&LEAGUE_12_TEAMS.find(t=>Number(t.rosterId)===Number(opp.roster_id));
