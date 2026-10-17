@@ -2220,7 +2220,7 @@ if (typeof window !== 'undefined') {
       const identityTeam = identityName
         ? (snapshot.standings || []).find(team => String(team.manager || '').trim().toLowerCase() === identityName)
         : null;
-      const myTeamName = myTeamObj?.name || identityTeam?.teamName || 'Owner não identificado';
+      const myTeamName = userRealRoster?.teamName || myTeamObj?.name || identityTeam?.teamName || 'Owner não identificado';
       const leagueName = snapshot.league?.name || 'Liga Sleeper';
       const userPill = document.getElementById('topbar-user-pill');
       const managerName = userRealRoster?.ownerName || userRealRoster?.owner || wanted || shellUser;
