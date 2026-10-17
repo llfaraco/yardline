@@ -10,7 +10,9 @@ import {
   createPlayerCardDTO,
   createRosterDTO,
   createMatchupDTO,
-  createLeagueShellDTO
+  createLeagueShellDTO,
+  createNewsItemDTO,
+  createDashboardDTO
 } from '../src/contracts/dtos.js';
 import { db, initDatabase } from '../src/db/database.js';
 
@@ -25,6 +27,8 @@ test('Contratos DTO — DataStatusDTO valida status canônicos e proveniência',
 
   assert.strictEqual(official.status, 'official');
   assert.strictEqual(official.source, 'sleeper_api');
+  assert.strictEqual(official.provider, null);
+  assert.strictEqual(official.asOf, '2026-10-15T18:00:00.000Z');
   assert.strictEqual(official.isEstimate, false);
   assert.strictEqual(official.confidence, 1.0);
 
@@ -158,6 +162,28 @@ test('Contratos DTO — RosterDTO e LeagueShellDTO garantem estrutura e integrid
   assert.strictEqual(shell.state.week, 6);
   assert.strictEqual(shell.rosters.length, 1);
   assert.strictEqual(shell.rosters[0].teamName, 'Gengar My Balls');
+  assert.strictEqual(shell.provider, 'sleeper');
+  assert.strictEqual(shell.source, 'sleeper_sync');
+});
+
+test('Contratos DTO — Matchup, News e Dashboard preservam asOf/provider/source', () => {
+  const matchup = createMatchupDTO({ matchupId: 3, week: 6, scoreA: null, scoreB: 21.1, captured_at: '2026-10-16T20:00:00Z' });
+  assert.strictEqual(matchup.scoreA, null);
+  assert.strictEqual(matchup.scoreB, 21.1);
+  assert.strictEqual(matchup.provider, 'sleeper');
+  assert.strictEqual(matchup.source, 'sleeper_matchups');
+  assert.strictEqual(matchup.asOf, '2026-10-16T20:00:00.000Z');
+
+  const news = createNewsItemDTO({ id: 'news_1', source: 'NFL.com', title: 'Atualização', canonical_url: 'https://nfl.com/a', ingested_at: '2026-10-16T21:00:00Z' });
+  assert.strictEqual(news.provider, 'NFL.com');
+  assert.strictEqual(news.source, 'NFL.com');
+  assert.strictEqual(news.asOf, '2026-10-16T21:00:00.000Z');
+  assert.strictEqual(news.linkedPlayers.length, 0);
+
+  const dashboard = createDashboardDTO({ generatedAt: '2026-10-16T21:10:00Z', releaseStatus: 'RELEASE BLOQUEADA' });
+  assert.strictEqual(dashboard.provider, 'yardline');
+  assert.strictEqual(dashboard.source, 'yardline_dashboard');
+  assert.strictEqual(dashboard.asOf, '2026-10-16T21:10:00.000Z');
 });
 
 test('Database Schema — Tabelas drafts, draft_picks e source_provenance existem no SQLite', () => {

@@ -23,7 +23,8 @@ import {
   createPlayerCardDTO,
   createRosterDTO,
   createMatchupDTO,
-  createLeagueShellDTO
+  createLeagueShellDTO,
+  createDashboardDTO
 } from './contracts/dtos.js';
 import { commandCenterRouter } from './modules/command-center/command-center.routes.js';
 
@@ -483,11 +484,12 @@ app.get('/api/leagues/:leagueId/rosters', (req, res) => {
 });
 
 app.get('/api/leagues/:leagueId/matchups', (req, res) => {
-  const week = parseInt(req.query.week || '6', 10);
+  const week = Number(req.query.week);
+  if (!Number.isInteger(week) || week < 1 || week > 22) return res.status(400).json({ error: 'week é obrigatório e deve estar entre 1 e 22.', dataStatus: DATA_STATUS.UNAVAILABLE });
   const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(req.params.leagueId, req.params.leagueId);
   if (!league) return res.status(404).json({ error: 'Liga não encontrada.' });
 
-  const matchups = db.prepare('SELECT * FROM matchups WHERE league_id = ? AND week = ?').all(league.id, week);
+  const matchups = db.prepare('SELECT * FROM matchups WHERE league_id = ? AND week = ?').all(league.id, week).map(createMatchupDTO);
   res.json(matchups);
 });
 
@@ -532,8 +534,9 @@ app.get('/api/leagues/:leagueId/standings', (req, res) => {
 
 // Detalhes do Confronto Semanal (Modo Fantasy Lado a Lado)
 app.get('/api/leagues/:leagueId/matchup-details', (req, res) => {
-  const week = parseInt(req.query.week || '6', 10);
-  const rosterId = parseInt(req.query.rosterId || '2', 10);
+  const week = Number(req.query.week);
+  const rosterId = Number(req.query.rosterId);
+  if (!Number.isInteger(week) || week < 1 || week > 22 || !Number.isInteger(rosterId) || rosterId <= 0) return res.status(400).json({ error: 'week e rosterId são obrigatórios e devem ser válidos.', dataStatus: DATA_STATUS.UNAVAILABLE });
   const league = db.prepare('SELECT id, season FROM leagues WHERE id = ? OR provider_league_id = ?').get(req.params.leagueId, req.params.leagueId);
   if (!league) return res.status(404).json({ error: 'Liga não encontrada.' });
 
@@ -543,7 +546,7 @@ app.get('/api/leagues/:leagueId/matchup-details', (req, res) => {
   `).get(league.id, week, rosterId, rosterId);
 
   if (!matchup) {
-    return res.json({ message: 'Confronto não encontrado para a semana selecionada.' });
+    return res.status(404).json({ message: 'Confronto não encontrado para a semana selecionada.', week, dataStatus: DATA_STATUS.UNAVAILABLE });
   }
 
   const isRosterA = (matchup.roster_a_id === rosterId);
@@ -564,6 +567,7 @@ app.get('/api/leagues/:leagueId/matchup-details', (req, res) => {
   res.json({
     week,
     season: league.season,
+    matchup: createMatchupDTO({ ...matchup, week, season: league.season, provider: 'sleeper', source: 'sleeper_matchups', asOf: matchup.captured_at }),
     myTeam: {
       rosterId,
       name: myRoster?.team_name || 'Gengar My Balls',
@@ -610,14 +614,15 @@ app.get('/api/command-center', (req, res) => {
   let rosterSettings = {}; try { rosterSettings = JSON.parse(roster?.settings_json || '{}'); } catch {}
   const fpts = Number(rosterSettings.fpts || 0) + Number(rosterSettings.fpts_decimal || 0) / 100;
 
-  res.json({
+  res.json(createDashboardDTO({
     leagueName: league?.name || null,
     currentWeek: Number(state.week || league?.settings_json && JSON.parse(league.settings_json || '{}').leg || 0),
     activeRosterId: rosterId,
     efficiencyPercent: null,
     pointsFor: Number(fpts.toFixed(2)),
-    alerts: []
-  });
+    alerts: [],
+    generatedAt: new Date().toISOString()
+  }));
 });
 
 // Waivers por Diferença de Conjuntos

@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { db } from '../../db/database.js';
-import { DATA_STATUS, createDataStatusDTO } from '../../contracts/dtos.js';
+import { DATA_STATUS, createDataStatusDTO, createNewsItemDTO } from '../../contracts/dtos.js';
 
 let _cachedPlayers = null;
 
@@ -279,7 +279,7 @@ export const newsService = {
 
     return rows.map(item => {
       const linkedPlayers = getLinksStmt.all(item.id);
-      return {
+      return createNewsItemDTO({
         ...item,
         linkedPlayers: linkedPlayers.map(p => ({
           id: p.id,
@@ -294,9 +294,11 @@ export const newsService = {
         provenance: createDataStatusDTO({
           status: DATA_STATUS.OFFICIAL,
           source: item.source,
+          provider: item.source,
+          asOf: item.ingested_at,
           syncedAt: item.ingested_at
         })
-      };
+      });
     });
   },
 
@@ -327,12 +329,14 @@ export const newsService = {
       WHERE l.news_id = ?
     `);
 
-    return rows.map(item => ({
+    return rows.map(item => createNewsItemDTO({
       ...item,
       linkedPlayers: getLinksStmt.all(item.id),
       provenance: createDataStatusDTO({
         status: DATA_STATUS.OFFICIAL,
         source: item.source,
+        provider: item.source,
+        asOf: item.ingested_at,
         syncedAt: item.ingested_at
       })
     }));

@@ -54,6 +54,8 @@ export const SCORING_STATUS = Object.freeze({
 export function createDataStatusDTO({
   status = DATA_STATUS.UNAVAILABLE,
   source = 'unknown',
+  provider = null,
+  asOf = null,
   syncedAt = null,
   isEstimate = false,
   confidence = 1.0,
@@ -63,10 +65,26 @@ export function createDataStatusDTO({
   return {
     status: validStatus,
     source: String(source || 'unknown'),
+    provider: provider ? String(provider) : null,
+    asOf: asOf ? new Date(asOf).toISOString() : (syncedAt ? new Date(syncedAt).toISOString() : null),
     syncedAt: syncedAt ? new Date(syncedAt).toISOString() : null,
     isEstimate: Boolean(isEstimate),
     confidence: typeof confidence === 'number' && !Number.isNaN(confidence) ? Number(confidence.toFixed(2)) : 1.0,
     staleReason: staleReason ? String(staleReason) : null
+  };
+}
+
+function contractMetadata(raw = {}, provenance = null, defaults = {}) {
+  const meta = provenance || {};
+  const rawAsOf = raw.asOf ?? raw.as_of ?? meta.asOf ?? meta.syncedAt ?? null;
+  let asOf = null;
+  if (rawAsOf) {
+    try { asOf = new Date(rawAsOf).toISOString(); } catch { asOf = null; }
+  }
+  return {
+    asOf,
+    provider: raw.provider ?? meta.provider ?? defaults.provider ?? null,
+    source: raw.source ?? meta.source ?? defaults.source ?? null
   };
 }
 
@@ -263,6 +281,12 @@ export function createMatchupDTO(raw = {}) {
   const rosterBId = Number(raw.rosterBId ?? raw.awayRosterId ?? raw.roster_b_id ?? 0) || null;
   const scoreA = roundedMetric(raw.scoreA ?? raw.homeScore ?? raw.score_a);
   const scoreB = roundedMetric(raw.scoreB ?? raw.awayScore ?? raw.score_b);
+  const provenance = raw.provenance ? createDataStatusDTO(raw.provenance) : createDataStatusDTO({
+    status: DATA_STATUS.OFFICIAL,
+    source: 'sleeper_matchups',
+    provider: 'sleeper',
+    asOf: raw.asOf ?? raw.captured_at
+  });
 
   return {
     id: raw.id ? String(raw.id) : (matchupId && week ? `matchup_${week}_${matchupId}` : null),
@@ -278,17 +302,67 @@ export function createMatchupDTO(raw = {}) {
     scoreB,
     homeScore: scoreA,
     awayScore: scoreB,
-    customPoints: raw.customPoints || (typeof raw.custom_points_json === 'string' ? JSON.parse(raw.custom_points_json || '{}') : {}),
+    customPoints: raw.customPoints || (typeof raw.custom_points_json === 'string' ? (() => { try { return JSON.parse(raw.custom_points_json || '{}'); } catch { return {}; } })() : {}),
     players: Array.isArray(raw.players) ? raw.players : [],
-    provenance: raw.provenance ? createDataStatusDTO(raw.provenance) : createDataStatusDTO({
-      status: DATA_STATUS.OFFICIAL,
-      source: 'sleeper_matchups'
-    })
+    ...contractMetadata(raw, provenance, { provider: 'sleeper', source: 'sleeper_matchups' }),
+    provenance
   };
 }
 
 // ========================================================
-// 8. LEAGUE SHELL DTO
+// 8. NEWS & DASHBOARD DTOs
+// ========================================================
+
+export function createNewsItemDTO(raw = {}) {
+  const provenance = raw.provenance ? createDataStatusDTO(raw.provenance) : createDataStatusDTO({
+    status: raw.source ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE,
+    source: raw.source || 'news_feed',
+    provider: raw.provider || raw.source || null,
+    asOf: raw.asOf ?? raw.ingested_at ?? raw.published_at
+  });
+  return {
+    id: raw.id ? String(raw.id) : null,
+    source: raw.source ? String(raw.source) : null,
+    sourceArticleId: raw.sourceArticleId ?? raw.source_article_id ?? null,
+    canonicalUrl: raw.canonicalUrl ?? raw.canonical_url ?? null,
+    title: raw.title ? String(raw.title) : null,
+    summary: raw.summary ? String(raw.summary) : '',
+    author: raw.author ?? null,
+    publishedAt: raw.publishedAt ?? raw.published_at ?? null,
+    ingestedAt: raw.ingestedAt ?? raw.ingested_at ?? null,
+    imageUrl: raw.imageUrl ?? raw.image_url ?? null,
+    category: raw.category ?? 'general',
+    status: raw.status ?? 'published',
+    relevanceScore: raw.relevanceScore ?? raw.relevance_score ?? null,
+    linkedPlayers: Array.isArray(raw.linkedPlayers) ? raw.linkedPlayers : [],
+    leagueContext: raw.leagueContext ?? null,
+    ...contractMetadata(raw, provenance, { source: raw.source || 'news_feed' }),
+    provenance,
+    // Aliases legados mantidos para consumidores existentes durante a migração.
+    source_article_id: raw.sourceArticleId ?? raw.source_article_id ?? null,
+    canonical_url: raw.canonicalUrl ?? raw.canonical_url ?? null,
+    published_at: raw.publishedAt ?? raw.published_at ?? null,
+    ingested_at: raw.ingestedAt ?? raw.ingested_at ?? null,
+    image_url: raw.imageUrl ?? raw.image_url ?? null
+  };
+}
+
+export function createDashboardDTO(raw = {}) {
+  const provenance = raw.provenance ? createDataStatusDTO(raw.provenance) : createDataStatusDTO({
+    status: raw.generatedAt ? DATA_STATUS.DERIVED : DATA_STATUS.UNAVAILABLE,
+    source: raw.source || 'yardline_dashboard',
+    provider: raw.provider || 'yardline',
+    asOf: raw.asOf ?? raw.generatedAt
+  });
+  return {
+    ...raw,
+    ...contractMetadata(raw, provenance, { provider: 'yardline', source: 'yardline_dashboard' }),
+    provenance
+  };
+}
+
+// ========================================================
+// 9. LEAGUE SHELL DTO
 // ========================================================
 
 export function createLeagueShellDTO({
@@ -338,7 +412,13 @@ export function createLeagueShellDTO({
     provenance: provenance ? createDataStatusDTO(provenance) : createDataStatusDTO({
       status: league.last_synced_at ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE,
       source: 'sleeper_sync',
+      provider: 'sleeper',
       syncedAt: league.last_synced_at
-    })
+    }),
+    ...contractMetadata({
+      asOf: provenance?.asOf || provenance?.syncedAt || league.last_synced_at,
+      provider: provenance?.provider,
+      source: provenance?.source
+    }, provenance, { provider: 'sleeper', source: 'sleeper_sync' })
   };
 }
