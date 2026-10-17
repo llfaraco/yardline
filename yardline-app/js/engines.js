@@ -2119,7 +2119,7 @@ if (typeof window !== 'undefined') {
   };
   async function syncShell(id, { skipRemoteSync = false } = {}){
     localStorage.setItem('yl_active_league_id', id);
-    const apiBase = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`);
+    const apiBase = window.YL_API_BASE || `${window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`}/api`;
     const request = async (path, options = {}) => {
       const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 15000);
       try {
@@ -2132,9 +2132,9 @@ if (typeof window !== 'undefined') {
     if (!skipRemoteSync) showToast(`Sincronizando liga #${id} pelo backend...`);
     try {
       if (!skipRemoteSync) {
-        await request('/api/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) });
+        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) });
       }
-      const snapshot = await request(`/api/leagues/${id}/shell`);
+      const snapshot = await request(`/leagues/${id}/shell`);
       const nextPlayerCards = snapshot.playerCards || {};
       const previousPlayerCards = window.YL_PLAYER_CARDS || {};
       if (!Object.keys(nextPlayerCards).length && Object.keys(previousPlayerCards).length) {
@@ -2171,7 +2171,7 @@ if (typeof window !== 'undefined') {
       let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
       if (!ownerId && wanted) {
         try {
-          const user = await request(`/api/integrations/sleeper/user/${encodeURIComponent(String(wanted).replace(/^@/, ''))}`);
+          const user = await request(`/integrations/sleeper/user/${encodeURIComponent(String(wanted).replace(/^@/, ''))}`);
           ownerId = user?.user_id || null;
           if (ownerId) {
             window.YL_SLEEPER_USER_ID = String(ownerId);
@@ -2268,7 +2268,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
 
 /* YARDLINE LINEUP FIX — dossier funcional e dados oficiais sob demanda */
 (function(){
-  const API=window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`);
+  const API=window.YL_API_BASE || `${window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`}/api`;
   let dossierRequest = 0;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const num=v=>v===null||v===undefined||v===''||Number.isNaN(Number(v))?'—':Number(v).toFixed(1);
@@ -2285,11 +2285,11 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
   }
   async function seasonRows(id, season) {
     const leagueId = window.YL_SHELL_SNAPSHOT?.league?.providerLeagueId;
-    const data = await get(`${API}/api/players/${encodeURIComponent(id)}/history?season=${encodeURIComponent(season)}${leagueId ? `&leagueId=${encodeURIComponent(leagueId)}` : ''}`);
+    const data = await get(`${API}/players/${encodeURIComponent(id)}/history?season=${encodeURIComponent(season)}${leagueId ? `&leagueId=${encodeURIComponent(leagueId)}` : ''}`);
     return data.rows || data.history || [];
   }
   async function newsFor(p) {
-    try { const data = await get(`${API}/api/players/${encodeURIComponent(p.id)}/news`); return Array.isArray(data) ? data.slice(0,3) : (data.items || []).slice(0,3); }
+    try { const data = await get(`${API}/players/${encodeURIComponent(p.id)}/news`); return Array.isArray(data) ? data.slice(0,3) : (data.items || []).slice(0,3); }
     catch { return []; }
   }
   function formatHeight(h) {
