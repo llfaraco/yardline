@@ -1,0 +1,11 @@
+node_modules
+server/node_modules
+.git
+.env
+.env.*
+*.db
+*.db-shm
+*.db-wal
+server/data/agent-runtime
+server/data/agent-handoffs/*.lock
+/tmp

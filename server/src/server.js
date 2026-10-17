@@ -34,7 +34,7 @@ const __dirname = path.dirname(__filename);
 initDatabase();
 
 export const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
@@ -43,7 +43,6 @@ app.use(express.json({ limit: '1mb' }));
 // Security Headers Middleware (OWASP Top 10 - Etapa 11: Security & Privacy Agent)
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
@@ -896,6 +895,15 @@ const commandCenterStaticPath = path.resolve(__dirname, '../../yardline-app/agen
 app.use('/agent-command-center', express.static(commandCenterStaticPath));
 app.get('/agent-command-center', (req, res) => {
   res.sendFile(path.join(commandCenterStaticPath, 'index.html'));
+});
+
+// ==========================================
+// 9. YARDLINE WEB APP (FRONTEND PRINCIPAL)
+// ==========================================
+const yardlineStaticPath = path.resolve(__dirname, '../../yardline-app');
+app.use(express.static(yardlineStaticPath, { index: 'index.html' }));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(yardlineStaticPath, 'index.html'));
 });
 
 // Health Check (/health & /api/health)
