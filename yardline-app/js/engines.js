@@ -2122,8 +2122,8 @@ if (typeof window !== 'undefined') {
   async function syncShell(id, { skipRemoteSync = false } = {}){
     localStorage.setItem('yl_active_league_id', id);
     const apiBase = window.YL_API_BASE || `${window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`}/api`;
-    const request = async (path, options = {}) => {
-      const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 15000);
+    const request = async (path, options = {}, timeoutMs = 15000) => {
+      const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const response = await fetch(`${apiBase}${path}`, { ...options, signal: controller.signal, headers: { Accept: 'application/json', ...(options.headers || {}) } });
         const body = await response.json().catch(() => ({}));
@@ -2134,9 +2134,9 @@ if (typeof window !== 'undefined') {
     if (!skipRemoteSync) showToast(`Sincronizando liga #${id} pelo backend...`);
     try {
       if (!skipRemoteSync) {
-        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) });
+        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) }, 90000);
       }
-      const snapshot = await request(`/leagues/${id}/shell`);
+      const snapshot = await request(`/leagues/${id}/shell`, {}, 90000);
       const nextPlayerCards = snapshot.playerCards || {};
       const previousPlayerCards = window.YL_PLAYER_CARDS || {};
       if (!Object.keys(nextPlayerCards).length && Object.keys(previousPlayerCards).length) {
