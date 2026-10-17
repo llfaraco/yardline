@@ -19,7 +19,7 @@
       "name": "Product Owner / Requirements Agent",
       "role": "Transformação de visão em requisitos testáveis e critérios de aceite",
       "mission": "Manter requisitos testáveis e priorizar paridade liga Sleeper + dossier profundo Yardline, sem copiar marca/assets/código proprietário.",
-      "status": "NEEDS_REVIEW",
+      "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
         "qa.unit",
@@ -52,7 +52,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_sleeper_ref",
@@ -91,7 +91,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_fantasypros_ref",
@@ -131,7 +131,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_nfl_news",
@@ -171,7 +171,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_yahoo_news",
@@ -211,13 +211,13 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_qa_senior",
       "name": "Senior QA / E2E Tester",
       "role": "Validação de ponta a ponta em múltiplos viewports, teclado e estresse com poder de veto",
-      "mission": "Executar testes reais recorrentes: smoke, X/ESC/backdrop/reopen/focus, Sleeper sync, dossier/abas, busca, filtros. Responsive é NOT_VERIFIABLE sem viewport real. Vetar P0/P1.",
+      "mission": "Executar QA recorrente completo: sincronização Sleeper, catálogo de jogadores, Dashboard, Matchup, notícias NFL/Yahoo, player cards/dossier, X/ESC/backdrop/reopen/focus e múltiplas larguras quando observáveis. Veto P0/P1 e nunca converter NOT_VERIFIABLE em PASS.",
       "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
@@ -257,7 +257,7 @@
       "name": "Backend / API Lead",
       "role": "Arquitetura de API Gateway, DTOs, autenticação JWT, billing e rate limiting",
       "mission": "Auditar contratos REST, falhas/latência e rotas do código atual; entregar diagnósticos e evidências ao Team Leader Manus; não editar código.",
-      "status": "WAITING_DEPENDENCY",
+      "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
         "qa.api",
@@ -290,14 +290,14 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling mesmo quando houver handoff aberto; auditar rotas, DTOs, health e falhas de integração e enviar evidência ao Team Leader Manus."
     },
     {
       "id": "agent_data_engineer",
       "name": "Data Engineer / Database Lead",
       "role": "Modelagem SQLite, integridade referencial, idempotência de sync e crosswalk de IDs",
       "mission": "Auditar integridade, null/proveniência, migrations e persistência; não usar fixture como dado oficial.",
-      "status": "WAITING_DEPENDENCY",
+      "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
         "qa.catalog",
@@ -330,7 +330,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling mesmo quando houver handoff aberto; auditar catálogo, roster, snapshots vazios, idempotência e proveniência e enviar evidência ao Team Leader Manus."
     },
     {
       "id": "agent_sleeper_integration",
@@ -371,14 +371,14 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_scoring_engineer",
       "name": "Scoring and Fantasy Rules Engineer",
       "role": "Regras de pontuação PPR, IDP, Kicking, Bônus, status unsupported e solver combinatório",
       "mission": "Reavaliar regras oficiais de scoring, isolamento do banco e cálculos derivados transparentes; nunca derivado como oficial.",
-      "status": "NEEDS_REVIEW",
+      "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
         "qa.unit",
@@ -411,14 +411,14 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_frontend_lead",
       "name": "Frontend Lead",
       "role": "Arquitetura SPA, consumo de DTOs canônicos, 12 abas, responsividade e estabilidade",
-      "mission": "Auditar modais/cards/tabs e contexto de liga + profundidade do dossier; escritores pausados até handoff revisado.",
-      "status": "WAITING_DEPENDENCY",
+      "mission": "Auditar a implementação frontend contra os contratos canônicos e a matriz visual Sleeper/FantasyPros: dashboard, matchup, notícias, cards, dossiê, modais, tabs, estados e responsividade; somente leitura, testes e handoffs ao Team Leader Manus.",
+      "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
         "qa.modal.*",
@@ -451,18 +451,23 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling cobrindo Dashboard, Matchup, News e Dossier; separar bug de produto de limitação visual do harness."
     },
     {
       "id": "agent_design_system",
       "name": "Design System / UI Lead",
       "role": "Identidade visual própria, tokens, tipografia tabular, densidade de dados e sobriedade",
-      "mission": "Auditar densidade, layout original e states loading/empty/error/gated. Não afirmar paridade visual sem navegador real.",
-      "status": "NEEDS_REVIEW",
+      "mission": "Auditar continuamente o layout real da Yardline contra as referências Sleeper e FantasyPros: Dashboard, sidebar, linha da liga, Matchup, player cards/dossier, notícias, estados loading/empty/error/gated, tipografia, espaçamento, densidade, ícones, cores, hierarquia e responsividade. Usar as imagens de referência fornecidas como baseline visual; classificar cada achado como OBSERVED, INFERRED ou NOT_VERIFIABLE; nunca declarar paridade visual sem navegador/viewport real.",
+      "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
         "qa.responsive.*",
-        "qa.dossier"
+        "qa.dossier",
+        "qa.dashboard",
+        "qa.matchup",
+        "qa.news",
+        "fantasypros.*",
+        "sleeper.*"
       ],
       "allowedActions": [
         "READ_CODE",
@@ -491,7 +496,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar no próximo polling a matriz visual Dashboard/Matchup/News/Player Dossier; registrar divergências com seletor, viewport, esperado, observado e prioridade; enviar handoff ao Team Leader Manus."
     },
     {
       "id": "agent_accessibility",
@@ -531,14 +536,14 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_security",
       "name": "Security and Privacy Agent",
       "role": "Auditoria de segurança, sanitização contra XSS, proteção de tokens e isolamento PII",
       "mission": "Auditar read-only externo, ausência de login/mutação e proteção de handoffs, sem coletar segredos e sem copiar código de referência.",
-      "status": "NEEDS_REVIEW",
+      "status": "WORKING",
       "cadenceMinutes": 60,
       "monitorTargets": [
         "qa.unit"
@@ -570,7 +575,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     },
     {
       "id": "agent_devops",
@@ -610,7 +615,7 @@
         "Reaparecimento após VERIFIED ou ciclo PASS reabre OPEN",
         "COMPLETED não se aplica ao ciclo contínuo"
       ],
-      "nextAction": "Executar próximo polling; enviar evidência fresca ao Manus Team Leader; não iniciar escritor externo."
+      "nextAction": "Executar próximo polling; registrar evidência fresca e enviar relatório/handoff ao Team Leader Manus. Não editar código nem publicar."
     }
   ],
   "coordinator": {
@@ -921,5 +926,13 @@
       ".env*"
     ],
     "allowedExternalInbox": "server/data/agent-handoffs/inbox/"
+  },
+  "activationPolicy": {
+    "allAgentsActive": true,
+    "executionMode": "continuous_read_only",
+    "implementationAuthority": "Manus Team Leader only",
+    "visualBaseline": "user_supplied_sleeper_fantasypros_references",
+    "releaseGateUnchanged": true,
+    "note": "WORKING significa que o agente participa do polling; NOT_VERIFIABLE continua bloqueando a aprovação visual."
   }
 }
