@@ -136,7 +136,14 @@ export class OrchestrationStore {
             reason = check?.evidence?.canonicalContextObserved ? 'FALSE_POSITIVE_UNHYDRATED_TABS: exact context exists in fresh open/hydrated DOM.' : 'UNSUPPORTED_ABSENCE_CLAIM: old empty tabs before DOM identity readiness; current opener/dependency BLOCKED, not proof that eight contexts are absent.';
           }
         }
-        if (!reason || row.reviewHistory?.some(h => h.reason === reason)) continue;
+        if (!reason) continue;
+        const priorCorrection = row.reviewHistory?.find(h => h.reason === reason);
+        if (priorCorrection) {
+          if (retract && row.status !== 'RETRACTED') {
+            row.status = 'RETRACTED'; row.retraction = priorCorrection; row.updatedAt = isoNow();
+          }
+          continue;
+        }
         const correction = { at: isoNow(), cycleId, checkId: row.checkId, handoffId: row.id, reason, action: retract ? 'RETRACTED' : 'RECLASSIFIED_REAL_GAP', actor: 'QA harness correction — NOT product verification', previous: { status: row.status, priority: row.priority, title: row.title, observed: row.observed, evidence: row.evidence }, currentEvidence: check?.evidence || dossier?.evidence };
         (row.reviewHistory ||= []).push(correction);
         row.updatedAt = correction.at;
