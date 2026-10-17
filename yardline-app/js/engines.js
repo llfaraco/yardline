@@ -2195,6 +2195,16 @@ if (typeof window !== 'undefined') {
           if (ownedStanding) userRealRoster = activeSleeperRosters.find(roster => Number(roster.roster_id) === Number(ownedStanding.rosterId)) || null;
         }
       }
+      // Final deterministic crosswalk: when the saved Sleeper user ID is absent,
+      // use the displayed @username against the official roster owner name. This
+      // is still identity-based; it never selects the first roster as a guess.
+      if (!userRealRoster) {
+        const visibleIdentity = (shellUser || wanted || '').replace(/^@/, '').trim().toLowerCase();
+        if (visibleIdentity) {
+          const matches = activeSleeperRosters.filter(roster => String(roster.ownerName || roster.owner || '').trim().toLowerCase() === visibleIdentity);
+          if (matches.length === 1) userRealRoster = matches[0];
+        }
+      }
       selectedActiveRosterId = userRealRoster?.roster_id ?? null;
       window.YL_ACTIVE_ROSTERS = activeSleeperRosters;
       window.YL_MY_ROSTER_ID = selectedActiveRosterId;
@@ -2212,6 +2222,9 @@ if (typeof window !== 'undefined') {
         : null;
       const myTeamName = myTeamObj?.name || identityTeam?.teamName || 'Owner não identificado';
       const leagueName = snapshot.league?.name || 'Liga Sleeper';
+      const userPill = document.getElementById('topbar-user-pill');
+      const managerName = userRealRoster?.ownerName || userRealRoster?.owner || wanted || shellUser;
+      if (userPill && userRealRoster && managerName) userPill.textContent = `@${String(managerName).replace(/^@/, '')} (${myTeamName}) ALL-PRO`;
       const topTeam = document.getElementById('topbar-team-label');
       if (topTeam) topTeam.textContent = `(${myTeamName})`;
       const sbCopy = document.getElementById('sidebar-league-copy');
