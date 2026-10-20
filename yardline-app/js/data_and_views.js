@@ -4733,7 +4733,7 @@ window.toggleSidebarGroup=function(key){
   }
 
   async function hydrateLeagueChat() {
-    const base = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
+    const base = (window.YL_API_BASE || "/api").replace(/\/api\/?$/, "");
     const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
     try {
       const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages?limit=100`, { headers: { Accept: 'application/json' } });
@@ -4777,7 +4777,7 @@ window.toggleSidebarGroup=function(key){
       isMe: true
     };
 
-    const base = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
+    const base = (window.YL_API_BASE || "/api").replace(/\/api\/?$/, "");
     const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
     try {
       const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message: text, author: draft.author, initials: draft.initials }) });

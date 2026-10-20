@@ -11,6 +11,7 @@ const service = await import('../src/modules/players/player-card.service.js');
 const { persistCatalog, persistPlayerStats, sleeperSyncService } = await import('../src/modules/sleeper/sleeper.sync.js');
 const { sleeperConnector } = await import('../src/modules/sleeper/sleeper.connector.js');
 const { app } = await import('../src/server.js');
+const { playerHistoryService } = await import('../src/modules/players/player-history.service.js');
 const contract = (await import('../../yardline-app/js/player-card-contract.js')).default;
 const fixture = JSON.parse(fs.readFileSync(new URL('./fixtures/sleeper-player-card.json', import.meta.url), 'utf8'));
 const capturedAt = '2025-09-10T00:00:00.000Z';
@@ -343,4 +344,60 @@ test('merged history route keeps league-scored rows and raw official stats/prove
   assert.deepEqual(observed.stats, fixture.stats['4984']);
   assert.equal(observed.provenance.status, 'official');
   assert.equal(observed.provenance.source, 'sleeper');
+});
+
+
+test('history keeps the same week in different seasons distinct when reconciling matchups', async () => {
+  reset(); seedLeague(); seedData();
+  for (const [year, points] of [[2024, 11], [2025, 22]]) {
+    const id = `history_match_${year}`;
+    db.prepare(`INSERT INTO matchups (id,league_id,season,week,provider_matchup_id,roster_a_id,captured_at)
+      VALUES (?,'fixture-league',?,1,1,1,?)`).run(id, String(year), capturedAt);
+    db.prepare(`INSERT INTO matchup_players (id,matchup_id,roster_id,player_id,slot,is_starter,points,captured_at)
+      VALUES (?,?,1,'4984','QB',1,?,?)`).run(`history_mp_${year}`, id, points, capturedAt);
+  }
+  const response = await request('/api/players/4984/history?leagueId=fixture-league');
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  const weekOne = payload.rows.filter(row => row.week === 1);
+  assert.deepEqual(weekOne.map(row => row.season).sort(), ['2024','2025']);
+  assert.equal(weekOne.find(row => row.season === '2024').fpts, 11);
+});
+
+test('career HTTP validates seasons, exposes progressive sync, and returns requested league-scored year', async t => {
+  reset(); seedLeague();
+  db.prepare('UPDATE players SET catalog_json=? WHERE id=?').run(JSON.stringify({ ...fixture.players['4984'], rookieYear: 2024 }), '4984');
+  t.mock.method(sleeperConnector, 'getPlayerSeasonStats', async (id, year) => Number(year) === 2024
+    ? { 1: { player_id: id, season: String(year), season_type: 'regular', week: 1, team: 'BUF', stats: { gp: 1, pass_yd: 200, pass_td: 2, pts_ppr: 16 } } } : {});
+  assert.equal((await request('/api/players/4984/career?season=invalid')).status, 400);
+  assert.equal((await request('/api/players/4984/career?season=2024&leagueId=missing')).status, 404);
+  const response = await request('/api/players/4984/career?season=2024&leagueId=fixture-league');
+  assert.equal(response.status, 200);
+  await playerHistoryService.wait('4984');
+  const payload = await (await request('/api/players/4984/career?season=2024&leagueId=fixture-league')).json();
+  assert.equal(payload.syncing, false);
+  assert.equal(payload.scoringFormat, 'LEAGUE');
+  assert.equal(payload.rows[0].season, '2024');
+  assert.equal(payload.rows[0].fpts, 16);
+  assert.ok(payload.seasons.some(row => row.season === '2024'));
+});
+
+
+test('final dossier uses dynamic career years, team logo, portrait and selected-season totals', async () => {
+  reset(); const { catalog, data } = seedData();
+  const cards = service.buildPlayerCards(catalog, data, { season: '2025', week: 1 }, [fixture.roster]);
+  const { sandbox, elements } = frontend(cards);
+  sandbox.fetch = async url => ({ ok: true, json: async () => String(url).includes('/career?')
+    ? { syncing: false, scoringLabel: 'Regras atuais da liga', seasons: [
+      { season: '2025', teams: ['BUF'], observedWeeks: 1, totalPoints: 16, pointsPerGame: 16, status: 'available' },
+      { season: '2018', teams: ['BUF'], observedWeeks: 1, totalPoints: 12, pointsPerGame: 12, status: 'available' }
+    ], rows: [{ week: 1, fpts: 16, points: 16, stats: { pass_yd: 200 } }] } : [] });
+  await sandbox.openPlayerDossierModal('4984');
+  const html = elements.get('player-modal-content').innerHTML;
+  assert.ok(html.includes(cards['4984'].photoUrl.replace(/&/g, '&amp;')));
+  assert.ok(html.includes(cards['4984'].teamLogoUrl));
+  assert.match(html, /id="yl-dossier-season"/);
+  assert.match(html, /value="2018"/);
+  assert.match(html, /A carreira, temporada por temporada/);
+  assert.match(html, /Regras atuais da liga/);
 });

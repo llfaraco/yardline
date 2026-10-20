@@ -19,8 +19,8 @@ export class SleeperConnector {
       throw new Error(`[SleeperConnector] Circuit breaker ativo. Tente novamente em alguns segundos.`);
     }
 
-    const { timeoutMs = this.timeoutMs, maxRetries = this.maxRetries, ...fetchOptions } = options;
-    const url = `${SLEEPER_BASE_URL}${endpoint}`;
+    const { timeoutMs = this.timeoutMs, maxRetries = this.maxRetries, statsApi = false, ...fetchOptions } = options;
+    const url = `${statsApi ? 'https://api.sleeper.com' : SLEEPER_BASE_URL}${endpoint}`;
     let attempt = 0;
     let lastError;
 
@@ -129,6 +129,11 @@ export class SleeperConnector {
 
   getNflStats(season, week) {
     return this.request(`/stats/nfl/${encodeURIComponent(season)}/${encodeURIComponent(week)}`);
+  }
+
+  getPlayerSeasonStats(playerId, season) {
+    return this.request(`/stats/nfl/player/${encodeURIComponent(playerId)}?season_type=regular&season=${encodeURIComponent(season)}&grouping=week`,
+      { statsApi: true, timeoutMs: 10000, maxRetries: 1 });
   }
 
   getNflProjections(season, week) {

@@ -390,3 +390,14 @@ CREATE TABLE IF NOT EXISTS source_provenance (
 CREATE INDEX IF NOT EXISTS idx_drafts_league ON drafts(league_id);
 CREATE INDEX IF NOT EXISTS idx_draft_picks_draft ON draft_picks(draft_id);
 CREATE INDEX IF NOT EXISTS idx_source_provenance_lookup ON source_provenance(entity_type, entity_id);
+
+CREATE TABLE IF NOT EXISTS player_history_sync (
+  player_id TEXT NOT NULL,
+  season TEXT NOT NULL,
+  status TEXT NOT NULL,
+  source_url TEXT NOT NULL,
+  fetched_at TEXT NOT NULL,
+  error TEXT,
+  PRIMARY KEY (player_id, season),
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+);

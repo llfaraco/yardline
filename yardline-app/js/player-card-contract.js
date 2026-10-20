@@ -40,6 +40,7 @@
       injuryStatus: text(pick(raw, 'injuryStatus', 'injury_status')),
       number: numberOrNull(raw.number), age: numberOrNull(raw.age), college: text(raw.college),
       height: text(raw.height), weight: text(raw.weight), yearsExp: numberOrNull(pick(raw, 'yearsExp', 'years_exp')),
+      rookieYear: numberOrNull(pick(raw, 'rookieYear', 'rookie_year')),
       depthChartOrder: numberOrNull(pick(raw, 'depthChartOrder', 'depth_chart_order')),
       depthChartPosition: text(pick(raw, 'depthChartPosition', 'depth_chart_position')),
       searchRank: numberOrNull(pick(raw, 'searchRank', 'search_rank')), photoUrl, teamLogoUrl: teamLogo,

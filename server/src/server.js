@@ -14,6 +14,7 @@ import { scorePlayerStats, normalizeScoringSettings } from './modules/engines/sc
 import { billingService } from './modules/billing/billing.service.js';
 import { newsService } from './modules/news/news.service.js';
 import { playersService } from './modules/players/players.service.js';
+import { playerHistoryService } from './modules/players/player-history.service.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -292,6 +293,25 @@ app.get('/api/players/:playerId', (req, res) => {
 });
 
 // Histórico de pontuação e estatísticas do jogador
+app.get('/api/players/:playerId/career', (req, res) => {
+  try {
+    let player = db.prepare('SELECT * FROM players WHERE id=?').get(req.params.playerId);
+    if (!player) {
+      const identity = db.prepare('SELECT player_id FROM player_identities WHERE provider_player_id=? AND valid_to IS NULL').get(req.params.playerId);
+      if (identity) player = db.prepare('SELECT * FROM players WHERE id=?').get(identity.player_id);
+    }
+    if (!player) return res.status(404).json({ error: 'Jogador não encontrado no catálogo.' });
+    const season = req.query.season ?? String(new Date().getUTCFullYear());
+    if (typeof season !== 'string' || !/^\d{4}$/.test(season) || Number(season) < 1960 || Number(season) > new Date().getUTCFullYear()) {
+      return res.status(400).json({ error: 'Temporada inválida.' });
+    }
+    const league = req.query.leagueId ? db.prepare('SELECT * FROM leagues WHERE id=? OR provider_league_id=?').get(req.query.leagueId, req.query.leagueId) : null;
+    if (req.query.leagueId && !league) return res.status(404).json({ error: 'Liga não encontrada.' });
+    res.setHeader('Cache-Control', 'no-store');
+    res.json(playerHistoryService.getCareer(player, { league, season: Number(season) }));
+  } catch (error) { res.status(error.statusCode || 500).json({ error: error.message }); }
+});
+
 app.get('/api/players/:playerId/history', (req, res) => {
   try {
     let player = db.prepare('SELECT id, canonical_name FROM players WHERE id=?').get(req.params.playerId);
@@ -319,17 +339,18 @@ app.get('/api/players/:playerId/history', (req, res) => {
     // score as unavailable merely because player_stats is empty.
     if (league) {
       const officialMatchupRows = db.prepare(`
-        SELECT m.week, mp.points, mp.projected_points, mp.captured_at, mp.scoring_breakdown_json
+        SELECT m.season, m.week, mp.points, mp.projected_points, mp.captured_at, mp.scoring_breakdown_json
         FROM matchup_players mp
         JOIN matchups m ON m.id = mp.matchup_id
         WHERE m.league_id=? AND mp.player_id=? ${req.query.season ? 'AND m.season=?' : ''}
         ORDER BY m.week, mp.captured_at DESC
       `).all(...(req.query.season ? [league.id, player.id, String(req.query.season)] : [league.id, player.id]));
-      const byWeek = new Map(rows.map(row => [Number(row.week), row]));
+      const byWeek = new Map(rows.map(row => [`${row.season}:${row.week}`, row]));
       for (const official of officialMatchupRows) {
         const week = Number(official.week);
         const points = numberOrNull(official.points);
-        const current = byWeek.get(week) || { week, season: String(league.season), opp: null, proj: null, projectionFormat: null, fpts: null, points: null, stats: {}, snap: null, att: null, cmp: null, yd: null, td: null, int: null };
+        const key = `${official.season}:${week}`;
+        const current = byWeek.get(key) || { week, season: String(official.season), opp: null, proj: null, projectionFormat: null, fpts: null, points: null, stats: {}, snap: null, att: null, cmp: null, yd: null, td: null, int: null };
         if (points !== null && current.fpts === null) {
           current.fpts = points;
           current.points = points;
@@ -338,9 +359,9 @@ app.get('/api/players/:playerId/history', (req, res) => {
           current.pointsUnavailableReason = null;
         }
         if (current.proj === null && numberOrNull(official.projected_points) !== null) current.proj = numberOrNull(official.projected_points);
-        byWeek.set(week, current);
+        byWeek.set(key, current);
       }
-      rows = [...byWeek.values()].sort((a, b) => Number(a.week) - Number(b.week));
+      rows = [...byWeek.values()].sort((a, b) => Number(b.season) - Number(a.season) || Number(a.week) - Number(b.week));
     }
     res.json({ playerId: player.id, name: player.canonical_name, season: req.query.season ? String(req.query.season) : null,
       totalGames: rows.filter(row => Object.keys(row.stats || {}).length || row.fpts !== null).length, history: rows, rows, scoringFormat: league ? 'LEAGUE' : null,
