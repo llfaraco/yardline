@@ -128,11 +128,12 @@ test('owner requires unique reliable owner ID, never display-name/roster-2/first
 test('projection-only and absent playerData allocate no fabricated points', () => {
   reset();
   const { catalog, data } = seedData();
-  assert.equal(data['3294'].projectedPoints, fixture.projections['3294'].pts_ppr);
+  assert.equal(data['3294'].projectedPoints, 19.21);
+  assert.equal(data['3294'].projectionFormat, 'LEAGUE');
   assert.equal(data['3294'].points, null);
   assert.equal(data['3294'].totalPoints, null);
   const cards = service.buildPlayerCards(catalog, data, { season: fixture.season, week: 1 }, [fixture.roster]);
-  assert.equal(cards['3294'].metrics.projectedPoints, 20.6);
+  assert.equal(cards['3294'].metrics.projectedPoints, 19.21);
   assert.equal(cards['4217'].metrics.pointsPerGame, null);
   assert.equal(service.buildPlayerCards(catalog, undefined, {}, [])['4984'].metrics.totalPoints, null);
 });
@@ -219,7 +220,7 @@ test('actual frontend card and final dossier consume the exact same DTO without 
   assert.ok(cardHtml.includes(cards['13281'].photoUrl));
   assert.ok(dossierHtml.includes(cards['13281'].photoUrl));
   await sandbox.openPlayerDossierModal('3294');
-  assert.match(elements.get('player-modal-content').innerHTML, /20\.6/);
+  assert.match(elements.get('player-modal-content').innerHTML, /19\.2/);
   assert.equal(vm.runInContext('selectedActiveRosterId', context), null);
   sandbox.renderPlaybookView();
   assert.match(elements.get('view-playbook').innerHTML, /Owner não identificado/i);
@@ -258,6 +259,9 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   assert.equal(db.prepare("SELECT count(*) n FROM drafts WHERE provider_draft_id='fixture-draft'").get().n, 1);
   assert.equal(db.prepare("SELECT count(*) n FROM draft_picks").get().n, 1);
   assert.ok(db.prepare("SELECT count(*) n FROM source_provenance WHERE entity_type='league'").get().n >= 2);
+  const draftsBefore=sleeperConnector.getLeagueDrafts.mock.callCount();
+  await sleeperSyncService.syncLeagueDetails('fixture-league',1,{coreOnly:true});
+  assert.equal(sleeperConnector.getLeagueDrafts.mock.callCount(),draftsBefore);
   league.season_type = 'post';
   await sleeperSyncService.syncLeagueDetails('fixture-league', 1);
   assert.equal(db.prepare("SELECT season_type FROM leagues WHERE id=? OR provider_league_id=?").get('fixture-league', 'fixture-league').season_type, 'post');

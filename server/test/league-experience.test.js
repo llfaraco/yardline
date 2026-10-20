@@ -65,7 +65,7 @@ test('real dossier DOM removes unavailable tools, bio and metrics', async () => 
   const dom=new JSDOM('<div id="player-modal"><div id="player-modal-content"></div></div>',{runScripts:'outside-only',url:'http://fixture.invalid'}),w=dom.window;
   w.document.addEventListener=()=>{};w.setInterval=()=>0;
   w.fetch=async()=>({ok:true,json:async()=>({rows:[],items:[],seasons:[],syncing:false})});
-  for(const file of ['player-card-contract.js','data_and_views.js','engines.js']) vm.runInContext(source(file),dom.getInternalVMContext());
+  for(const file of ['player-card-contract.js','data_and_views.js','player-dossier-presentation.js','engines.js']) vm.runInContext(source(file),dom.getInternalVMContext());
   const p=w.YardlinePlayerCard.createPlayerCard('test-player',{name:'Atleta Teste',position:'WR',team:'NE'},null,{season:'2026',week:7},[]);
   w.resolveNFLPlayer=()=>p;
   await w.openPlayerDossierModal('test-player');
@@ -94,4 +94,19 @@ test('weekly lineup comes from matchup slots and card context is enforced on bot
   s.playerCards.a.context.week=6;w.renderPlaybookView();w.renderLeagueView();
   for(const page of ['playbook','league']) assert.doesNotMatch(w.document.getElementById('view-'+page).textContent,/Atleta A/);
   dom.window.close();
+});
+
+
+test('split summary keeps my team left and sums only complete Sleeper league projections',()=>{
+ const s=snapshot();
+ for(const [id,points] of [['a',12.5],['b',20]]) Object.assign(s.playerCards[id],{context:{...s.playerCards[id].context,projectionFormat:'LEAGUE'},source:{projection:'sleeper:league_scoring'},metrics:{projectedPoints:points}});
+ const dom=fixture(s),w=dom.window,selected=w.YardlineLeagueExperience.select(s,1);
+ assert.equal(w.YardlineLeagueExperience.projection(selected,s.rosters[0]).points,12.5);
+ const sides=w.document.querySelectorAll('#view-home .yl-week-side');
+ assert.equal(sides[0].getAttribute('data-roster-id'),'1');assert.equal(sides[1].getAttribute('data-roster-id'),'2');
+ assert.match(sides[0].textContent,/12.50/);assert.match(sides[1].textContent,/20.00/);
+ s.playerCards.a.context.projectionFormat='PPR';assert.equal(w.YardlineLeagueExperience.projection(selected,s.rosters[0]).points,null);
+ s.playerCards.a.context.projectionFormat='LEAGUE';s.playerCards.a.source.projection='fantasypros';assert.equal(w.YardlineLeagueExperience.projection(selected,s.rosters[0]).points,null);
+ s.playerCards.a.source.projection='sleeper:league_scoring';s.playerCards.a.metrics.projectedPoints=0;assert.equal(w.YardlineLeagueExperience.projection(selected,s.rosters[0]).points,0);
+ dom.window.close();
 });

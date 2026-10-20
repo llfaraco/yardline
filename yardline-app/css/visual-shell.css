@@ -202,3 +202,32 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 @media(max-width:720px) { .yl-matchup-shell { grid-template-columns:minmax(0,1fr); } .yl-matchup-row { flex-wrap:wrap; } }
 
 .yl-player-card-v2__teamlogo[hidden] { display:none!important; }
+
+/* Overview: personal team always on the left, opponent on the right. */
+.yl-week-card { border:1px solid #ccd6e1; border-radius:14px; overflow:hidden; margin-bottom:22px; background:#fff; }
+.yl-week-card>header { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:13px 22px; color:#002244; border-bottom:1px solid #dce3ec; font-size:11px; font-weight:700; }
+.yl-week-card>header small { color:#6b7b8e; font-size:11px; font-weight:400; }
+.yl-week-split { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); position:relative; }
+.yl-week-side { position:relative; min-width:0; padding:26px 32px; overflow:hidden; isolation:isolate; color:#fff; background:#002244; }
+.yl-week-side.is-opponent { background:#49132a; text-align:right; border-left:1px solid #ffffff35; }
+.yl-week-background { position:absolute; z-index:-1; right:-20px; top:-35px; width:260px; height:260px; object-fit:cover; opacity:.18; mask-image:linear-gradient(to left,#000,transparent); }
+.yl-week-side.is-opponent .yl-week-background { right:auto; left:-20px; mask-image:linear-gradient(to right,#000,transparent); }
+.yl-week-team>span { font-size:9px; letter-spacing:1.4px; color:#c9d4df; }
+.yl-week-team h3 { margin:9px 0 22px; font-size:clamp(17px,2vw,25px); line-height:1.25; color:#fff; overflow-wrap:anywhere; }
+.yl-week-numbers { display:flex; align-items:baseline; gap:24px; flex-wrap:wrap; }
+.yl-week-side.is-opponent .yl-week-numbers { justify-content:flex-end; }
+.yl-week-numbers small { display:block; color:#c7d2df; font-size:10px; margin-bottom:6px; }
+.yl-week-numbers strong { display:block; font-variant-numeric:tabular-nums; }
+.yl-week-projection strong { font-size:34px; font-weight:700; letter-spacing:-1px; }
+.yl-week-score strong { font-size:22px; font-weight:500; }
+.yl-week-versus { position:absolute; z-index:2; left:50%; top:50%; transform:translate(-50%,-50%); background:#fff; color:#002244; border:4px solid #e7ecf2; border-radius:50%; padding:10px 8px; font-size:10px; font-weight:800; }
+.yl-week-card>footer { padding:11px 22px; font-size:11px; line-height:1.6; color:#687b90; }
+.yl-welcome { background:linear-gradient(115deg,#002244,#092e50); border:1px solid #173c61; border-left:5px solid #c60c30; }
+.yl-welcome h2 { color:#fff; }
+.yl-welcome p { color:#c4d0de; }
+.yl-welcome .yl-eyebrow { color:#b0b7bc; font-size:10px; }
+.yl-welcome .yl-text-action { color:#fff; }
+.yl-brand-panel { width:31%; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; padding:28px; border-left:1px solid #ffffff15; background:#ffffff06; transform:skew(-7deg); margin-right:-12px; }
+.yl-brand-panel img { width:100%; max-width:210px; filter:brightness(0) invert(1); transform:skew(7deg); }
+.yl-brand-panel>span { color:#b0b7bc; font-size:8px; letter-spacing:1.5px; transform:skew(7deg); }
+@media(max-width:600px){ .yl-week-side { padding:22px 16px; } .yl-week-numbers { gap:12px; } .yl-week-projection strong { font-size:27px; } .yl-week-team h3 { font-size:17px; min-height:44px; } .yl-week-score strong { font-size:19px; } .yl-week-versus { padding:7px 4px; font-size:8px; } .yl-brand-panel { display:none; } .yl-welcome-copy { width:100%; } }

@@ -2134,7 +2134,7 @@ if (typeof window !== 'undefined') {
     if (!skipRemoteSync) showToast(`Sincronizando liga #${id} pelo backend...`);
     try {
       if (!skipRemoteSync) {
-        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) }, 90000);
+        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id, coreOnly: true }) }, 90000);
       }
       const snapshot = await request(`/leagues/${id}/shell`, {}, 90000);
       const nextPlayerCards = snapshot.playerCards || {};
@@ -2643,6 +2643,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
       if (athlete) athlete.innerHTML = '<h3>FICHA DO ATLETA</h3><p>' + [p.position,p.team,p.injuryStatus].filter(Boolean).map(esc).join(' · ') + '</p>';
       const injury = content.querySelector('.sleeper-dossier__bar > span');
       if (injury && !p.injuryStatus && !p.taxi) injury.remove();
+      window.YardlineDossierPresentation?.render(content,p,season,rows,career,depth,news);
       const first = content.querySelector('.sleeper-tab-btn');
       if (!content.querySelector('#tab-btn-' + selectedDossierTab) && first) selectedDossierTab = first.id.replace('tab-btn-', '');
       window.YL_SWITCH_DOSSIER_TAB(selectedDossierTab);
