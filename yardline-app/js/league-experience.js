@@ -34,10 +34,19 @@
   }
   function projection(s, roster) {
     const ids=lineup(s,roster).filter(value=>value!=='0');
-    const values=ids.map(id=>{const p=player(s,id);return p?.context?.projectionFormat==='LEAGUE' && /^sleeper/.test(p.source?.projection||'') ? num(p.metrics?.projectedPoints) : null;});
-    return {points:ids.length && values.every(v=>v!==null) ? Math.round(values.reduce((a,b)=>a+b,0)*100)/100 : null,known:values.filter(v=>v!==null).length,total:ids.length};
+    const values=ids.map(id=>{const p=player(s,id);return p?.context?.projectionFormat==='LEAGUE' && ['sleeper:league_scoring','sleeper_matchups'].includes(p.source?.projection) ? num(p.metrics?.projectedPoints) : null;});
+    const missing=ids.filter((id,index)=>values[index]===null).map(id=>{const p=player(s,id);return {id,name:p?.name||null,injuryStatus:p?.injuryStatus||null};});
+    return {points:ids.length && values.every(v=>v!==null) ? Math.round(values.reduce((a,b)=>a+b,0)*100)/100 : null,known:values.filter(v=>v!==null).length,total:ids.length,missing};
   }
-  root.YardlineLeagueExperience = { select, lineup, player, projection };
+  function freshness(snapshot,status={}) {
+    if(status.status==='refreshing')return {state:'refreshing',text:'Atualizando Sleeper…'};
+    if(status.status==='offline')return {state:'offline',text:'Sem conexão · última atualização salva'};
+    if(status.status==='stale'||snapshot?.dataStatus==='stale'||snapshot?.provenance?.status==='stale')return {state:'stale',text:'Falha ao atualizar · exibindo dados salvos'};
+    const stamp=status.syncedAt||snapshot?.syncedAt;
+    if(!stamp||!Number.isFinite(Date.parse(stamp)))return {state:'pending',text:'Aguardando a primeira atualização'};
+    return {state:'synced',text:'Última atualização: '+new Date(stamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
+  }
+  root.YardlineLeagueExperience = { select, lineup, player, projection, freshness };
   if (typeof document === 'undefined') return;
   function context() {
     const selected = typeof userRealRoster !== 'undefined' ? userRealRoster : null;
@@ -50,7 +59,7 @@
   }
   function summary(s) {
     if (!s.roster) return '<div class="yl-card" style="padding:24px"><p>Conecte sua conta Sleeper e selecione seu time para acompanhar a rodada.</p><button class="btn-yl btn-primary" onclick="openLeagueSwitcherModal()">Selecionar liga e time</button></div>';
-    if (!s.opponent || !s.matchup) return '';
+    if (!s.opponent || !s.matchup) return '<section class="yl-card yl-week-empty"><h3>Sua rodada</h3><p>Nenhum confronto foi recebido para esta semana. Atualize a Sleeper para conferir os dados da liga.</p>'+refresh+'</section>';
     function side(roster, score, mine){
       const projected=projection(s,roster);
       const avatar=String(roster.avatar||'');
@@ -60,7 +69,9 @@
       return `<div class="yl-week-side ${mine?'is-mine':'is-opponent'}" data-roster-id="${id(roster)}">${image?`<img class="yl-week-background" src="${esc(image)}" alt="" onerror="this.hidden=true">`:''}<div class="yl-week-team"><span>${mine?'SEU TIME':'ADVERSÁRIO'}</span><h3>${esc(s.name(roster))}</h3></div><div class="yl-week-numbers">${projected.points!==null?`<div class="yl-week-projection"><small>Projeção Sleeper</small><strong>${projected.points.toFixed(2)}</strong></div>`:''}${score!==null?`<div class="yl-week-score"><small>Pontos da rodada</small><strong>${score.toFixed(2)}</strong></div>`:''}</div></div>`;
     }
     const my=projection(s,s.roster),opp=projection(s,s.opponent);
-    return `<article class="yl-week-card"><header><span>CONFRONTO DA SEMANA ${esc(s.week)}</span><small>${esc(s.snapshot.league?.name||'Sleeper')}</small></header><div class="yl-week-split">${side(s.roster,s.myScore,true)}<span class="yl-week-versus" aria-hidden="true">VS</span>${side(s.opponent,s.oppScore,false)}</div><footer><span data-league-freshness role="status" aria-live="polite">${root.YL_REFRESH_STATUS?.status==='stale'?'Falha ao atualizar · exibindo dados salvos':s.snapshot.syncedAt?'Última atualização: '+esc(new Date(s.snapshot.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})):''}</span>${my.points!==null&&opp.points!==null?'Projeção Sleeper dos titulares · regras de pontuação desta liga':'A projeção completa ainda não foi recebida para todos os titulares. Nenhum total parcial é apresentado como projeção do time.'}</footer></article>`;
+    const state=freshness(s.snapshot,root.YL_REFRESH_STATUS);
+    const notices=[[s.roster,my],[s.opponent,opp]].filter(([,p])=>p.points===null&&p.total>0).map(([r,p])=>`<details class="yl-projection-notice"><summary>Projeção de ${esc(s.name(r))}: ${p.known} de ${p.total} titulares com dados</summary><p>O total só aparece com projeções calculáveis de todos os titulares, conforme as regras desta liga. Uma ausência não equivale a zero.</p>${p.missing.filter(p=>p.name).map(p=>`<p><button type="button" class="yl-profile-link" onclick="openPlayerDossierModal('${esc(p.id)}')">${esc(p.name)}</button>${p.injuryStatus?` · Situação no cadastro: ${esc(p.injuryStatus)}`:''} · Sem projeção recebida no formato da liga.</p>`).join('')}</details>`).join('');
+    return `<article class="yl-week-card"><header><span>CONFRONTO DA SEMANA ${esc(s.week)}</span><small>${esc(s.snapshot.league?.name||'Sleeper')}</small></header><div class="yl-week-split">${side(s.roster,s.myScore,true)}<span class="yl-week-versus" aria-hidden="true">VS</span>${side(s.opponent,s.oppScore,false)}</div><footer><span data-league-freshness data-status="${state.state}" role="status" aria-live="polite">${esc(state.text)}</span>Produção projetada pela Sleeper · pontuação calculada pelas regras desta liga.${notices}</footer></article>`;
   }
   function cards(s, roster, title, ids) {
     const html = ids.map(playerId => {
