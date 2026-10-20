@@ -100,10 +100,10 @@ export class PlayerHistoryService {
         const points = league ? row.fpts : numberOrNull(stats.pts_ppr);
         return { ...row, season: String(year), stats, team: stats.team ?? null, date: stats.game_date ?? null,
           fpts: points, points, pointsFormat: league ? 'LEAGUE' : 'PPR',
-          source: { ...row.source, points: points === null ? null : league ? 'yardline:derived:sleeper-stats' : 'sleeper_preset_ppr' } };
+          source: { ...row.source, points: points === null ? null : league ? row.source.points : 'sleeper_preset_ppr' } };
       });
       bySeason.set(year, rows);
-      const observed = rows.filter(row => Object.keys(row.stats).some(key => key !== 'capturedAt'));
+      const observed = rows.filter(row => row.source.points === 'sleeper_matchups' || Object.keys(row.stats).some(key => key !== 'capturedAt'));
       const scored = observed.filter(row => row.fpts !== null);
       const totalPoints = scored.length ? Number(scored.reduce((sum, row) => sum + row.fpts, 0).toFixed(2)) : null;
       const cache = caches.find(row => Number(row.season) === year);

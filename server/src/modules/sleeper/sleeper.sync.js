@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { db } from '../../db/database.js';
 import { sleeperConnector } from './sleeper.connector.js';
 import { scorePlayerStats, normalizeScoringSettings } from '../engines/scoring.engine.js';
-import { normalizeSleeperPlayer, loadPersistedCatalog, numberOrNull } from '../players/player-card.service.js';
+import { normalizeSleeperPlayer, loadPersistedCatalog, numberOrNull, pointsFromStats } from '../players/player-card.service.js';
 export { normalizeSleeperPlayer };
 
 // Cache em memória para catálogo de jogadores da NFL (TTL 24 horas)
@@ -859,7 +859,7 @@ export const sleeperSyncService = {
         const status = Number(state?.week) === week ? 'live' : ((a?.points || b?.points) ? 'finished' : 'scheduled');
         db.prepare(`INSERT INTO matchups (id, league_id, season, week, provider_matchup_id, roster_a_id, roster_b_id, status, score_a, score_b, custom_points_json, captured_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET status=excluded.status, score_a=excluded.score_a, score_b=excluded.score_b, custom_points_json=excluded.custom_points_json, captured_at=excluded.captured_at`)
-          .run(matchupDbId, league.id, normLeague.season, week, Number(providerMatchupId), a?.roster_id || 0, b?.roster_id || null, status, Number(a?.points || 0), Number(b?.points || 0), JSON.stringify({ a: a?.custom_points ?? null, b: b?.custom_points ?? null }), now);
+          .run(matchupDbId, league.id, normLeague.season, week, Number(providerMatchupId), a?.roster_id || 0, b?.roster_id || null, status, numberOrNull(a?.custom_points) ?? numberOrNull(a?.points), numberOrNull(b?.custom_points) ?? numberOrNull(b?.points), JSON.stringify({ a: a?.custom_points ?? null, b: b?.custom_points ?? null }), now);
         db.prepare('DELETE FROM matchup_players WHERE matchup_id = ?').run(matchupDbId);
         for (const item of pair) {
           const starters = new Set((item.starters || []).map(String));
@@ -867,7 +867,8 @@ export const sleeperSyncService = {
           (item.players || []).forEach((playerId, index) => {
             const pid = String(playerId);
             const scored = scorePlayerStats(stats?.[pid] || {}, scoringSettings);
-            const official = starters.has(pid) ? numberOrNull(starterPoints[(item.starters || []).indexOf(pid)]) ?? scored.points : scored.points;
+            const derived = pointsFromStats(stats?.[pid], scoringSettings).points;
+            const official = numberOrNull(item.players_points?.[pid]) ?? (starters.has(pid) ? numberOrNull(starterPoints[(item.starters || []).map(String).indexOf(pid)]) : null) ?? derived;
             const projected = ['pts_ppr', 'pts_half_ppr', 'pts_std'].map(key => numberOrNull(projections?.[pid]?.[key])).find(value => value !== null) ?? null;
             matchupInsert.run(`${matchupDbId}_${item.roster_id}_${pid}`, matchupDbId, Number(item.roster_id), pid, starters.has(pid) ? `STARTER_${(item.starters || []).indexOf(pid) + 1}` : 'BN', starters.has(pid) ? 1 : 0, official === null ? null : Number(official.toFixed(2)), projected, JSON.stringify({ official, recalculated: scored }), now);
             recordsWritten++;
