@@ -32,6 +32,12 @@
     return p && String(p.context?.leagueId) === String(s.snapshot.league?.providerLeagueId ?? s.snapshot.league?.provider_league_id ?? s.snapshot.league?.id)
       && String(p.context?.season) === String(s.snapshot.league?.season) && num(p.context?.week) === s.week ? p : null;
   }
+  function slot(s,roster,playerId) {
+    const row=(s.matchup?.players||[]).find(p=>num(p.roster_id??p.rosterId)===id(roster)&&String(p.player_id??p.playerId)===String(playerId));
+    const observed=String(row?.slot||'').match(/^STARTER_(\d+)$/);
+    const index=observed?Number(observed[1])-1:(roster?.starters||[]).map(String).indexOf(String(playerId));
+    return index>=0?s.snapshot.league?.rosterPositions?.[index]||null:null;
+  }
   function projection(s, roster) {
     const ids=lineup(s,roster).filter(value=>value!=='0');
     const values=ids.map(id=>{const p=player(s,id);return p?.context?.projectionFormat==='LEAGUE' && ['sleeper:league_scoring','sleeper_matchups'].includes(p.source?.projection) ? num(p.metrics?.projectedPoints) : null;});
@@ -46,7 +52,7 @@
     if(!stamp||!Number.isFinite(Date.parse(stamp)))return {state:'pending',text:'Aguardando a primeira atualização'};
     return {state:'synced',text:'Última atualização: '+new Date(stamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
   }
-  root.YardlineLeagueExperience = { select, lineup, player, projection, freshness };
+  root.YardlineLeagueExperience = { select, lineup, player, projection, freshness, slot };
   if (typeof document === 'undefined') return;
   function context() {
     const selected = typeof userRealRoster !== 'undefined' ? userRealRoster : null;
@@ -76,9 +82,8 @@
   function cards(s, roster, title, ids) {
     const html = ids.map(playerId => {
       const p = player(s, playerId); if (!p) return '';
-      const index = lineup(s, roster).indexOf(String(playerId));
-      const slot = title === 'Titulares' && index >= 0 ? s.snapshot.league?.rosterPositions?.[index] : title === 'Banco' ? 'BN' : title === 'Taxi' ? 'TAXI' : '';
-      return typeof renderCanonicalPlayerCard === 'function' ? renderCanonicalPlayerCard(p, slot) : '';
+      const label = title === 'Titulares' ? slot(s,roster,playerId) : title === 'Banco' ? 'BN' : title === 'Taxi' ? 'TAXI' : '';
+      return typeof renderCanonicalPlayerCard === 'function' ? renderCanonicalPlayerCard(p, label) : '';
     }).join('');
     return html ? `<section style="margin:24px 0"><h3>${esc(title)}</h3><div class="yl-dashboard-player-grid">${html}</div></section>` : '';
   }
@@ -102,9 +107,10 @@
         if (!p) return '';
         const row = rows.find(r => String(r.player_id ?? r.playerId) === String(playerId));
         const points = num(row?.points);
-        return `<button class="yl-matchup-row" style="width:100%;text-align:left;background:none;border:0;cursor:pointer" onclick="openPlayerDossierModal('${esc(p.id)}')"><img src="${esc(p.photoUrl)}" alt="" onerror="this.hidden=true"><b>${esc(p.name)}</b><span>${[p.position,p.team].filter(Boolean).map(esc).join(' · ')}</span>${points !== null ? `<strong class="mono">${points.toFixed(2)} <small>pts</small></strong>` : ''}</button>`;
+        const estimated=p.context?.projectionFormat==='LEAGUE'&&['sleeper:league_scoring','sleeper_matchups'].includes(p.source?.projection)?num(p.metrics?.projectedPoints):null;
+        return `<button type="button" class="yl-matchup-row yl-duel-player" aria-label="Abrir perfil de ${esc(p.name)}" onclick="openPlayerDossierModal('${esc(p.id)}')">${p.photoUrl?`<img src="${esc(p.photoUrl)}" alt="" onerror="this.hidden=true">`:''}<span class="yl-duel-identity"><b>${esc(p.name)}</b><small>${[slot(s,roster,playerId)||p.position,p.team].filter(Boolean).map(esc).join(' · ')}</small></span>${points!==null||estimated!==null?`<span class="yl-duel-metrics">${points!==null?`<span><small>Pontos</small><strong class="mono">${points.toFixed(2)}</strong></span>`:''}${estimated!==null?`<span><small>Proj. Sleeper</small><strong class="mono">${estimated.toFixed(2)}</strong></span>`:''}</span>`:''}</button>`;
       }).join('');
-      return html ? `<section class="yl-card" style="padding:20px"><h3>${esc(s.name(roster))}</h3>${html}</section>` : '';
+      return html ? `<section class="yl-card yl-duel-team"><header><h3>${esc(s.name(roster))}</h3><p>Titulares da rodada · Sleeper</p></header>${html}</section>` : '';
     }
     el.innerHTML = header(s, 'Confronto da semana') + summary(s)
       + (s.matchup && s.opponent ? `<div class="yl-matchup-shell">${team(s.roster)}${team(s.opponent)}</div>` : '');
