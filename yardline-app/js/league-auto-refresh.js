@@ -25,8 +25,9 @@
     status:value=>{
       root.YL_REFRESH_STATUS=value;
       for(const el of document.querySelectorAll('[data-league-freshness]')){
-        el.textContent=value.status==='refreshing'?'Atualizando Sleeper…':value.status==='offline'?'Sem conexão · última atualização salva':value.status==='stale'?'Falha ao atualizar · exibindo dados salvos':value.syncedAt?'Atualizado às '+new Date(value.syncedAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'Atualização automática ativa';
-        el.dataset.status=value.status;
+        const info=root.YardlineLeagueExperience.freshness(root.YL_SHELL_SNAPSHOT,value);
+        el.textContent=info.text;
+        el.dataset.status=info.state;
       }
     }
   });

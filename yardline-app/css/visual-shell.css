@@ -234,3 +234,11 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 
 [data-league-freshness] { display:block; margin-bottom:5px; color:#51677e; }
 [data-league-freshness][data-status="stale"],[data-league-freshness][data-status="offline"] { color:#9a3412; }
+
+.yl-projection-notice { margin-top:10px; border-top:1px solid #e1e7ee; padding-top:10px; }
+.yl-projection-notice summary { cursor:pointer; color:#334e68; font-weight:600; line-height:1.6; }
+.yl-projection-notice p { font-size:11px; line-height:1.7; color:#687b90; margin:8px 0 0; }
+.yl-projection-notice button { font:inherit; color:#174c7d; }
+.yl-week-empty { padding:24px; margin-bottom:20px; }
+.yl-week-empty h3 { color:#002244; font-size:17px; }
+.yl-week-empty p { margin:10px 0 16px; font-size:13px; line-height:1.6; color:#64768a; }

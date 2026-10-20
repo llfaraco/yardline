@@ -110,3 +110,40 @@ test('split summary keeps my team left and sums only complete Sleeper league pro
  s.playerCards.a.source.projection='sleeper:league_scoring';s.playerCards.a.metrics.projectedPoints=0;assert.equal(w.YardlineLeagueExperience.projection(selected,s.rosters[0]).points,0);
  dom.window.close();
 });
+
+
+test('incomplete projections identify the missing player without inventing a team total',()=>{
+ const s=snapshot();
+ Object.assign(s.playerCards.a,{context:{...s.playerCards.a.context,projectionFormat:'LEAGUE'},source:{projection:'sleeper:league_scoring'},metrics:{projectedPoints:12.5}});
+ s.playerCards.b.injuryStatus='Out';
+ const dom=fixture(s),d=dom.window.document;
+ const sides=d.querySelectorAll('#view-home .yl-week-side');
+ assert.equal(sides[0].querySelectorAll('.yl-week-projection').length,1);
+ assert.equal(sides[1].querySelectorAll('.yl-week-projection').length,0);
+ const note=d.querySelector('#view-home .yl-projection-notice');
+ assert.match(note.textContent,/Rival: 0 de 1/);assert.match(note.textContent,/Atleta B/);assert.match(note.textContent,/Situação no cadastro: Out/);
+ assert.match(note.textContent,/Uma ausência não equivale a zero/);
+ assert.ok(note.querySelector('button[onclick*="openPlayerDossierModal"]'));
+ dom.window.close();
+});
+test('missing matchup offers an explicit refresh action without score or opponent fixtures',()=>{
+ const s=snapshot();s.matchups=[];
+ const dom=fixture(s),node=dom.window.document.querySelector('#view-home .yl-week-empty');
+ assert.ok(node.querySelector('button'));
+ assert.match(node.textContent,/Nenhum confronto foi recebido/);
+ assert.doesNotMatch(node.textContent,/Rival|0.00|ao vivo|não iniciado/i);
+ dom.window.close();
+});
+test('freshness keeps offline and failure states consistent after a page rerender',()=>{
+ const s=snapshot(),dom=fixture(s),w=dom.window;
+ for(const [state,text] of [['offline','Sem conexão'],['stale','Falha ao atualizar'],['refreshing','Atualizando Sleeper']]){
+  w.YL_REFRESH_STATUS={status:state};w.renderHomeView();w.renderPlaybookView();
+  for(const page of ['home','playbook']){
+   const status=w.document.querySelector('#view-'+page+' [data-league-freshness]');
+   assert.equal(status.dataset.status,state);assert.ok(status.textContent.includes(text));
+  }
+ }
+ assert.equal(w.YardlineLeagueExperience.freshness({syncedAt:'invalid'}).state,'pending');
+ assert.equal(w.YardlineLeagueExperience.freshness({syncedAt:'2026-10-20T18:00:00Z'},{status:'synced'}).state,'synced');
+ dom.window.close();
+});
