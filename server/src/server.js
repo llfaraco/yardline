@@ -39,7 +39,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '1mb', verify(req, res, buffer) { req.rawBody = buffer.toString('utf8'); } }));
 
 // Security Headers Middleware (OWASP Top 10 - Etapa 11: Security & Privacy Agent)
 app.use((req, res, next) => {
@@ -667,21 +667,7 @@ app.get('/api/rankings', (req, res) => {
 
 // Manager DNA
 app.get('/api/manager-dna', (req, res) => {
-  res.json({
-    manager: 'Faraco',
-    team: 'Gengar My Balls',
-    archetype: 'Tactical Aggressor',
-    metrics: {
-      waiverAggressiveness: 'Alta (22% FAAB médio)',
-      tradeFrequency: 'Moderada (3 ofertas / mês)',
-      rosterConcentration: 'Foco em WRs de alto volume (TPRR > 28%)',
-      clutchScore: '89.4%'
-    },
-    insights: [
-      'Costuma identificar lesões nas primeiras 24h e antecipar backups no Waiver.',
-      'Maximiza o teto posicional com o solver ótimo semanal.'
-    ]
-  });
+  res.json({ dataStatus: 'unavailable', manager: null, team: null, archetype: null, metrics: {}, insights: [] });
 });
 
 // Manager DNA Individual por Roster / Manager (Seção 8 da Especificação)
@@ -719,18 +705,7 @@ app.get('/api/leagues/:leagueId/manager-dna/:rosterId', async (req, res) => {
 
 // Draft Center
 app.get('/api/drafts', (req, res) => {
-  res.json({
-    season: '2026',
-    type: 'Snake',
-    totalRounds: 16,
-    myPick: 2,
-    adpLeaders: [
-      { pick: 1, name: 'Christian McCaffrey', pos: 'RB', team: 'SF', adp: '1.01' },
-      { pick: 2, name: 'CeeDee Lamb', pos: 'WR', team: 'DAL', adp: '1.02' },
-      { pick: 3, name: 'Ja\'Marr Chase', pos: 'WR', team: 'CIN', adp: '1.03' },
-      { pick: 4, name: 'Justin Jefferson', pos: 'WR', team: 'MIN', adp: '1.04' }
-    ]
-  });
+  res.json({ dataStatus: 'unavailable', season: null, type: null, totalRounds: null, myPick: null, adpLeaders: [] });
 });
 
 // ==========================================
@@ -889,8 +864,8 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
 
 app.post('/api/webhooks/payment/:provider', async (req, res) => {
   try {
-    const signature = req.headers['x-yardline-signature'] || req.headers['x-signature'] || 'sandbox_test_signature';
-    const result = await billingService.handlePaymentWebhook(req.body, signature);
+    const signature = req.headers['x-yardline-signature'] || req.headers['x-signature'];
+    const result = await billingService.handlePaymentWebhook(req.rawBody, signature);
     res.json(result);
   } catch (err) {
     console.error('[Billing Webhook Error]:', err.message);

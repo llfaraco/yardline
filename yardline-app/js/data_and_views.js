@@ -2653,112 +2653,14 @@ async function loadBackendPlans() {
   } catch(e) {}
 }
 
-async function openCheckoutModal(planCode, method = "PIX") {
-  const modal = document.getElementById("checkout-modal");
-  const content = document.getElementById("checkout-modal-content");
+async function openCheckoutModal() {
   openModal("checkout-modal");
-  content.innerHTML = `
-    <div style="text-align:center;padding:16px;">
-      <div style="margin-bottom:8px;color:var(--yl-blue);"><svg class="spinner" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div>
-      <div style="font-size:14px;color:var(--text-muted);margin-top:8px;">Gerando checkout seguro via API YARDLINE...</div>
-    </div>
-  `;
-
-  try {
-    // Obter sessão de checkout via Backend API (ou simular se offline)
-    let checkoutData = null;
-    try {
-      const res = await fetch(`${YL_API_BASE}/billing/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planCode, method })
-      });
-      if (res.ok) checkoutData = await res.json();
-    } catch(e) {}
-
-    if (!checkoutData || !checkoutData.checkout) {
-      // Fallback autêntico estruturado
-      const paymentId = "pay_" + Date.now();
-      checkoutData = {
-        checkout: {
-          providerPaymentId: paymentId,
-          amountCents: plan.price_cents,
-          method: method,
-          pix: method === "PIX" ? {
-            qrCodeImage: "https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=00020126580014br.gov.bcb.pix0136yardline-nfl-brasil-2026",
-            copyPaste: "00020126580014br.gov.bcb.pix0136yardline-nfl-brasil-2026-sandbox-checkout",
-            expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
-          } : null
-        }
-      };
-    }
-
-    const { checkout } = checkoutData;
-
-    content.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border-light);padding-bottom:12px;">
-        <div>
-          <span class="badge badge-crimson">CHECKOUT OFICIAL EM REAIS</span>
-          <h2 style="font-size:19px;font-weight:600;color:var(--yl-navy);margin:4px 0 0;">Plano ${plan.name}</h2>
-        </div>
-        <button class="btn-yl btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeModal('checkout-modal')">Fechar</button>
-      </div>
-
-      <div style="background:#F8FAFC;border:1px solid var(--border-light);border-radius:10px;padding:16px;text-align:center;margin-bottom:18px;">
-        <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;">VALOR TOTAL DA ASSINATURA</div>
-        <div style="font-size:26px;font-weight:700;color:var(--yl-navy);margin:4px 0;">${priceFormatted} <span style="font-size:13px;font-weight:400;color:var(--text-muted);">/mês</span></div>
-        <div style="font-size:11.5px;color:var(--yl-emerald);font-weight:500;">Sem conversão cambial · Cobrança oficial em Reais</div>
-      </div>
-
-      ${method === "PIX" ? `
-        <div style="text-align:center;margin-bottom:18px;">
-          <div style="font-size:13px;font-weight:600;color:var(--yl-navy);margin-bottom:10px;">Escaneie o QR Code no app do seu banco:</div>
-          <div style="display:inline-block;padding:12px;background:#FFF;border:1px solid var(--border-light);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
-            <img src="${checkout.pix?.qrCodeImage || 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=yardline'}" style="width:200px;height:200px;display:block;">
-          </div>
-          <div style="margin-top:14px;">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Ou pague utilizando o Pix Copia e Cola:</div>
-            <div style="display:flex;gap:6px;max-width:440px;margin:0 auto;">
-              <input type="text" readonly value="${checkout.pix?.copyPaste || ''}" class="yl-search-input" style="font-size:11.5px;padding:6px 10px;flex:1;background:#F1F5F9;color:#334155;">
-              <button class="btn-yl btn-primary" style="padding:6px 12px;font-size:12px;" onclick="navigator.clipboard.writeText('${checkout.pix?.copyPaste || ''}');showToast('Chave Pix copiada com sucesso!');">Copiar Chave</button>
-            </div>
-          </div>
-        </div>
-      ` : `
-        <div style="padding:16px;background:#FFF;border:1px solid var(--border-light);border-radius:8px;margin-bottom:18px;">
-          <div style="font-size:13px;font-weight:600;color:var(--yl-navy);margin-bottom:10px;">Cartão de Crédito Nacional e Internacional:</div>
-          <div style="font-size:12.5px;color:var(--text-muted);line-height:1.6;">
-            Pagamentos por cartão são processados de forma criptografada pelo gateway com confirmação instantânea.
-          </div>
-        </div>
-      `}
-
-      <!-- Simulação de Confirmação de Webhook em Tempo Real -->
-      <div style="border-top:1px solid var(--border-light);padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <span style="font-size:11.5px;color:var(--text-muted);">Aguardando confirmação bancária...</span>
-        <button class="btn-yl btn-primary" style="padding:8px 16px;font-size:12px;background:var(--yl-emerald);border-color:var(--yl-emerald);" onclick="confirmPaymentWebhookSimulation('${checkout.providerPaymentId}', '${planCode}')">
-          Confirmar Pagamento (Webhook)
-        </button>
-      </div>
-    `;
-  } catch(err) {
-    content.innerHTML = `<div style="color:var(--yl-crimson);padding:10px;">Erro ao gerar checkout: ${err.message}</div>`;
-  }
-}
-
-async function confirmPaymentWebhookSimulation(providerPaymentId, planCode) {
-  try {
-    await fetch(`${YL_API_BASE}/webhooks/payment/pix`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-signature": "sandbox_test_signature" },
-      body: JSON.stringify({ providerPaymentId, status: "paid", rawEventId: "evt_" + Date.now() })
-    });
-  } catch(e) {}
-
-  localStorage.setItem("yl_active_plan", planCode);
-  closeModal("checkout-modal");
-  renderPlansView();
-  showToast(`Pagamento confirmado via Webhook! Plano ${planCode} ativado com sucesso.`);
+  document.getElementById("checkout-modal-content").innerHTML = `
+    <div style="padding:20px">
+      <h2>Pagamentos indisponíveis</h2>
+      <p>A integração com um provedor de pagamentos ainda não foi concluída. Não há cobrança ou ativação de assinatura nesta versão.</p>
+      <button class="btn-yl btn-outline" onclick="closeModal('checkout-modal')">Fechar</button>
+    </div>`;
 }
 
 function renderPlansView() {
@@ -2766,15 +2668,15 @@ function renderPlansView() {
   if (!container) return;
 
   loadBackendPlans();
-  const currentPlan = localStorage.getItem("yl_active_plan") || "PRO";
+  const currentPlan = "FREE";
 
   container.innerHTML = `
     <div class="yl-card" style="margin-bottom:18px;padding:20px 24px;background:linear-gradient(90deg,#001933 0%,#0F172A 100%);color:#FFF;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
         <div>
-          <span class="badge badge-crimson">BILLING & ASSINATURAS REAIS</span>
-          <h2 style="font-size:21px;font-weight:600;margin-top:4px;">Planos YARDLINE NFL · Cobrança Oficial em Reais</h2>
-          <p style="font-size:13px;color:#CBD5E1;margin-top:4px;">Chega de pagar US$ 16,99 em dólar no exterior. Pagamento oficial via Pix e Cartão com liberação instantânea.</p>
+          <span class="badge badge-crimson">PLANOS EM DESENVOLVIMENTO</span>
+          <h2 style="font-size:21px;font-weight:600;margin-top:4px;">Planos YARDLINE NFL · Prévia</h2>
+          <p style="font-size:13px;color:#CBD5E1;margin-top:4px;">Valores e benefícios propostos. Contratação indisponível nesta versão.</p>
         </div>
         <div style="background:rgba(255,255,255,0.1);padding:10px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);">
           <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;">SEU PLANO ATUAL</div>

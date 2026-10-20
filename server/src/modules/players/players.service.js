@@ -108,6 +108,11 @@ class PlayersService {
     // 5. Filtro por Disponibilidade na Liga Fantasy
     const { allRostered, myRoster, oppRoster } = this.getRosterPlayerSets(leagueId, myRosterId, oppRosterId);
 
+    // An empty requested roster is an empty result, never the full catalog.
+    if ((availability === 'my_roster' && myRoster.size === 0)
+      || (availability === 'opponent' && oppRoster.size === 0)
+      || (availability === 'rostered' && allRostered.size === 0)) conditions.push('0=1');
+
     if (availability === 'waivers' && allRostered.size > 0) {
       const rosteredArray = Array.from(allRostered);
       const placeholders = rosteredArray.map(() => '?').join(',');

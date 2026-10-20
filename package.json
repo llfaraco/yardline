@@ -6,6 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "test": "npm --prefix server test",
     "start": "node server/src/server.js",
     "monitor:once": "npm --prefix server run monitor:once",
     "monitor:continuous": "npm --prefix server run monitor:continuous"
