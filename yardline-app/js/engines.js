@@ -2035,8 +2035,8 @@ function renderAllViews() {
   renderAiModeView();
   renderSocialView();
   renderPlansView();
-  // A carga inicial só hidrata o snapshot persistido via GET. A sincronização
-  // mutável POST fica reservada ao botão explícito do usuário.
+  // A carga inicial mostra o snapshot salvo; league-auto-refresh atualiza a fonte
+  // periodicamente, sem esperar pelo botão manual.
   const initialLoad = typeof window.hydrateSleeperLeagueShell === 'function'
     ? window.hydrateSleeperLeagueShell()
     : window.syncRealSleeperLeagueLive();
@@ -2098,19 +2098,21 @@ if (typeof window !== 'undefined' && typeof window.renderTradeView === 'function
 
 /* YARDLINE P0.1 — o browser consome apenas o backend Yardline */
 if (typeof window !== 'undefined') {
-  let syncInFlight = null, inFlightLeagueId = null;
-  window.syncRealSleeperLeagueLive = function(customLeagueId){
+  let syncInFlight = null, inFlightLeagueId = null, inFlightHydration = false;
+  window.syncRealSleeperLeagueLive = function(customLeagueId, options = {}){
     if (syncInFlight) {
-      if (customLeagueId && customLeagueId !== inFlightLeagueId) return syncInFlight.catch(() => {}).then(() => window.syncRealSleeperLeagueLive(customLeagueId));
+      if (inFlightHydration || (customLeagueId && customLeagueId !== inFlightLeagueId)) return syncInFlight.catch(() => {}).then(() => window.syncRealSleeperLeagueLive(customLeagueId, options));
       return syncInFlight;
     }
     inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
-    syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: false }).finally(() => { syncInFlight = null; });
+    inFlightHydration = false;
+    syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: false, ...options }).finally(() => { syncInFlight = null; });
     return syncInFlight;
   };
   window.hydrateSleeperLeagueShell = function(customLeagueId){
     if (syncInFlight) return syncInFlight;
     inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
+    inFlightHydration = true;
     syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: true }).finally(() => { syncInFlight = null; });
     return syncInFlight;
   };
@@ -2119,7 +2121,7 @@ if (typeof window !== 'undefined') {
     if (typeof window.syncRealSleeperLeagueLive !== 'function') return Promise.reject(new Error('Sincronização Sleeper indisponível.'));
     return window.syncRealSleeperLeagueLive();
   };
-  async function syncShell(id, { skipRemoteSync = false } = {}){
+  async function syncShell(id, { skipRemoteSync = false, quiet = false, automatic = false } = {}){
     localStorage.setItem('yl_active_league_id', id);
     const apiBase = window.YL_API_BASE || `${window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`}/api`;
     const request = async (path, options = {}, timeoutMs = 15000) => {
@@ -2131,10 +2133,10 @@ if (typeof window !== 'undefined') {
         return body;
       } finally { clearTimeout(timer); }
     };
-    if (!skipRemoteSync) showToast(`Sincronizando liga #${id} pelo backend...`);
+    if (!skipRemoteSync && !quiet) showToast(`Sincronizando liga #${id} pelo backend...`);
     try {
       if (!skipRemoteSync) {
-        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id, coreOnly: true }) }, 90000);
+        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id, coreOnly: true, automatic }) }, 90000);
       }
       const snapshot = await request(`/leagues/${id}/shell`, {}, 90000);
       const nextPlayerCards = snapshot.playerCards || {};
@@ -2143,6 +2145,27 @@ if (typeof window !== 'undefined') {
         window.YL_CATALOG_STATUS = { status: 'stale', fallback: 'previous_snapshot' };
         throw new Error('Sincronização Sleeper retornou catálogo vazio; snapshot anterior preservado.');
       }
+      const shellUserLabel = document.getElementById('topbar-user-pill')?.textContent || '';
+      const shellUser = shellUserLabel.match(/@([A-Za-z0-9_]+)/)?.[1] || null;
+      const configuredOwner = String(id) === REAL_SLEEPER_LEAGUE_ID ? REAL_SLEEPER_USERNAME : null;
+      const wanted = configuredOwner
+        || (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
+        || localStorage.getItem('yl_sleeper_username') || shellUser || null;
+      let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
+      if (!ownerId && wanted) {
+        try {
+          const user = await request(`/integrations/sleeper/user/${encodeURIComponent(String(wanted).replace(/^@/, ''))}`);
+          ownerId = user?.user_id || null;
+          if (ownerId) {
+            window.YL_SLEEPER_USER_ID = String(ownerId);
+            localStorage.setItem('yl_sleeper_user_id', String(ownerId));
+          }
+        } catch (identityError) {
+          console.warn('[Yardline sync] identidade Sleeper indisponível:', identityError.message);
+        }
+      }
+      const requestedLeague = localStorage.getItem('yl_active_league_id');
+      if (requestedLeague && String(requestedLeague) !== String(id)) return null;
       window.YL_CATALOG_STATUS = { status: snapshot.dataStatus === 'stale' ? 'stale' : 'available', fallback: null };
       window.YL_CANONICAL = { players: nextPlayerCards, fetchedAt: snapshot.syncedAt || null };
       window.YL_PLAYER_CARDS = nextPlayerCards;
@@ -2166,25 +2189,6 @@ if (typeof window !== 'undefined') {
       if (weekLabel) weekLabel.textContent = `Semana ${activeLeagueWeek ?? '—'}`;
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ ...r, roster_id: r.rosterId, owner_id: r.ownerId,
         ownerName: r.ownerName, players: r.players, starters: r.starters, reserve: r.reserve, taxi: r.taxi, settings: r.settings }));
-      const shellUserLabel = document.getElementById('topbar-user-pill')?.textContent || '';
-      const shellUser = shellUserLabel.match(/@([A-Za-z0-9_]+)/)?.[1] || null;
-      const configuredOwner = String(id) === REAL_SLEEPER_LEAGUE_ID ? REAL_SLEEPER_USERNAME : null;
-      const wanted = configuredOwner
-        || (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
-        || localStorage.getItem('yl_sleeper_username') || shellUser || null;
-      let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
-      if (!ownerId && wanted) {
-        try {
-          const user = await request(`/integrations/sleeper/user/${encodeURIComponent(String(wanted).replace(/^@/, ''))}`);
-          ownerId = user?.user_id || null;
-          if (ownerId) {
-            window.YL_SLEEPER_USER_ID = String(ownerId);
-            localStorage.setItem('yl_sleeper_user_id', String(ownerId));
-          }
-        } catch (identityError) {
-          console.warn('[Yardline sync] identidade Sleeper indisponível:', identityError.message);
-        }
-      }
       userRealRoster = window.YardlinePlayerCard.selectUserRoster(activeSleeperRosters, {
         ownerId });
       // The normalized shell intentionally keeps roster identity private, while
@@ -2258,12 +2262,12 @@ if (typeof window !== 'undefined') {
       } : null;
       activeRealMatchupWeek6 = activeRealMatchup;
       window.activeRealMatchup = activeRealMatchup;
-      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); renderPlayersView(); if (typeof renderHomeView === 'function') renderHomeView(); if (typeof renderTradeView === 'function') renderTradeView(); showToast(`Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
-    } catch (e) { console.error('[Yardline sync]', e); showToast(`${e.message || 'Não foi possível atualizar os dados.'}`); throw e; }
+      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); renderPlayersView(); if (typeof renderHomeView === 'function') renderHomeView(); if (typeof renderTradeView === 'function') renderTradeView(); if (!quiet) showToast(`Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
+    } catch (e) { console.error('[Yardline sync]', e); if (!quiet) showToast(`${e.message || 'Não foi possível atualizar os dados.'}`); throw e; }
   }
 }
 
-// One automatic sync is started by renderAllViews; no duplicate timer.
+// The refresh loop is owned by league-auto-refresh.js; manual calls share the in-flight request.
 
 
 /* Card resolver and null handling live in the shared DTO, not final global overrides.

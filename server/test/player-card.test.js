@@ -424,3 +424,29 @@ test('official matchup overlays preserve stat weeks and history uses the same sc
   assert.equal(history.find(r=>r.week===2).fpts,5);
   assert.equal(history.find(r=>r.week===2).source.points,'sleeper_matchups');
 });
+
+
+test('refresh publishes cards and shell together only after async owner lookup finishes',async()=>{
+ reset();seedLeague();seedData();
+ const next=await (await request('/api/leagues/fixture-league/shell?week=1')).json();
+ const {sandbox,context}=frontend(next.playerCards,{marker:'previous'});
+ const oldCards=sandbox.YL_PLAYER_CARDS;
+ const storage=new Map([['yl_sleeper_username','fixture-user']]);
+ sandbox.localStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,String(value))};
+ for(const name of ['renderTeamsView','renderRankingsView','renderWaiversView','renderPlaybookView','renderLeagueView','renderPlayersView','renderHomeView','renderTradeView'])sandbox[name]=()=>{};
+ let resolveOwner,posts=0;
+ sandbox.fetch=async(url,options)=>{
+   if(url.includes('/sync-league')){posts++;assert.equal(JSON.parse(options.body).automatic,true);return {ok:true,json:async()=>({success:true})};}
+   if(url.includes('/shell'))return {ok:true,json:async()=>next};
+   if(url.includes('/user/'))return new Promise(resolve=>resolveOwner=()=>resolve({ok:true,json:async()=>({user_id:'fixture-owner'})}));
+   if(url.includes('/news'))return {ok:true,json:async()=>({articles:[],items:[]})};
+   throw Error('Unexpected route '+url);
+ };
+ const pending=sandbox.syncRealSleeperLeagueLive('fixture-league',{quiet:true,automatic:true});
+ await new Promise(setImmediate);
+ assert.ok(resolveOwner);assert.equal(posts,1);
+ assert.equal(sandbox.YL_SHELL_SNAPSHOT.marker,'previous');assert.equal(sandbox.YL_PLAYER_CARDS,oldCards);
+ resolveOwner();await pending;
+ assert.equal(sandbox.YL_SHELL_SNAPSHOT,next);assert.equal(sandbox.YL_PLAYER_CARDS,next.playerCards);
+ assert.equal(vm.runInContext('selectedActiveRosterId',context),1);
+});

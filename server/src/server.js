@@ -1,3 +1,4 @@
+import { createLeagueRefresh } from './modules/sleeper/league-refresh.js';
 import express from 'express';
 import cors from 'cors';
 import { developmentPreview } from './development-preview.js';
@@ -158,12 +159,15 @@ app.get('/api/integrations/sleeper/user/:userId/leagues/:season', async (req, re
   }
 });
 
+const refreshLeague = createLeagueRefresh((id,week,options)=>sleeperSyncService.syncLeagueDetails(id,week,options));
+
 // Sincronizar Liga Escolhida
 app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
   try {
-    const { leagueId, week = null, coreOnly = false } = req.body;
+    const { leagueId, week = null, coreOnly = false, automatic = false } = req.body;
     if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
-    const result = await sleeperSyncService.syncLeagueDetails(leagueId, week == null ? null : parseInt(week, 10), { coreOnly: coreOnly === true });
+    if (automatic === true && coreOnly !== true) return res.status(400).json({error:'Atualização automática requer coreOnly.'});
+    const result = await refreshLeague(leagueId, week == null ? null : parseInt(week, 10), { coreOnly: coreOnly === true, automatic: automatic === true });
     res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });
