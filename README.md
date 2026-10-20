@@ -1,5 +1,15 @@
 # YARDLINE — Portal Oficial NFL & Camada de Inteligência Operacional
 
+## Desenvolvimento local com atualização automática
+
+Na raiz do repositório, execute `npm run dev` e abra `http://127.0.0.1:3000/`.
+Frontend e API usam a mesma origem. Alterações salvas no frontend recarregam a
+página automaticamente; alterações em `server/src` reiniciam o backend.
+O banco local fica em `server/data/local-development/yardline.db`, ignorado pelo
+Git e separado do banco padrão. Para outra porta, defina `PORT` antes de iniciar.
+Encerre com Ctrl+C. A prévia depende do processo local continuar em execução.
+As rotas de atualização automática são habilitadas somente pelo runner `dev`.
+
 Plataforma unificada de análise, inteligência tática, sincronização em tempo real com ligas Sleeper e monitoramento contínuo da NFL.
 
 ---

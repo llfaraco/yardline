@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { developmentPreview } from './development-preview.js';
 import crypto from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { loadPersistedCatalog, buildPlayerData, mergeOfficialMatchupData, buildPlayerCards, leagueCardContext, buildPlayerHistory, numberOrNull } from './modules/players/player-card.service.js';
@@ -39,6 +40,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
+if (process.env.YARDLINE_DEV_PREVIEW === '1') app.use(developmentPreview());
 app.use(express.json({ limit: '1mb', verify(req, res, buffer) { req.rawBody = buffer.toString('utf8'); } }));
 
 // Security Headers Middleware (OWASP Top 10 - Etapa 11: Security & Privacy Agent)
