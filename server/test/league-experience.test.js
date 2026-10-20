@@ -79,3 +79,19 @@ test('real dossier DOM removes unavailable tools, bio and metrics', async () => 
   assert.match(content.textContent,/Atleta Teste/);
   dom.window.close();
 });
+
+
+test('weekly lineup comes from matchup slots and card context is enforced on both pages', () => {
+  const s=snapshot();s.rosters[0].starters=['b'];s.rosters[0].players=['a','b'];
+  s.league.rosterPositions=['FLEX'];
+  s.matchups[0].players[0].is_starter=1;s.matchups[0].players[0].slot='STARTER_1';
+  s.matchups[0].players[1].is_starter=1;s.matchups[0].players[1].slot='STARTER_1';
+  const dom=fixture(s),w=dom.window;
+  assert.deepEqual(Array.from(w.YardlineLeagueExperience.lineup(w.YardlineLeagueExperience.select(s,1),s.rosters[0])),['a']);
+  w.renderCanonicalPlayerCard=(p,slot)=>'<article>'+p.name+' '+slot+'</article>';
+  w.renderPlaybookView();
+  assert.match(w.document.getElementById('view-playbook').textContent,/Atleta A FLEX/);
+  s.playerCards.a.context.week=6;w.renderPlaybookView();w.renderLeagueView();
+  for(const page of ['playbook','league']) assert.doesNotMatch(w.document.getElementById('view-'+page).textContent,/Atleta A/);
+  dom.window.close();
+});
