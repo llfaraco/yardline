@@ -236,6 +236,7 @@ export async function runLocalSmoke(config, { fetchImpl = fetch, appURL = proces
   virtualConsole.on('jsdomError', e => record({ kind: 'jsdomError', type: e.type, message: e.message, stack: e.cause?.stack || e.stack, causeName: e.cause?.name, url: e.url || e.cause?.url || null }));
   for (const level of ['log', 'info', 'warn', 'error', 'debug']) virtualConsole.on(level, (...args) => record({ kind: 'console', level, message: args.map(a => typeof a === 'string' ? a : a?.stack || JSON.stringify(a)).join(' '), causeName: args.find(a => a instanceof Error || a?.name?.endsWith('Error'))?.name }));
   const dom = new JSDOM(html, { url: new URL('/', app).href, runScripts: 'dangerously', resources: { interceptors: [readOnlyResources] }, virtualConsole, pretendToBeVisual: false, beforeParse(window) {
+    window.YL_DISABLE_AUTO_REFRESH = true; // Monitor stays read-only even when the interactive app refreshes itself.
     window.AbortController = AbortController; window.AbortSignal = AbortSignal;
     window.YL_API_BASE = api.origin;
     // Existing UI preference selects the configured real league, not a synthetic player/catalog fixture.
