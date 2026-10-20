@@ -5,7 +5,7 @@
 
 const SLEEPER_BASE_URL = 'https://api.sleeper.app/v1';
 
-class SleeperConnector {
+export class SleeperConnector {
   constructor() {
     this.timeoutMs = 12000;
     this.maxRetries = 3;
@@ -22,12 +22,13 @@ class SleeperConnector {
     const { timeoutMs = this.timeoutMs, maxRetries = this.maxRetries, ...fetchOptions } = options;
     const url = `${SLEEPER_BASE_URL}${endpoint}`;
     let attempt = 0;
+    let lastError;
 
     while (attempt < maxRetries) {
       attempt++;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
 
         const res = await fetch(url, {
           ...fetchOptions,
@@ -38,7 +39,6 @@ class SleeperConnector {
             ...(options.headers || {})
           }
         });
-        clearTimeout(timer);
 
         if (res.ok) {
           this.consecutiveFailures = 0;
@@ -51,6 +51,8 @@ class SleeperConnector {
         }
 
         if (res.status === 429) {
+          lastError = new Error('Sleeper API respondeu com status 429');
+          if (attempt >= maxRetries) break;
           // Rate limit: aguardar com backoff
           const retryAfter = parseInt(res.headers.get('retry-after') || '2', 10);
           console.warn(`[SleeperConnector] Rate limit (429) em ${endpoint}. Aguardando ${retryAfter}s...`);
@@ -59,6 +61,8 @@ class SleeperConnector {
         }
 
         if (res.status >= 500) {
+          lastError = new Error(`Sleeper API respondeu com status ${res.status}`);
+          if (attempt >= maxRetries) break;
           console.warn(`[SleeperConnector] Erro 5xx do Sleeper (${res.status}) na tentativa ${attempt}. Retentando...`);
           await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 600));
           continue;
@@ -75,8 +79,14 @@ class SleeperConnector {
           throw err;
         }
         await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 500));
+      } finally {
+        clearTimeout(timer);
       }
     }
+    // Exhausted HTTP failures must reject, never silently resolve undefined.
+    this.consecutiveFailures++;
+    if (this.consecutiveFailures >= 5) this.circuitOpenUntil = Date.now() + 30000;
+    throw lastError || new Error('Sleeper request exhausted retries');
   }
 
   // Endpoints Canônicos
