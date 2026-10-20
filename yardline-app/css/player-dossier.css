@@ -93,3 +93,6 @@
   .sleeper-tab-btn { min-height: 44px; }
   .sleeper-close { position: absolute; z-index: 10; }
 }
+
+.fp-stat-boxes { grid-template-columns:repeat(auto-fit,minmax(85px,1fr)); }
+.fp-stat-boxes:empty,.sleeper-bio:empty { display:none; }

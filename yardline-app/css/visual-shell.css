@@ -185,3 +185,20 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 }
 
 .yl-wordmark img { width: 156px; height: auto; display: block; }
+
+/* League pages and player cards share adaptive layouts. */
+.yl-league-header { flex-wrap: wrap; gap: 16px; padding: 0; }
+.yl-league-header > div { min-width: 0; flex: 1 1 220px; overflow-wrap: anywhere; }
+.yl-league-header .btn-yl { flex: 0 0 auto; min-height: 44px; }
+.yl-dashboard-player-grid { grid-template-columns: repeat(auto-fill,minmax(min(100%,250px),1fr)); }
+.yl-player-card-v2__metrics { grid-template-columns: repeat(auto-fit,minmax(90px,1fr)); }
+.yl-player-card-v2__metrics:empty { display:none; }
+.yl-player-card-v2__name { line-height: 1.3; overflow-wrap: anywhere; }
+.yl-player-card-v2__photo.photo-error { visibility:hidden; }
+.yl-player-card-v2:focus-visible,.yl-matchup-row:focus-visible { outline:3px solid #c60c30; outline-offset:3px; }
+.yl-matchup-shell { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.yl-matchup-shell > section { min-width:0; }
+.yl-matchup-row b { min-width:0; overflow-wrap:anywhere; }
+@media(max-width:720px) { .yl-matchup-shell { grid-template-columns:minmax(0,1fr); } .yl-matchup-row { flex-wrap:wrap; } }
+
+.yl-player-card-v2__teamlogo[hidden] { display:none!important; }

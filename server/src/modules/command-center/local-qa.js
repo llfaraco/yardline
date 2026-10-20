@@ -18,8 +18,8 @@ export async function runUnitQA(logFile, timeoutMs = 120000) {
   fs.mkdirSync(path.dirname(logFile), { recursive: true, mode: 0o700 });
   return new Promise(resolve => {
     const output = fs.openSync(logFile, 'w', 0o600);
-    const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    const child = spawn(command, ['test'], { cwd: path.join(REPO_ROOT, 'server'), env: { ...process.env, DATABASE_PATH: ':memory:', MONITOR_CHILD: '1' }, stdio: ['ignore', output, output], shell: false });
+    const command = process.execPath;
+    const child = spawn(command, ['scripts/test.js'], { cwd: path.join(REPO_ROOT, 'server'), env: { ...process.env, DATABASE_PATH: ':memory:', MONITOR_CHILD: '1' }, stdio: ['ignore', output, output], shell: false });
     let timedOut = false; let settled = false;
     const finish = (status, observed, evidence) => { if (settled) return; settled = true; clearTimeout(timer); fs.closeSync(output); resolve(result('qa.unit', 'npm test — regressões reais em SQLite isolado', status, observed, evidence, { viewport: 'Node test runner (não E2E visual)', priority: 'P0', severity: 'P0', command: 'DATABASE_PATH=:memory: npm test', affectedFiles: ['server/test', 'server/src'] })); };
     const timer = setTimeout(() => { timedOut = true; child.kill('SIGTERM'); setTimeout(() => child.kill('SIGKILL'), 2000).unref(); }, timeoutMs);

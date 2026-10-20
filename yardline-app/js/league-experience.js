@@ -19,7 +19,20 @@
       myScore: matchup ? num(isA ? matchup.scoreA ?? matchup.score_a : matchup.scoreB ?? matchup.score_b) : null,
       oppScore: matchup ? num(isA ? matchup.scoreB ?? matchup.score_b : matchup.scoreA ?? matchup.score_a) : null };
   }
-  root.YardlineLeagueExperience = { select };
+  function lineup(s, roster) {
+    const rows = (s.matchup?.players || []).filter(p => num(p.roster_id ?? p.rosterId) === id(roster));
+    const known = rows.length && rows.every(p => p.is_starter != null || p.isStarter != null);
+    if (!known) return (roster?.starters || []).map(String);
+    return rows.filter(p => p.is_starter === 1 || p.is_starter === true || p.isStarter === true)
+      .sort((a,b) => Number(String(a.slot).replace('STARTER_','')) - Number(String(b.slot).replace('STARTER_','')))
+      .map(p => String(p.player_id ?? p.playerId));
+  }
+  function player(s, playerId) {
+    const p = (s.snapshot.playerCards || root.YL_PLAYER_CARDS)?.[String(playerId)];
+    return p && String(p.context?.leagueId) === String(s.snapshot.league?.providerLeagueId ?? s.snapshot.league?.provider_league_id ?? s.snapshot.league?.id)
+      && String(p.context?.season) === String(s.snapshot.league?.season) && num(p.context?.week) === s.week ? p : null;
+  }
+  root.YardlineLeagueExperience = { select, lineup, player };
   if (typeof document === 'undefined') return;
   function context() {
     const selected = typeof userRealRoster !== 'undefined' ? userRealRoster : null;
@@ -28,7 +41,7 @@
   const refresh = '<button class="btn-yl btn-primary" onclick="syncRealSleeperLeagueLive().catch(e=>showToast(e.message))">Atualizar Sleeper</button>';
   function header(s, title) {
     const details = [s.snapshot.league?.name, s.snapshot.league?.season, s.week !== null ? `Semana ${s.week}` : null].filter(Boolean);
-    return `<div class="yl-card" style="padding:24px;margin-bottom:20px"><div class="yl-card-header"><div><h2>${esc(title)}</h2><p>${details.map(esc).join(' · ')}</p></div>${refresh}</div>${s.snapshot.dataStatus === 'stale' || s.snapshot.provenance?.status === 'stale' ? '<p role="status">Exibindo a última atualização salva. Atualize para consultar a Sleeper.</p>' : ''}</div>`;
+    return `<div class="yl-card" style="padding:24px;margin-bottom:20px"><div class="yl-card-header yl-league-header"><div><h2>${esc(title)}</h2><p>${details.map(esc).join(' · ')}</p></div>${refresh}</div>${s.snapshot.dataStatus === 'stale' || s.snapshot.provenance?.status === 'stale' ? '<p role="status">Exibindo a última atualização salva. Atualize para consultar a Sleeper.</p>' : ''}</div>`;
   }
   function summary(s) {
     if (!s.roster) return '<div class="yl-card" style="padding:24px"><p>Conecte sua conta Sleeper e selecione seu time para acompanhar a rodada.</p><button class="btn-yl btn-primary" onclick="openLeagueSwitcherModal()">Selecionar liga e time</button></div>';
@@ -38,16 +51,18 @@
   }
   function cards(s, roster, title, ids) {
     const html = ids.map(playerId => {
-      const p = root.YL_PLAYER_CARDS?.[String(playerId)];
-      if (!p || String(p.context?.leagueId) !== String(s.snapshot.league?.providerLeagueId ?? s.snapshot.league?.provider_league_id ?? s.snapshot.league?.id)
-        || String(p.context?.season) !== String(s.snapshot.league?.season) || num(p.context?.week) !== s.week) return '';
-      return typeof renderCanonicalPlayerCard === 'function' ? renderCanonicalPlayerCard(p) : '';
+      const p = player(s, playerId); if (!p) return '';
+      const index = lineup(s, roster).indexOf(String(playerId));
+      const slot = title === 'Titulares' && index >= 0 ? s.snapshot.league?.rosterPositions?.[index] : title === 'Banco' ? 'BN' : title === 'Taxi' ? 'TAXI' : '';
+      return typeof renderCanonicalPlayerCard === 'function' ? renderCanonicalPlayerCard(p, slot) : '';
     }).join('');
     return html ? `<section style="margin:24px 0"><h3>${esc(title)}</h3><div class="yl-dashboard-player-grid">${html}</div></section>` : '';
   }
   root.renderPlaybookView = function () {
     const el = document.getElementById('view-playbook'); if (!el) return;
     const s = context(), groups = root.YardlinePlayerCard.rosterGroups(s.roster);
+    groups.starters = lineup(s, s.roster);
+    groups.bench = (s.roster?.players || []).map(String).filter(id => !groups.starters.includes(id) && !groups.reserve.includes(id) && !groups.taxi.includes(id));
     el.innerHTML = header(s, 'Meu Playbook') + summary(s)
       + cards(s, s.roster, 'Titulares', groups.starters) + cards(s, s.roster, 'Banco', groups.bench)
       + cards(s, s.roster, 'Reserva', groups.reserve) + cards(s, s.roster, 'Taxi', groups.taxi);
@@ -58,8 +73,8 @@
     function team(roster) {
       if (!roster) return '';
       const rows = (s.matchup?.players || []).filter(p => num(p.roster_id ?? p.rosterId) === id(roster));
-      const html = (roster.starters || []).map(playerId => {
-        const p = root.YL_PLAYER_CARDS?.[String(playerId)];
+      const html = lineup(s, roster).map(playerId => {
+        const p = player(s, playerId);
         if (!p) return '';
         const row = rows.find(r => String(r.player_id ?? r.playerId) === String(playerId));
         const points = num(row?.points);
