@@ -438,7 +438,7 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
   const latestRun = db.prepare("SELECT status, error_message, metric_status_json FROM sync_runs WHERE league_id=? ORDER BY finished_at DESC LIMIT 1").get(league.id);
   const dataStatus = latestRun?.status === 'ERROR' ? 'stale' : league.last_synced_at ? 'synced' : 'not_synced';
   const rosters = db.prepare(`SELECT r.*, m.provider_user_id AS owner_id, m.display_name, m.team_name, m.avatar FROM rosters r LEFT JOIN league_memberships m ON r.owner_membership_id=m.id WHERE r.league_id=? ORDER BY r.provider_roster_id`).all(league.id);
-  const rawMatchups = db.prepare('SELECT * FROM matchups WHERE league_id = ? AND week = ? ORDER BY provider_matchup_id').all(league.id, week);
+  const rawMatchups = db.prepare('SELECT * FROM matchups WHERE league_id = ? AND season = ? AND week = ? ORDER BY provider_matchup_id').all(league.id, String(league.season), week);
   const matchups = rawMatchups.map(matchup => ({
     ...matchup,
     customPoints: parse(matchup.custom_points_json, {}),

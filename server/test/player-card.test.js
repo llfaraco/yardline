@@ -233,7 +233,7 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   t.mock.method(sleeperConnector, 'getNFLState', async () => ({ season: '2025', week: 1, season_type: 'regular' }));
   t.mock.method(sleeperConnector, 'getLeagueUsers', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueRosters', async () => [fixture.roster]);
-  t.mock.method(sleeperConnector, 'getLeagueMatchups', async () => []);
+  t.mock.method(sleeperConnector, 'getLeagueMatchups', async () => [{...fixture.roster, players:['4984','4217'], starters:['4984'], matchup_id:1, players_points:{'4217':0}}]);
   t.mock.method(sleeperConnector, 'getLeagueTransactions', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueTradedPicks', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueDrafts', async () => [{ draft_id: 'fixture-draft', season: '2025', type: 'snake', status: 'complete' }]);
@@ -245,6 +245,9 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   let shell = await (await request('/api/leagues/fixture-league/shell?week=1')).json();
   assert.equal(shell.playerCards['4984'].metrics.points, null);
   assert.equal(shell.cardContext.metricAvailability.stats.status, 'empty');
+  assert.equal(shell.matchups[0].scoreA, null);
+  assert.equal(shell.playerCards['4217'].metrics.points, 0);
+  assert.equal(shell.matchups[0].players.find(p=>p.player_id==='4984').points, null);
   assert.equal(db.prepare("SELECT count(*) n FROM drafts WHERE provider_draft_id='fixture-draft'").get().n, 1);
   assert.equal(db.prepare("SELECT player_id FROM draft_picks WHERE pick_no=1").get().player_id, '4984');
   t.mock.method(sleeperConnector, 'getNflStats', async () => { throw new Error('fixture upstream failure'); });
@@ -400,4 +403,20 @@ test('final dossier uses dynamic career years, team logo, portrait and selected-
   assert.match(html, /value="2018"/);
   assert.match(html, /A carreira, temporada por temporada/);
   assert.match(html, /Regras atuais da liga/);
+});
+
+
+test('official matchup overlays preserve stat weeks and history uses the same score', () => {
+  reset(); seedLeague();
+  const {catalog,data}=seedData();
+  const original=data['4984'].totalPoints;
+  db.prepare(`INSERT INTO matchups (id,league_id,season,week,provider_matchup_id,roster_a_id,captured_at) VALUES ('merge-w2','fixture-league',?,2,1,1,?)`).run(String(fixture.season),capturedAt);
+  db.prepare(`INSERT INTO matchup_players (id,matchup_id,roster_id,player_id,slot,is_starter,points,captured_at) VALUES ('merge-p2','merge-w2',1,'4984','QB',1,5,?)`).run(capturedAt);
+  const merged=service.mergeOfficialMatchupData(db,{leagueId:'fixture-league',season:fixture.season,week:2,playerData:data,catalog});
+  assert.equal(merged['4984'].totalPoints,Number((original+5).toFixed(2)));
+  assert.equal(merged['4984'].observedWeeks,2);
+  assert.equal(merged['4984'].points,5);
+  const history=service.buildPlayerHistory(db,{playerId:'4984',season:fixture.season,league:{id:'fixture-league',season_type:'regular',scoring_settings_json:JSON.stringify(scoringSettings)}});
+  assert.equal(history.find(r=>r.week===2).fpts,5);
+  assert.equal(history.find(r=>r.week===2).source.points,'sleeper_matchups');
 });

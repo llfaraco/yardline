@@ -2352,8 +2352,8 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
     const officialPoints = validRows.map(row => window.YardlinePlayerCard.numberOrNull(row.fpts)).filter(value => value !== null);
     const observedTotal = officialPoints.length ? Number(officialPoints.reduce((sum, value) => sum + value, 0).toFixed(2)) : null;
     const observedPpg = officialPoints.length ? Number((observedTotal / officialPoints.length).toFixed(2)) : null;
-    const observedPointsPerGame = seasonSummary?.pointsPerGame ?? (Number(season) === Number(p.context.season) ? m.pointsPerGame : null) ?? observedPpg;
-    const observedTotalPoints = seasonSummary?.totalPoints ?? (Number(season) === Number(p.context.season) ? m.totalPoints : null) ?? observedTotal;
+    const observedPointsPerGame = (Number(season) === Number(p.context.season) ? m.pointsPerGame : seasonSummary?.pointsPerGame) ?? observedPpg;
+    const observedTotalPoints = (Number(season) === Number(p.context.season) ? m.totalPoints : seasonSummary?.totalPoints) ?? observedTotal;
     const officialHistoryNote = officialPoints.length && m.pointsPerGame == null ? ` · ${officialPoints.length} semana(s) oficial(is) reconciliada(s) do matchup` : '';
     const sumStat = key => {
       const values = rows.map(row => window.YardlinePlayerCard.numberOrNull(row.stats?.[key])).filter(value => value !== null);
@@ -2407,7 +2407,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
       </div>`;
     const expertNoteHtml = `<div class="yl-expert-card"><div class="yl-expert-avatar">YL</div><div class="yl-expert-content"><div class="yl-expert-head"><strong>Notas de especialistas</strong><span>Fonte externa não carregada</span></div><p class="yl-expert-text">Nenhuma opinião de especialista será atribuída sem fonte verificável.</p></div></div>`;
     const careerRows = career?.seasons || [{ season: String(season), teams: [], totalPoints: seasonPoints, observedWeeks: rows.length, pointsPerGame: observedPpg, status: rows.length ? 'cached' : 'pending' }];
-    const seasonStatsHtml = `<div class="yl-career-intro"><h3>A carreira, temporada por temporada</h3><p>${esc(scoringLabel)}. Totais das semanas recebidas; períodos sem dados não viram zero.</p></div><div class="sleeper-table-wrap"><table class="sleeper-log yl-career-table"><thead><tr><th>ANO</th><th>TIME(S)</th><th>PONTUADAS / OBS.</th><th>PONTOS</th><th>MÉDIA</th><th>COBERTURA</th></tr></thead><tbody>${careerRows.map(item => `<tr><td><button type="button" class="yl-career-year" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${Number(item.season)});window.YL_SWITCH_DOSSIER_TAB('gamelogs')">${esc(item.season)}</button></td><td>${esc(item.teams?.join(' / ') || '—')}</td><td>${item.scoredWeeks ?? '—'} / ${item.observedWeeks || '—'}</td><td class="sleeper-fpts">${num(item.totalPoints)}</td><td>${num(item.pointsPerGame)}</td><td>${esc(({available:'Recebido',empty:'Sem registros',failed:'Falha na consulta',pending:'Aguardando',cached:'Em cache'})[item.status] || 'Parcial')}${item.pointsCoverage === 'partial' && item.scoredWeeks ? ' · pontos parciais' : ''}</td></tr>`).join('')}</tbody></table></div><p class="sleeper-empty">${esc(careerStatus)}${career?.rangeSource === 'catalog_experience_estimate' ? ' · Intervalo estimado pela experiência do cadastro; pode haver anos sem jogos.' : career?.rangeSource === 'persisted_only' ? ' · Ano de estreia indisponível; exibindo temporadas consultadas e persistidas.' : ''}. A pontuação histórica usa as regras atuais da liga selecionada, não configurações antigas que não foram carregadas.</p>`;
+    const seasonStatsHtml = `<div class="yl-career-intro"><h3>A carreira, temporada por temporada</h3><p>${esc(scoringLabel)}. Totais das semanas recebidas; períodos sem dados não viram zero.</p></div><div class="sleeper-table-wrap"><table class="sleeper-log yl-career-table"><thead><tr><th>ANO</th><th>TIME(S)</th><th>PONTUADAS / OBS.</th><th>PONTOS</th><th>MÉDIA</th><th>COBERTURA</th></tr></thead><tbody>${careerRows.filter(item => item.scoredWeeks > 0).map(item => `<tr><td><button type="button" class="yl-career-year" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${Number(item.season)});window.YL_SWITCH_DOSSIER_TAB('gamelogs')">${esc(item.season)}</button></td><td>${esc(item.teams?.join(' / ') || '—')}</td><td>${item.scoredWeeks ?? '—'} / ${item.observedWeeks || '—'}</td><td class="sleeper-fpts">${num(item.totalPoints)}</td><td>${num(item.pointsPerGame)}</td><td>${esc(({available:'Recebido',empty:'Sem registros',failed:'Falha na consulta',pending:'Aguardando',cached:'Em cache'})[item.status] || 'Parcial')}${item.pointsCoverage === 'partial' && item.scoredWeeks ? ' · pontos parciais' : ''}</td></tr>`).join('')}</tbody></table></div><p class="sleeper-empty">${esc(careerStatus)}${career?.rangeSource === 'catalog_experience_estimate' ? ' · Intervalo estimado pela experiência do cadastro; pode haver anos sem jogos.' : career?.rangeSource === 'persisted_only' ? ' · Ano de estreia indisponível; exibindo temporadas consultadas e persistidas.' : ''}. A pontuação histórica usa as regras atuais da liga selecionada, não configurações antigas que não foram carregadas.</p>`;
     const outlookHtml = `<div class="yl-coach-ai-card"><div class="yl-coach-ai-header"><strong>OUTLOOK DA RODADA</strong><span class="badge badge-navy">DADOS VERIFICADOS</span></div><div class="yl-coach-body"><p>Projeção oficial persistida: <strong>${projDisplay}</strong> ${esc(p.context.projectionFormat || 'formato não informado')}.</p><p>Contexto: temporada ${esc(season)} · semana ${esc(p.context.week ?? '—')} · ${esc(p.context.seasonType || '—')} · scoring ${esc(p.context.scoringFormat || '—')}.</p><p>Não há consenso externo, teto ou risco calculado sem fonte verificável; nenhum valor é inventado.</p></div></div>`;
     const leagueRows = p.rosterContext.length ? p.rosterContext.map(r => `<tr><td>${esc(r.rosterId ?? '—')}</td><td>${r.starter ? 'Titular' : r.reserve ? 'Reserva' : r.taxi ? 'Taxi' : 'Banco'}</td><td>${r.ownerId ? esc(r.ownerId) : 'Não identificado'}</td></tr>`).join('') : '<tr><td colspan="3" class="sleeper-empty">Atleta não consta dos rosters persistidos desta liga.</td></tr>';
     const leaguesHtml = `<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>ROSTER</th><th>STATUS</th><th>OWNER ID</th></tr></thead><tbody>${leagueRows}</tbody></table><p class="sleeper-empty">Disponibilidade e ownership são derivados somente do roster oficial sincronizado.</p></div>`;
@@ -2617,6 +2617,37 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
         </div>
       </div>
     `;
+    // Remove unavailable sections rather than advertising empty tools or fields.
+    const content = document.getElementById('player-modal-content');
+    if (content?.querySelectorAll) {
+      const available = {gamelogs: rows.length > 0 || Boolean(error), seasonstats: Boolean(career?.seasons?.some(x => x.observedWeeks > 0)), news: news.length > 0, depth: depth.length > 0, leagues: p.rosterContext.length > 0, fullprofile: true, outlook: m.projectedPoints !== null, sentiment: false};
+      for (const [tab, present] of Object.entries(available)) {
+        if (!present) { content.querySelector('#tab-btn-' + tab)?.remove(); content.querySelector('#tab-sec-' + tab)?.remove(); }
+      }
+      for (const box of content.querySelectorAll('.fp-stat-box')) if (/^[—\s%]*$/.test(box.querySelector('strong')?.textContent || '')) box.remove();
+      for (const section of content.querySelectorAll('.sleeper-dossier__side > section')) {
+        const heading = section.querySelector('h3')?.textContent || '';
+        if (/COACH AI/.test(heading) || /LATEST NEWS/.test(heading) && !news.length || /DEPTH CHART/.test(heading) && !depth.length) section.remove();
+      }
+      const bio = content.querySelector('.sleeper-bio');
+      if (bio) bio.innerHTML = [[p.age, 'IDADE'], [p.height && formatHeight(p.height), 'ALTURA'], [p.weight && formatWeight(p.weight), 'PESO'], [p.exp, 'EXP'], [p.college, 'UNIVERSIDADE']].filter(([v]) => v !== null && v !== undefined && v !== '' && v !== '—').map(([v,label]) => '<span><b>' + label + '</b>' + esc(v) + '</span>').join('');
+      const profile = content.querySelector('#tab-sec-fullprofile .sleeper-table-wrap');
+      if (profile) profile.innerHTML = '<table class="sleeper-log"><tbody>' + [['Nome',p.name],['Posição',p.position],['Time',p.team],['Status',p.status],['Lesão',p.injuryStatus],['Universidade',p.college],['Sleeper ID',p.id],['ESPN ID',p.espnId]].filter(([,v]) => v !== null && v !== undefined && v !== '').map(([label,v]) => '<tr><th>' + label + '</th><td>' + esc(v) + '</td></tr>').join('') + '</tbody></table>';
+      const logs = content.querySelector('#tab-sec-gamelogs .sleeper-table-wrap');
+      if (logs && rows.length) logs.innerHTML = rows.map(row => {
+        const fields = [['Pontos',row.fpts],['Projeção',row.proj],['Adversário',row.opp],['Snap %',row.snap],['Tentativas',row.att],['Completos',row.cmp],['Jardas',row.yd],['TD',row.td],['Interceptações',row.int]];
+        const values = fields.filter(([,v]) => v !== null && v !== undefined && v !== '' && v !== '—');
+        return values.length ? '<article style="padding:16px;border-bottom:1px solid var(--border)"><strong>Semana ' + esc(row.week) + '</strong><div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">' + values.map(([label,v]) => '<span><small>' + label + '</small> <b>' + esc(v) + '</b></span>').join('') + '</div></article>' : '';
+      }).join('');
+      const athlete = [...content.querySelectorAll('.sleeper-dossier__side > section')].find(section => /FICHA DO ATLETA/.test(section.querySelector('h3')?.textContent || ''));
+      if (athlete) athlete.innerHTML = '<h3>FICHA DO ATLETA</h3><p>' + [p.position,p.team,p.injuryStatus].filter(Boolean).map(esc).join(' · ') + '</p>';
+      const injury = content.querySelector('.sleeper-dossier__bar > span');
+      if (injury && !p.injuryStatus && !p.taxi) injury.remove();
+      const first = content.querySelector('.sleeper-tab-btn');
+      if (!content.querySelector('#tab-btn-' + selectedDossierTab) && first) selectedDossierTab = first.id.replace('tab-btn-', '');
+      window.YL_SWITCH_DOSSIER_TAB(selectedDossierTab);
+    }
+
   }
   async function loadDossier(p, season, request) {
     const news = await newsFor(p);
