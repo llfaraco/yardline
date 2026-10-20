@@ -2228,7 +2228,7 @@ if (typeof window !== 'undefined') {
       const leagueName = snapshot.league?.name || 'Liga Sleeper';
       const userPill = document.getElementById('topbar-user-pill');
       const managerName = userRealRoster?.ownerName || userRealRoster?.owner || wanted || shellUser;
-      if (userPill && userRealRoster && managerName) userPill.textContent = `@${String(managerName).replace(/^@/, '')} (${myTeamName}) ALL-PRO`;
+      if (userPill && userRealRoster && managerName) userPill.textContent = `@${String(managerName).replace(/^@/, '')} (${myTeamName})`;
       const topTeam = document.getElementById('topbar-team-label');
       if (topTeam) topTeam.textContent = `(${myTeamName})`;
       const sbCopy = document.getElementById('sidebar-league-copy');
