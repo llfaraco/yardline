@@ -539,6 +539,12 @@ export const sleeperSyncService = {
     if (fresh) return cachedPlayersCatalog;
 
     if (hasPersisted) {
+      const persistedAt = Date.parse(db.prepare('SELECT MAX(updated_at) AS fetched_at FROM players WHERE catalog_json IS NOT NULL').get()?.fetched_at || '');
+      if (Number.isFinite(persistedAt) && now - persistedAt < PLAYERS_CACHE_TTL_MS) {
+        cachedPlayersCatalog = persisted;
+        cachedPlayersTimestamp = persistedAt;
+        return cachedPlayersCatalog;
+      }
       cachedPlayersCatalog ||= Object.fromEntries(Object.entries(persisted).map(([id, player]) => [id, { ...player, dataStatus: 'stale' }]));
       cachedPlayersTimestamp = now;
       if (!playersRefreshInFlight) {
@@ -774,10 +780,28 @@ export const sleeperSyncService = {
         league = db.prepare('SELECT * FROM leagues WHERE id = ?').get(league.id);
       }
 
-      const [users, rosters, matchups, transactions, tradedPicks, drafts, statsResult, projectionsResult] = await Promise.all([
-        this.getLeagueUsers(normLeague.id),
-        this.getLeagueRosters(normLeague.id),
-        this.getLeagueMatchups(normLeague.id, week),
+      // Persist core league ownership and rosters before optional analytics/drafts.
+      const [users, rosters, matchups] = await Promise.all([
+        this.getLeagueUsers(normLeague.id), this.getLeagueRosters(normLeague.id), this.getLeagueMatchups(normLeague.id, week)
+      ]);
+      if (!Array.isArray(users) || !Array.isArray(rosters) || !Array.isArray(matchups)) throw new Error('Resposta de liga incompleta.');
+      const userMap = Object.fromEntries((users || []).map(user => [user.user_id, user]));
+      for (const r of rosters || []) {
+        const u = userMap[r.owner_id] || {};
+        const memberId = `mem_${league.id}_${r.roster_id}`;
+        const memberValues = [r.owner_id || '', r.roster_id, u.display_name || `Manager ${r.roster_id}`, u.metadata?.team_name || u.display_name || `Time #${r.roster_id}`, u.avatar || null, now];
+        db.prepare(`INSERT INTO league_memberships (id, league_id, provider_user_id, roster_id, display_name, team_name, avatar, is_commissioner, is_current_user, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?) ON CONFLICT(id) DO UPDATE SET provider_user_id=excluded.provider_user_id, display_name=excluded.display_name, team_name=excluded.team_name, avatar=excluded.avatar, updated_at=excluded.updated_at`)
+          .run(memberId, league.id, ...memberValues, now);
+        const rosterDbId = `rst_${league.id}_${r.roster_id}`;
+        db.prepare(`INSERT INTO rosters (id, league_id, provider_roster_id, owner_membership_id, players_json, starters_json, reserve_json, taxi_json, settings_json, captured_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET owner_membership_id=excluded.owner_membership_id, players_json=excluded.players_json, starters_json=excluded.starters_json, reserve_json=excluded.reserve_json, taxi_json=excluded.taxi_json, settings_json=excluded.settings_json, captured_at=excluded.captured_at`)
+          .run(rosterDbId, league.id, r.roster_id, memberId, JSON.stringify(r.players || []), JSON.stringify(r.starters || []), JSON.stringify(r.reserve || []), Array.isArray(r.taxi) ? JSON.stringify(r.taxi) : null, JSON.stringify(r.settings || {}), now);
+        recordsWritten += 2;
+      }
+
+
+      const [transactions, tradedPicks, drafts, statsResult, projectionsResult] = await Promise.all([
         this.getLeagueTransactions(normLeague.id, week).catch(() => []),
         sleeperConnector.getLeagueTradedPicks(normLeague.id).catch(() => []),
         sleeperConnector.getLeagueDrafts(normLeague.id).catch(() => []),
@@ -819,21 +843,6 @@ export const sleeperSyncService = {
       recordSourceProvenance({ entityType: 'league', entityId: league.id, source: 'sleeper', status: 'official', capturedAt: now });
       persistPayload({ leagueId: league.id, resource: 'league', resourceKey: normLeague.id, payload: rawLeague, capturedAt: now });
       persistPayload({ leagueId: league.id, resource: 'state', resourceKey: `${normLeague.season}:${week}`, payload: state, capturedAt: now });
-
-      const userMap = Object.fromEntries((users || []).map(user => [user.user_id, user]));
-      for (const r of rosters || []) {
-        const u = userMap[r.owner_id] || {};
-        const memberId = `mem_${league.id}_${r.roster_id}`;
-        const memberValues = [r.owner_id || '', r.roster_id, u.display_name || `Manager ${r.roster_id}`, u.metadata?.team_name || u.display_name || `Time #${r.roster_id}`, u.avatar || null, now];
-        db.prepare(`INSERT INTO league_memberships (id, league_id, provider_user_id, roster_id, display_name, team_name, avatar, is_commissioner, is_current_user, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?) ON CONFLICT(id) DO UPDATE SET provider_user_id=excluded.provider_user_id, display_name=excluded.display_name, team_name=excluded.team_name, avatar=excluded.avatar, updated_at=excluded.updated_at`)
-          .run(memberId, league.id, ...memberValues, now);
-        const rosterDbId = `rst_${league.id}_${r.roster_id}`;
-        db.prepare(`INSERT INTO rosters (id, league_id, provider_roster_id, owner_membership_id, players_json, starters_json, reserve_json, taxi_json, settings_json, captured_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET owner_membership_id=excluded.owner_membership_id, players_json=excluded.players_json, starters_json=excluded.starters_json, reserve_json=excluded.reserve_json, taxi_json=excluded.taxi_json, settings_json=excluded.settings_json, captured_at=excluded.captured_at`)
-          .run(rosterDbId, league.id, r.roster_id, memberId, JSON.stringify(r.players || []), JSON.stringify(r.starters || []), JSON.stringify(r.reserve || []), Array.isArray(r.taxi) ? JSON.stringify(r.taxi) : null, JSON.stringify(r.settings || {}), now);
-        recordsWritten += 2;
-      }
 
       const grouped = {};
       for (const item of matchups || []) {

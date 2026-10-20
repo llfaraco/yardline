@@ -34,7 +34,7 @@ const client = `(() => {
   check();
 })();`;
 
-// Mounted only by the explicit development runner; production has no dev routes.
+// Mounted only by the explicit development runner with an isolated per-port database.
 export function developmentPreview() {
   return (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');

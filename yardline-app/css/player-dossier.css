@@ -1,0 +1,95 @@
+/* Yardline identity frames a personalized NFL team hero. */
+#player-modal .yl-modal-card { max-width: 1180px; }
+.sleeper-dossier { width: min(1180px, calc(100vw - 40px)); background: #10243a; border: 1px solid #34475d; border-radius: 16px; }
+.sleeper-dossier__hero { height: auto; min-height: 290px; background: linear-gradient(110deg, #002244 0%, #002244d9 35%, #00172fe8 100%), var(--sleeper-team); }
+.sleeper-dossier__hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(120deg, transparent 20%, color-mix(in srgb, var(--sleeper-team), transparent 60%)); }
+.sleeper-dossier__teambg { opacity: .17; justify-content: flex-end; }
+.sleeper-dossier__teambg img { width: 400px; height: 400px; margin: 0 20px 0 0; filter: saturate(.8); }
+.sleeper-dossier__mini { width: 225px; padding: 16px 22px; background: transparent; z-index: 2; }
+.sleeper-dossier__mini b { font-size: 12px; letter-spacing: 3px; color: #fff; }
+.sleeper-dossier__mini span { color: #c3ced9; font-size: 11px; }
+.sleeper-dossier__player { left: 8px; width: 250px; height: 225px; z-index: 2; }
+.sleeper-dossier__player img { width: 255px; height: 225px; filter: drop-shadow(0 10px 20px #00102066); }
+.sleeper-dossier__identity { margin-left: 260px; padding: 24px 30px 24px 10px; }
+.sleeper-dossier__identity > div:first-child > small { color: #d1dae4; font-size: 10px; }
+.sleeper-dossier__identity h1 { font-size: clamp(26px, 3vw, 40px); letter-spacing: -1.4px; margin: 8px 0 18px; }
+.sleeper-close { top: 13px; right: 12px; height: 32px; width: 32px; border-radius: 50%; background: #00172f88; color: white; }
+.sleeper-close:hover { background: #c60c30; }
+.sleeper-actions { margin-right: 20px; gap: 7px; }
+.sleeper-action { min-height: 32px; height: auto; padding: 7px 12px; font-size: 9px; letter-spacing: .5px; border-radius: 6px; background: #ffffff16; color: #e1e8ef; border: 1px solid #ffffff22; }
+.sleeper-action:disabled { opacity: .8; cursor: default; }
+.sleeper-star { display: none; }
+.sleeper-bio { flex-wrap: wrap; gap: 13px; }
+.sleeper-bio span { color: #f6f8fb; font-size: 15px; font-weight: 600; line-height: 1.5; }
+.sleeper-bio span b { color: #b0bdcb; font-size: 8px; font-weight: 550; letter-spacing: 1px; }
+.sleeper-bio i { height: 27px; background: #ffffff22; }
+.sleeper-bio .college { margin-left: 0; min-width: 100px; }
+.fp-stat-boxes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; margin-top: 19px; }
+.fp-stat-box { min-width: 0; padding: 11px 9px; border-radius: 7px; background: #ffffff0b; border: 1px solid #ffffff1a; }
+.fp-stat-box small { font-size: 7px; letter-spacing: .4px; color: #b9c7d7; }
+.fp-stat-box strong { display: block; font-size: 21px; margin-top: 4px; color: #fff; font-variant-numeric: tabular-nums; }
+.sleeper-dossier__bar { background: #071b31; height: auto; min-height: 42px; padding: 9px 18px; flex-wrap: wrap; gap: 9px; }
+.sleeper-dossier__bar > b { margin: -9px 4px -9px -18px; padding: 13px 20px; background: #c60c30; }
+.sleeper-dossier__bar > strong { font-size: 11px; }
+.sleeper-dossier__bar > span { font-size: 10px; }
+.sleeper-dossier-nav { background: #10243a; border-color: #ffffff13; padding: 0 16px; }
+.sleeper-tab-btn { font-size: 9px; letter-spacing: .3px; padding: 15px 11px; text-transform: none; font-weight: 550; color: #b0bdcb; }
+.sleeper-tab-btn.active { border-color: #c60c30; color: #fff; }
+.sleeper-dossier__content { max-height: calc(92vh - 380px); grid-template-columns: minmax(0, 1fr) 260px; }
+.sleeper-dossier__logs { padding: 20px; }
+.sleeper-dossier__side { background: #0b1e33; padding: 23px 18px; border-left: 1px solid #ffffff0c; }
+.sleeper-dossier__side h3 { font-size: 9px; letter-spacing: 1.1px; color: #b4c1d0; }
+.sleeper-section-title { margin-bottom: 8px; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sleeper-section-title > b { font-size: 10px; letter-spacing: .5px; color: #d4dde7; }
+.sleeper-years { gap: 9px; }
+.sleeper-years label { padding: 0; color: #a8b9ca; font-size: 10px; }
+.sleeper-years select { appearance: auto; border: 1px solid #4c6078; padding: 7px 10px; color: #fff; background: #1a314c; border-radius: 6px; font-size: 11px; cursor: pointer; }
+.sleeper-empty { color: #aebdce; font-size: 11px; }
+.yl-history-status { padding: 6px 0 14px; font-size: 10px; }
+.sleeper-log { border-spacing: 0; border-collapse: collapse; min-width: 590px; }
+.sleeper-log th { font-size: 8px; letter-spacing: .3px; padding: 10px 8px; background: #112b45; color: #b2c3d4; border-bottom: 1px solid #3c5067; }
+.sleeper-log td { padding: 12px 9px; font-size: 11px; background: #18314b; border-bottom: 1px solid #2c425b; color: #e7edf4; }
+.sleeper-log tr:nth-child(even) td { background: #152c44; }
+.sleeper-log td:first-child, .sleeper-log td:nth-child(2) { background: #142a43; }
+.sleeper-log .sleeper-fpts { background: #284765; color: #fff; font-weight: 700; }
+.sleeper-news { background: #16314c; border: 1px solid #304963; border-radius: 7px; padding: 13px; }
+.sleeper-news a { color: #fff; text-decoration: none; }
+.sleeper-news b { font-size: 12px; line-height: 1.5; }
+.sleeper-news p { font-size: 10px; color: #c2d0de; }
+.yl-career-intro { margin-bottom: 16px; }
+.yl-career-intro h3 { font-size: 16px; font-weight: 600; color: #fff; }
+.yl-career-intro p { font-size: 11px; color: #afc0d2; margin-top: 7px; line-height: 1.6; }
+.yl-career-year { background: transparent; border: 0; color: #fff; font-weight: 650; border-bottom: 1px solid #9eb7ce; cursor: pointer; padding: 3px 0; }
+.yl-career-year:hover { color: #ff839b; border-color: #ff839b; }
+@media (max-width: 900px) {
+  .sleeper-dossier__hero { min-height: 310px; }
+  .sleeper-dossier__identity { margin-left: 210px; padding-right: 20px; }
+  .sleeper-dossier__player { left: 0; width: 205px; height: 205px; }
+  .sleeper-dossier__player img { width: 220px; height: 205px; }
+  .fp-stat-boxes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fp-stat-box { padding: 8px; }
+  .fp-stat-box strong { font-size: 18px; }
+  .sleeper-dossier__content { grid-template-columns: minmax(0, 1fr); max-height: calc(92vh - 410px); }
+  .sleeper-dossier__side { order: 1; border-left: 0; border-top: 1px solid #30465c; }
+}
+@media (max-width: 600px) {
+  #player-modal { padding: 8px; }
+  .sleeper-dossier { width: calc(100vw - 16px); max-height: 94dvh; overflow-y: auto; }
+  .sleeper-dossier__hero { min-height: 0; padding-top: 24px; }
+  .sleeper-dossier__identity { margin-left: 0; padding: 96px 18px 18px; width: 100%; }
+  .sleeper-dossier__identity h1 { max-width: none; margin: 5px 0 18px; font-size: 28px; }
+  .sleeper-dossier__identity > div:first-child { position: relative; z-index: 3; }
+  .sleeper-dossier__player { width: 115px; height: 120px; top: 0; left: 10px; bottom: auto; }
+  .sleeper-dossier__player img { width: 120px; height: 120px; }
+  .sleeper-dossier__mini { left: auto; right: 22px; top: 32px; width: auto; text-align: right; }
+  .sleeper-actions { margin-right: 0; }
+  .sleeper-bio { display: flex; gap: 12px 18px; }
+  .sleeper-bio span { font-size: 13px; }
+  .sleeper-bio i { display: none; }
+  .sleeper-bio .college { min-width: 0; }
+  .sleeper-dossier__teambg img { width: 260px; height: 260px; margin-right: -35px; }
+  .sleeper-dossier__content { max-height: none; overflow: visible; }
+  .sleeper-dossier__logs { padding: 18px 12px; }
+  .sleeper-tab-btn { min-height: 44px; }
+  .sleeper-close { position: absolute; z-index: 10; }
+}
