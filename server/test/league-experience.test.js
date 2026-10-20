@@ -147,3 +147,41 @@ test('freshness keeps offline and failure states consistent after a page rerende
  assert.equal(w.YardlineLeagueExperience.freshness({syncedAt:'2026-10-20T18:00:00Z'},{status:'synced'}).state,'synced');
  dom.window.close();
 });
+
+
+test('an empty lineup slot does not shift FLEX labels in Playbook or Matchup',()=>{
+ const s=snapshot();s.league.rosterPositions=['QB','RB','FLEX'];
+ s.rosters[0].starters=['a','0','c'];s.rosters[0].players=['a','c'];
+ s.playerCards.c={...s.playerCards.a,id:'c',name:'Atleta C'};
+ s.matchups[0].players[0].is_starter=1;s.matchups[0].players[0].slot='STARTER_1';
+ s.matchups[0].players.push({player_id:'c',roster_id:1,is_starter:1,slot:'STARTER_3',points:0});
+ const dom=fixture(s),w=dom.window;
+ w.renderCanonicalPlayerCard=(p,slot)=>'<article>'+p.name+' '+slot+'</article>';w.renderPlaybookView();
+ assert.match(w.document.getElementById('view-playbook').textContent,/Atleta C FLEX/);
+ assert.match(w.document.querySelector('[aria-label="Abrir perfil de Atleta C"]').textContent,/FLEX/);
+ dom.window.close();
+});
+test('Matchup labels actual points separately from Sleeper projections',()=>{
+ const s=snapshot();s.matchups[0].players[0].points=0;
+ Object.assign(s.playerCards.a,{context:{...s.playerCards.a.context,projectionFormat:'LEAGUE'},source:{projection:'sleeper:league_scoring'},metrics:{projectedPoints:12.5}});
+ const dom=fixture(s),row=dom.window.document.querySelector('[aria-label="Abrir perfil de Atleta A"]');
+ const metrics=[...row.querySelectorAll('.yl-duel-metrics>span')].map(n=>n.textContent);
+ assert.ok(metrics.some(v=>v.includes('Pontos')&&v.includes('0.00')));
+ assert.ok(metrics.some(v=>v.includes('Proj. Sleeper')&&v.includes('12.50')));
+ dom.window.close();
+});
+test('real tab headings avoid unavailable promises and the NFL demo clock never starts',()=>{
+ const dom=new JSDOM('<div id="stage-title"></div><div id="stage-subtitle"></div><div id="nfl-live-ticker-strip">BUF 24 ATL 21</div>',{runScripts:'outside-only',url:'http://fixture.invalid'}),w=dom.window;
+ w.document.addEventListener=()=>{};w.scrollTo=()=>{};let intervals=0;
+ w.setInterval=()=>{intervals++;return 1;};w.clearInterval=()=>{};
+ w.fetch=async()=>({ok:true,json:async()=>({rows:[],items:[]})});
+ for(const file of ['player-card-contract.js','data_and_views.js','engines.js'])vm.runInContext(source(file),dom.getInternalVMContext());
+ w.renderHomeView=()=>{};w.renderPlaybookView=()=>{};w.renderLeagueView=()=>{};
+ for(const [key,title] of [['home','Visão geral'],['playbook','Meu Playbook'],['league','Confronto da semana']]){
+  w.openNavTab(key);assert.equal(w.document.getElementById('stage-title').textContent,title);
+  assert.doesNotMatch(w.document.getElementById('stage-subtitle').textContent,/12 times|Semana 6|consenso|especialistas/i);
+ }
+ const before=intervals;w.startLiveTickerClockEngine();
+ assert.equal(intervals,before);assert.equal(w.document.getElementById('nfl-live-ticker-strip').hidden,true);
+ assert.equal(w.document.getElementById('nfl-live-ticker-strip').textContent,'');dom.window.close();
+});
