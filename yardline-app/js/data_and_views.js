@@ -534,7 +534,7 @@ function renderHomeView() {
         <p>Notícias, jogadores e ferramentas para construir a sua próxima jogada.</p>
         <button class="yl-text-action" onclick="openNavTab('players')">Explorar jogadores <span aria-hidden="true">→</span></button>
       </div>
-      <div class="yl-field-art" aria-hidden="true"><span class="yl-field-orbit"></span><span class="yl-field-ball"></span><span class="yl-field-yard">YARDLINE / NFL</span></div>
+      <div class="yl-brand-panel" aria-hidden="true"><img src="assets/yardline-logo.png" alt=""><span>FANTASY FOOTBALL · BRASIL</span></div>
     </section>
     <nav class="yl-quick-tools" aria-label="Atalhos para sua estratégia">
       <button class="yl-tool-link" onclick="openNavTab('playbook')"><span class="yl-tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v4H9zM9 12h6m-6 4h4"/></svg></span><span><b>Meu Playbook</b><small>Seu elenco, em perspectiva</small></span><span class="yl-tool-arrow" aria-hidden="true">↗</span></button>

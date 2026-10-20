@@ -32,7 +32,12 @@
     return p && String(p.context?.leagueId) === String(s.snapshot.league?.providerLeagueId ?? s.snapshot.league?.provider_league_id ?? s.snapshot.league?.id)
       && String(p.context?.season) === String(s.snapshot.league?.season) && num(p.context?.week) === s.week ? p : null;
   }
-  root.YardlineLeagueExperience = { select, lineup, player };
+  function projection(s, roster) {
+    const ids=lineup(s,roster).filter(value=>value!=='0');
+    const values=ids.map(id=>{const p=player(s,id);return p?.context?.projectionFormat==='LEAGUE' && /^sleeper/.test(p.source?.projection||'') ? num(p.metrics?.projectedPoints) : null;});
+    return {points:ids.length && values.every(v=>v!==null) ? Math.round(values.reduce((a,b)=>a+b,0)*100)/100 : null,known:values.filter(v=>v!==null).length,total:ids.length};
+  }
+  root.YardlineLeagueExperience = { select, lineup, player, projection };
   if (typeof document === 'undefined') return;
   function context() {
     const selected = typeof userRealRoster !== 'undefined' ? userRealRoster : null;
@@ -46,8 +51,16 @@
   function summary(s) {
     if (!s.roster) return '<div class="yl-card" style="padding:24px"><p>Conecte sua conta Sleeper e selecione seu time para acompanhar a rodada.</p><button class="btn-yl btn-primary" onclick="openLeagueSwitcherModal()">Selecionar liga e time</button></div>';
     if (!s.opponent || !s.matchup) return '';
-    const score = s.myScore !== null && s.oppScore !== null ? `<div class="yl-dashboard-compare"><strong>${s.myScore.toFixed(2)}</strong><span>×</span><strong>${s.oppScore.toFixed(2)}</strong></div><small>Pontos da rodada · Sleeper</small>` : '';
-    return `<article class="yl-card" style="padding:24px;margin-bottom:20px"><span class="badge badge-navy">CONFRONTO DA SEMANA ${esc(s.week)}</span><h3 style="margin:14px 0">${esc(s.name(s.roster))} <span style="font-weight:400">×</span> ${esc(s.name(s.opponent))}</h3>${score}</article>`;
+    function side(roster, score, mine){
+      const projected=projection(s,roster);
+      const avatar=String(roster.avatar||'');
+      let image='';
+      if(/^[a-zA-Z0-9_-]+$/.test(avatar)) image='https://sleepercdn.com/avatars/'+encodeURIComponent(avatar);
+      else if(/^https:\/\//.test(avatar)) image=avatar;
+      return `<div class="yl-week-side ${mine?'is-mine':'is-opponent'}" data-roster-id="${id(roster)}">${image?`<img class="yl-week-background" src="${esc(image)}" alt="" onerror="this.hidden=true">`:''}<div class="yl-week-team"><span>${mine?'SEU TIME':'ADVERSÁRIO'}</span><h3>${esc(s.name(roster))}</h3></div><div class="yl-week-numbers">${projected.points!==null?`<div class="yl-week-projection"><small>Projeção Sleeper</small><strong>${projected.points.toFixed(2)}</strong></div>`:''}${score!==null?`<div class="yl-week-score"><small>Pontos da rodada</small><strong>${score.toFixed(2)}</strong></div>`:''}</div></div>`;
+    }
+    const my=projection(s,s.roster),opp=projection(s,s.opponent);
+    return `<article class="yl-week-card"><header><span>CONFRONTO DA SEMANA ${esc(s.week)}</span><small>${esc(s.snapshot.league?.name||'Sleeper')}</small></header><div class="yl-week-split">${side(s.roster,s.myScore,true)}<span class="yl-week-versus" aria-hidden="true">VS</span>${side(s.opponent,s.oppScore,false)}</div><footer>${my.points!==null&&opp.points!==null?'Projeção Sleeper dos titulares · regras de pontuação desta liga':'A projeção completa ainda não foi recebida para todos os titulares. Nenhum total parcial é apresentado como projeção do time.'}</footer></article>`;
   }
   function cards(s, roster, title, ids) {
     const html = ids.map(playerId => {

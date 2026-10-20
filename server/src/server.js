@@ -60,7 +60,9 @@ app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`[API] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms) [${req.correlationId}]`);
+    if (process.env.YARDLINE_DEV_PREVIEW !== '1' || res.statusCode >= 400) {
+      console.log(`[API] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms) [${req.correlationId}]`);
+    }
   });
   next();
 });
@@ -159,9 +161,9 @@ app.get('/api/integrations/sleeper/user/:userId/leagues/:season', async (req, re
 // Sincronizar Liga Escolhida
 app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
   try {
-    const { leagueId, week = null } = req.body;
+    const { leagueId, week = null, coreOnly = false } = req.body;
     if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
-    const result = await sleeperSyncService.syncLeagueDetails(leagueId, week == null ? null : parseInt(week, 10));
+    const result = await sleeperSyncService.syncLeagueDetails(leagueId, week == null ? null : parseInt(week, 10), { coreOnly: coreOnly === true });
     res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ error: err.message });

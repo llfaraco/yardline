@@ -401,3 +401,12 @@ CREATE TABLE IF NOT EXISTS player_history_sync (
   PRIMARY KEY (player_id, season),
   FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
 );
+
+
+-- Raw projected production from Sleeper, scored separately for each league.
+CREATE TABLE IF NOT EXISTS player_projection_stats (
+ player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+ season TEXT NOT NULL, week INTEGER NOT NULL,
+ stats_json TEXT NOT NULL, captured_at TEXT NOT NULL,
+ PRIMARY KEY(player_id,season,week)
+);

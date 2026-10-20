@@ -3,6 +3,7 @@
 // Conector centralizado com timeout, backoff, retry e rate-limit
 // ========================================================
 
+import { normalizeSleeperProjections } from './sleeper-projections.js';
 const SLEEPER_BASE_URL = 'https://api.sleeper.app/v1';
 
 export class SleeperConnector {
@@ -136,8 +137,11 @@ export class SleeperConnector {
       { statsApi: true, timeoutMs: 10000, maxRetries: 1 });
   }
 
-  getNflProjections(season, week) {
-    return this.request(`/projections/nfl/${encodeURIComponent(season)}/${encodeURIComponent(week)}`);
+  async getNflProjections(season, week) {
+    // Observed public Sleeper endpoint; not part of the documented v1 contract.
+    const payload = await this.request(`/projections/nfl/${encodeURIComponent(season)}/${encodeURIComponent(week)}?season_type=regular`,
+      { statsApi: true, timeoutMs: 10000, maxRetries: 1 });
+    return normalizeSleeperProjections(payload, season, week);
   }
 
   getLeagueTradedPicks(leagueId) {
