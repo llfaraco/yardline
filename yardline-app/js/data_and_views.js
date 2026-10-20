@@ -113,7 +113,7 @@ let userWatchlist = ["4361050", "4429059"];
 let userFaab = 78;
 
 const STAGE_TITLES = {
-  home: { title: "Portal de Notícias NFL & Acompanhamento de Atletas", sub: "Cobertura oficial da NFL (NFL.com, Yahoo Sports, Bleacher Report, 𝕏) conectada diretamente aos jogadores do seu time." },
+  home: { title: "Visão geral", sub: "Acompanhe a NFL. Encontre seu próximo movimento." },
   players: { title: "Toda a Base de Jogadores da NFL (32 Franquias)", sub: "Catálogo completo com fotos ESPN, dados biográficos, estatísticas de carreira e dossiê com notícias dos últimos meses." },
   playbook: { title: "Meu Playbook · Start/Sit Assistant & Escalação", sub: "Comparador lado a lado com medidor de % de consenso de especialistas e recálculo ao vivo de projeção." },
   trade: { title: "Trade Analyzer · Avaliador de Trocas (Estilo FantasyPros)", sub: "Medidor interativo de justiça de troca (Trade Value Gauge) e impacto semanal em pontos projetados." },
@@ -140,6 +140,11 @@ function openNavTab(tabKey) {
   const tEl = document.getElementById("stage-title");
   const sEl = document.getElementById("stage-subtitle");
   if (tEl) tEl.textContent = meta.title;
+  if (sEl) sEl.textContent = meta.sub;
+  document.querySelectorAll('.fp-rail-item').forEach(button => {
+    if (button === activeNav) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
   if (tabKey === 'home' && typeof renderHomeView === 'function') renderHomeView();
   if (tabKey === 'playbook' && typeof renderPlaybookView === 'function') renderPlaybookView();
   if (tabKey === 'league' && typeof renderLeagueView === 'function') renderLeagueView();
@@ -515,17 +520,33 @@ function renderHomeView() {
   const activeUsername = typeof activeSleeperUsername !== "undefined" ? activeSleeperUsername : "Faraco";
   const shell = window.YL_SHELL_SNAPSHOT || {};
   const league = typeof activeSleeperLeagueData !== "undefined" ? activeSleeperLeagueData : (shell.league || {});
-  const leagueName = league?.name || shell.league?.name || 'Liga Sleeper';
+  const leagueName = league?.name || shell.league?.name || 'Selecione uma liga para personalizar';
   const leagueId = league?.league_id || league?.providerLeagueId || shell.league?.providerLeagueId || localStorage.getItem('yl_active_league_id') || '—';
   const leagueSeason = league?.season || shell.league?.season || shell.state?.season || '—';
   const leagueWeek = typeof activeLeagueWeek !== 'undefined' && activeLeagueWeek != null ? activeLeagueWeek : (shell.state?.week || '—');
   const leagueTeams = Array.isArray(shell.rosters) ? shell.rosters.length : (Array.isArray(activeSleeperRosters) ? activeSleeperRosters.length : 0);
 
   container.innerHTML = `
+    <section class="yl-welcome" aria-labelledby="yl-welcome-title">
+      <div class="yl-welcome-copy">
+        <span class="yl-eyebrow">MAIS CONTEXTO. MELHORES DECISÕES.</span>
+        <h2 id="yl-welcome-title">O jogo muda.<br>Sua visão vai além.</h2>
+        <p>Notícias, jogadores e ferramentas para construir a sua próxima jogada.</p>
+        <button class="yl-text-action" onclick="openNavTab('players')">Explorar jogadores <span aria-hidden="true">→</span></button>
+      </div>
+      <div class="yl-field-art" aria-hidden="true"><span class="yl-field-orbit"></span><span class="yl-field-ball"></span><span class="yl-field-yard">YARDLINE / NFL</span></div>
+    </section>
+    <nav class="yl-quick-tools" aria-label="Atalhos para sua estratégia">
+      <button class="yl-tool-link" onclick="openNavTab('playbook')"><span class="yl-tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v4H9zM9 12h6m-6 4h4"/></svg></span><span><b>Meu Playbook</b><small>Seu elenco, em perspectiva</small></span><span class="yl-tool-arrow" aria-hidden="true">↗</span></button>
+      <button class="yl-tool-link" onclick="openNavTab('league')"><span class="yl-tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4 4 16 16M4 20 20 4M4 4v6m0-6h6m10 10v6h-6"/></svg></span><span><b>Matchup Center</b><small>Olhe de perto o confronto</small></span><span class="yl-tool-arrow" aria-hidden="true">↗</span></button>
+      <button class="yl-tool-link" onclick="openNavTab('waivers')"><span class="yl-tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="m12 12 7-7"/></svg></span><span><b>Waiver Radar</b><small>Explore o mercado da liga</small></span><span class="yl-tool-arrow" aria-hidden="true">↗</span></button>
+    </nav>
+    <div class="yl-home-section-heading"><div><span class="yl-eyebrow">ACOMPANHE O JOGO</span><h2>No radar da NFL</h2></div><span>Notícias e contexto para o seu fantasy</span></div>
+
     <div class="yl-card yl-dashboard-league-line" style="margin-bottom:18px;padding:13px 18px;border-left:4px solid var(--yl-crimson);">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-          <span class="badge badge-green">SLEEPER · DADOS OFICIAIS</span>
+          <span class="badge badge-navy">${shell.league ? 'LIGA SLEEPER' : 'SEU CONTEXTO'}</span>
           <strong style="color:var(--yl-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(leagueName)}</strong>
           <span style="font-size:11px;color:var(--text-muted);">#${esc(leagueId)}</span>
         </div>
@@ -540,18 +561,18 @@ function renderHomeView() {
     <div class="yl-card" style="margin-bottom:18px;padding:14px 20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:12px;font-weight:600;color:var(--yl-navy);text-transform:uppercase;letter-spacing:0.4px;">Filtrar Notícias:</span>
+          <span style="font-size:12px;font-weight:600;color:var(--yl-navy);text-transform:uppercase;letter-spacing:0.4px;">Seu radar:</span>
           <button class="btn-yl ${currentHomeFilter === 'ALL' ? 'btn-navy' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='ALL';renderHomeView();">
             Todas da NFL (${countAll})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'MY_ROSTER' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='MY_ROSTER';renderHomeView();">
-            Do Meu Time (@${activeUsername}) (${countMine})
+            Meu time (${countMine})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'WAIVERS' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='WAIVERS';renderHomeView();">
-            Alvos de Waiver Wire (${countWaivers})
+            Waivers (${countWaivers})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'OPPONENT' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='OPPONENT';renderHomeView();">
-            Adversário da Semana (${countOpp})
+            Adversário (${countOpp})
           </button>
         </div>
         <span style="font-size:11.5px;color:var(--text-muted);">
@@ -3878,7 +3899,6 @@ window.YL_V2 = { openPlayerDossierModal: window.openPlayerDossierModal, renderPl
     c.prepend(el);
   }
   function renderPlaybook(){if(typeof window.YL_V2?.renderPlaybookView==='function')window.YL_V2.renderPlaybookView();const c=document.getElementById('view-playbook');if(!c||typeof c.querySelectorAll!=='function')return;c.querySelectorAll('.yl-player-card-v2').forEach(card=>{const id=card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1],p=player(id);if(!p)return;const top=card.querySelector('.yl-player-card-v2__top');if(top&&!top.querySelector('.yl-player-card-v2__teamlogo')){const img=document.createElement('img');img.className='yl-player-card-v2__teamlogo';img.src=p.teamLogo||'';img.alt=p.team||'';top.prepend(img);}const body=card.querySelector('.yl-player-card-v2__body');if(body&&!body.querySelector('.yl-player-card-v2__bio')){const bio=document.createElement('div');bio.className='yl-player-card-v2__bio';bio.textContent=[p.age&&`${p.age} anos`,p.height&&`Alt. ${p.height}`,p.weight&&`Peso ${p.weight}`,p.college].filter(Boolean).join(' · ')||'Ficha técnica não disponível';body.appendChild(bio);}});}
-  const oldHome=window.renderHomeView;window.renderHomeView=function(){if(typeof oldHome==='function')oldHome();const c=document.getElementById('view-home');if(c&&!c.querySelector('.yl-news-source-note')){const n=document.createElement('div');n.className='yl-news-source-note';n.textContent='Jornalismo YARDLINE: priorização por roster ativo. Artigos locais sem URL verificável permanecem marcados como conteúdo não verificado; feeds externos exigem ingestão autorizada no backend.';c.prepend(n);}};
   window.renderTeamsView=renderTeams;window.renderRankingsView=renderRankings;window.renderWaiversView=renderWaivers;window.renderLeagueView=renderLeague;window.renderPlaybookView=renderPlaybook;
   window.YL_V3={renderTeams,renderRankings,renderWaivers,renderLeague,renderPlaybook};
 })();
@@ -4874,7 +4894,7 @@ window.toggleSidebarGroup=function(key){
     try {
       const savedCollapsed = localStorage.getItem("yl_chat_collapsed");
       const shell = document.querySelector(".yl-main-shell");
-      if (savedCollapsed === "1" && shell) {
+      if (savedCollapsed !== "0" && shell) {
         shell.classList.add("chat-collapsed");
       }
     } catch (e) {}
