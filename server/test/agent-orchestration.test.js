@@ -142,16 +142,20 @@ test('Real cycle orchestration converts scoped failures to deduplicated handoffs
 });
 test('POST sync registers a real safe worker launch, returns cycleId and single-flights without blocking', async t => {
   const store = isolated(t); const worker = new EventEmitter(); worker.kill = () => {};
+  const previousToken = process.env.COMMAND_CENTER_WRITE_TOKEN;
+  process.env.COMMAND_CENTER_WRITE_TOKEN = 'test-command-center-token';
+  t.after(() => { if (previousToken === undefined) delete process.env.COMMAND_CENTER_WRITE_TOKEN; else process.env.COMMAND_CENTER_WRITE_TOKEN = previousToken; });
   let invocation;
   const service = new CommandCenterService(store, args => startMonitoringCycle({ ...args, launch: (...call) => { invocation = call; return worker; } }));
   const app = express(); app.use(express.json()); app.use('/api/command-center', createCommandCenterRouter(service));
   const server = app.listen(0, '127.0.0.1'); await new Promise(resolve => server.once('listening', resolve));
   t.after(() => { worker.emit('close', 1); server.close(); });
   const url = `http://127.0.0.1:${server.address().port}/api/command-center`;
-  const response = await fetch(`${url}/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: 'never execute this', url: 'https://private.invalid' }) });
+  const headers = { 'Content-Type': 'application/json', Authorization: 'Bearer test-command-center-token' };
+  const response = await fetch(`${url}/sync`, { method: 'POST', headers, body: JSON.stringify({ command: 'never execute this', url: 'https://private.invalid' }) });
   assert.equal(response.status, 202); const body = await response.json(); assert.match(body.cycleId, /^cycle-/); assert.equal(body.status, 'QUEUED'); assert.ok(body.ok); assert.ok(body.dashboard); assert.ok(body.syncedAt);
   assert.equal(invocation[0], process.execPath); assert.match(invocation[1][0], /run-hourly-monitor\.js$/); assert.equal(invocation[2].shell, false); assert.ok(!invocation.flat().join(' ').includes('never execute this'));
-  const second = await (await fetch(`${url}/sync`, { method: 'POST' })).json(); assert.equal(second.cycleId, body.cycleId); assert.equal(second.accepted, false);
+  const second = await (await fetch(`${url}/sync`, { method: 'POST', headers })).json(); assert.equal(second.cycleId, body.cycleId); assert.equal(second.accepted, false);
   assert.equal((await (await fetch(`${url}/orchestration`)).json()).agents.length, 15);
   assert.deepEqual(await (await fetch(`${url}/handoffs`)).json(), []);
   const denied = await fetch(`${url}/handoffs/anything`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'VERIFIED' }) }); assert.equal(denied.status, 403);

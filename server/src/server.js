@@ -41,7 +41,26 @@ export const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(cors());
+const defaultAllowedOrigins = [
+  'http://127.0.0.1:3000',
+  'http://localhost:3000',
+  'http://127.0.0.1:8080',
+  'http://localhost:8080',
+  'https://yardlineagen-42xiespj.manus.space'
+];
+const allowedOrigins = new Set(
+  (process.env.YARDLINE_ALLOWED_ORIGINS || defaultAllowedOrigins.join(','))
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean)
+);
+app.use(cors({
+  origin(origin, callback) {
+    // Requests without Origin include same-origin navigation and local CLI calls.
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(null, false);
+  }
+}));
 if (process.env.YARDLINE_DEV_PREVIEW === '1') app.use(developmentPreview());
 app.use(express.json({ limit: '1mb', verify(req, res, buffer) { req.rawBody = buffer.toString('utf8'); } }));
 
@@ -162,7 +181,7 @@ app.get('/api/integrations/sleeper/user/:userId/leagues/:season', async (req, re
 const refreshLeague = createLeagueRefresh((id,week,options)=>sleeperSyncService.syncLeagueDetails(id,week,options));
 
 // Sincronizar Liga Escolhida
-app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
+app.post('/api/integrations/sleeper/sync-league', requireAuth, async (req, res) => {
   try {
     const { leagueId, week = null, coreOnly = false, automatic = false } = req.body;
     if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
@@ -619,7 +638,10 @@ app.get('/api/leagues/:leagueId/matchup-details', (req, res) => {
 // Confronto Semanal Canônico (Seção 4: buildFantasyMatchup por matchup_id)
 app.get('/api/leagues/:leagueId/matchups/current', async (req, res) => {
   try {
-    const { sleeperUserId = 'Faraco', week = 6 } = req.query;
+    const { sleeperUserId, week } = req.query;
+    if (!sleeperUserId || !week) {
+      return res.status(400).json({ error: 'sleeperUserId e week são obrigatórios; não há fallback de contexto.' });
+    }
     const matchup = await sleeperSyncService.buildFantasyMatchup({
       leagueId: req.params.leagueId,
       sleeperUserId: String(sleeperUserId),
@@ -634,8 +656,11 @@ app.get('/api/leagues/:leagueId/matchups/current', async (req, res) => {
 
 // Command Center Tático, derivado do snapshot persistido.
 app.get('/api/command-center', (req, res) => {
-  const leagueId = req.query.leagueId || '1369770282776006656';
-  const rosterId = parseInt(req.query.rosterId || '2', 10);
+  const leagueId = String(req.query.leagueId || '').trim();
+  const rosterId = Number.parseInt(req.query.rosterId, 10);
+  if (!leagueId || !Number.isInteger(rosterId)) {
+    return res.status(400).json({ error: 'leagueId e rosterId são obrigatórios; não há fallback de contexto.' });
+  }
   const league = db.prepare('SELECT * FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
   const stateRow = league && db.prepare(`SELECT payload_json FROM sync_payloads WHERE league_id=? AND resource='state' ORDER BY captured_at DESC LIMIT 1`).get(league.id);
   let state = {}; try { state = JSON.parse(stateRow?.payload_json || '{}'); } catch {}
@@ -763,29 +788,34 @@ app.get('/api/news', (req, res) => {
       source,
       playerId,
       filter,
-      leagueId = '1369770282776006656',
-      rosterId = 2,
-      week = 6,
+      leagueId,
+      rosterId,
+      week,
       limit = 20,
       offset = 0
     } = req.query;
 
+    const normalizedLeagueId = leagueId ? String(leagueId).trim() : null;
+    const normalizedRosterId = rosterId == null || rosterId === '' ? null : Number.parseInt(rosterId, 10);
+    const normalizedWeek = week == null || week === '' ? null : Number.parseInt(week, 10);
     let rosterPlayerIds = null;
 
     if (filter === 'my_roster' || filter === 'MY_ROSTER') {
-      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (!normalizedLeagueId || !Number.isInteger(normalizedRosterId)) return res.status(400).json({ error: 'leagueId e rosterId são obrigatórios para filtrar o roster.' });
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(normalizedLeagueId, normalizedLeagueId);
       if (league) {
-        const roster = db.prepare('SELECT players_json FROM rosters WHERE league_id = ? AND provider_roster_id = ?').get(league.id, Number(rosterId));
+        const roster = db.prepare('SELECT players_json FROM rosters WHERE league_id = ? AND provider_roster_id = ?').get(league.id, normalizedRosterId);
         if (roster) {
           try { rosterPlayerIds = JSON.parse(roster.players_json || '[]'); } catch {}
         }
       }
     } else if (filter === 'opponent' || filter === 'OPPONENT') {
-      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (!normalizedLeagueId || !Number.isInteger(normalizedRosterId) || !Number.isInteger(normalizedWeek)) return res.status(400).json({ error: 'leagueId, rosterId e week são obrigatórios para filtrar o oponente.' });
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(normalizedLeagueId, normalizedLeagueId);
       if (league) {
-        const matchup = db.prepare('SELECT roster_a_id, roster_b_id FROM matchups WHERE league_id = ? AND week = ? AND (roster_a_id = ? OR roster_b_id = ?)').get(league.id, Number(week), Number(rosterId), Number(rosterId));
+        const matchup = db.prepare('SELECT roster_a_id, roster_b_id FROM matchups WHERE league_id = ? AND week = ? AND (roster_a_id = ? OR roster_b_id = ?)').get(league.id, normalizedWeek, normalizedRosterId, normalizedRosterId);
         if (matchup) {
-          const oppId = matchup.roster_a_id === Number(rosterId) ? matchup.roster_b_id : matchup.roster_a_id;
+          const oppId = matchup.roster_a_id === normalizedRosterId ? matchup.roster_b_id : matchup.roster_a_id;
           const oppRoster = db.prepare('SELECT players_json FROM rosters WHERE league_id = ? AND provider_roster_id = ?').get(league.id, oppId);
           if (oppRoster) {
             try { rosterPlayerIds = JSON.parse(oppRoster.players_json || '[]'); } catch {}
@@ -793,7 +823,8 @@ app.get('/api/news', (req, res) => {
         }
       }
     } else if (filter === 'waivers' || filter === 'WAIVERS') {
-      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
+      if (!normalizedLeagueId) return res.status(400).json({ error: 'leagueId é obrigatório para filtrar waivers.' });
+      const league = db.prepare('SELECT id FROM leagues WHERE id = ? OR provider_league_id = ?').get(normalizedLeagueId, normalizedLeagueId);
       if (league) {
         const allRosters = db.prepare('SELECT players_json FROM rosters WHERE league_id = ?').all(league.id);
         const owned = new Set();
@@ -814,9 +845,9 @@ app.get('/api/news', (req, res) => {
       offset: parseInt(offset, 10) || 0,
       includeAthletes: true,
       leagueContext: {
-        leagueId: leagueId ? String(leagueId) : null,
-        week: Number.isInteger(Number(week)) ? Number(week) : null,
-        rosterId: rosterId ? Number(rosterId) : null,
+        leagueId: normalizedLeagueId,
+        week: normalizedWeek,
+        rosterId: normalizedRosterId,
         filter: filter || 'ALL'
       }
     });
@@ -827,7 +858,7 @@ app.get('/api/news', (req, res) => {
   }
 });
 
-app.post('/api/news/sync-worker', (req, res) => {
+app.post('/api/news/sync-worker', requireAuth, (req, res) => {
   try {
     const workerJsonPath = path.resolve(__dirname, '../../news-worker/data/nfl-news.json');
     const result = newsService.syncFromWorkerFile(workerJsonPath);
@@ -837,7 +868,7 @@ app.post('/api/news/sync-worker', (req, res) => {
   }
 });
 
-app.post('/api/news/ingest', (req, res) => {
+app.post('/api/news/ingest', requireAuth, (req, res) => {
   try {
     const result = newsService.ingestNewsItem(req.body);
     res.status(result.isDuplicate ? 200 : 201).json(result);
@@ -856,7 +887,7 @@ app.get('/api/leagues/:leagueId/messages', (req, res) => {
   res.json({ messages });
 });
 
-app.post('/api/leagues/:leagueId/messages', (req, res) => {
+app.post('/api/leagues/:leagueId/messages', requireAuth, (req, res) => {
   const league = db.prepare('SELECT id FROM leagues WHERE id=? OR provider_league_id=?').get(req.params.leagueId, req.params.leagueId);
   if (!league) return res.status(404).json({ error: 'Liga não encontrada.' });
   const message = String(req.body?.message || '').trim().slice(0, 2000);

@@ -28,6 +28,7 @@ export function createCommandCenterRouter(service = commandCenterService) {
     catch (error) { res.status(400).json({ error: error.message }); }
   });
   router.post('/sync', (req, res) => {
+    if (!authorizedWrite(req)) return res.status(403).json({ error: 'Command Center sync requires configured COMMAND_CENTER_WRITE_TOKEN.' });
     try {
       const cycle = service.triggerSync();
       // Preserve ok/syncedAt/dashboard; cycleId/status are additive. No arbitrary URL/command from request body.
