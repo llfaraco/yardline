@@ -1,8 +1,8 @@
 # Auditoria PR #10 — Proveniência e segurança
 
-**PR:** https://github.com/llfaraco/yardline/pull/10  
-**Base:** `main`  
-**Head:** `integration/yardline-manus`  
+**PR:** https://github.com/llfaraco/yardline/pull/10
+**Base:** `main`
+**Head:** `integration/yardline-manus`
 **Checks:** 2/2 PASS; a aprovação do CI não equivale a aprovação de produto.
 
 ## P0 — Contexto fixo da liga/semana no produto

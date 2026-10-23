@@ -1,7 +1,7 @@
 # Auditoria do Yardline no GitHub — Codex, Manus e Gemini
 
-**Data:** 2026-10-23  
-**Repositório auditado:** https://github.com/llfaraco/yardline  
+**Data:** 2026-10-23
+**Repositório auditado:** https://github.com/llfaraco/yardline
 **Escopo:** somente leitura; nenhum push, merge ou alteração no GitHub foi executado.
 
 ## 1. Estado do GitHub
