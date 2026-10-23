@@ -1887,58 +1887,18 @@ function renderTradeView() {
 function renderLeagueView() {
   const container = document.getElementById("view-league");
   if (!container) return;
-
-  container.innerHTML = `
-    <!-- Top Sync Status Card & 14-Step Audit Panel -->
-    <div class="yl-card" style="margin-bottom:18px;padding:16px 20px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <span class="badge badge-green" id="sleeper-audit-status-badge">CONECTADO: SLEEPER API v1</span>
-          <h2 style="font-size:18px;font-weight:500;color:var(--yl-navy);margin-top:4px;">Liga Real Sleeper #1369770282776006656</h2>
-          <div style="font-size:12px;color:var(--text-muted);">Sincronização auditada para a conta <strong>@Faraco</strong> · Última consulta: <strong>14/10/2026 às 14:02:11 BRT</strong></div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn-yl btn-primary" id="sleeper-audit-trigger-btn" onclick="triggerDetailedSleeperAudit()">
-            Auditar & Sincronizar (14 Etapas)
-          </button>
-          <button class="btn-yl btn-outline" onclick="openNavTab('social')">
-            Veredito WhatsApp
-          </button>
-        </div>
-      </div>
-
-      <!-- Live Audit Log Box -->
-      <div style="margin-top:14px;background:#F8FAFC;border:1px solid var(--border-light);border-radius:8px;padding:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--yl-navy);font-weight:500;margin-bottom:6px;">
-          <span>PROGRESSO DA SINCRONIZAÇÃO SLEEPER (14 ETAPAS REAIS)</span>
-          <span>STATUS: AUDITADO</span>
-        </div>
-        <div style="width:100%;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin-bottom:8px;">
-          <div id="sleeper-audit-progress-bar" style="width:100%;height:100%;background:var(--yl-crimson);transition:width 0.2s;"></div>
-        </div>
-        <div id="sleeper-audit-live-logs" style="max-height:85px;overflow-y:auto;font-size:11.5px;line-height:1.5;">
-          <div style="color:#047857;font-family:monospace;">[14:02:11] Sincronização oficial concluída com sucesso. 12 elencos, regras de pontuação PPR e confrontos da Semana 6 carregados.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Matchup Preview -->
-    <div class="yl-card" style="margin-bottom:18px;padding:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <span class="badge badge-crimson">SEU DUELO DA SEMANA 6</span>
-          <h3 style="font-size:16px;font-weight:500;color:var(--yl-navy);margin-top:4px;">
-            Gengar My Balls (4-1) vs Chiarello Squad (4-1)
-          </h3>
-          <div style="font-size:12px;color:var(--text-muted);">Jogo valendo a liderança isolada da liga</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="mono" style="font-size:20px;font-weight:500;color:var(--yl-emerald);">61% vs 39%</div>
-          <div style="font-size:11px;color:var(--text-muted);">Projeção: 148.6 x 136.4 pts</div>
-        </div>
-      </div>
-    </div>
-  `;
+  const snapshot = window.YL_SHELL_SNAPSHOT;
+  const league = snapshot?.league;
+  const matchup = window.activeRealMatchup;
+  if (!league) {
+    container.innerHTML = '<div class="yl-card"><strong>Liga indisponível</strong><p class="yl-muted">Sincronize uma liga Sleeper oficial para carregar confrontos e classificação.</p></div>';
+    return;
+  }
+  const teams = typeof LEAGUE_12_TEAMS !== 'undefined' ? LEAGUE_12_TEAMS : [];
+  const my = teams.find(t => t.isMyTeam) || null;
+  const opp = matchup?.oppRoster ? teams.find(t => Number(t.rosterId) === Number(matchup.oppRoster.roster_id)) : null;
+  const title = matchup ? `${my?.name || `Roster #${matchup.myRoster?.roster_id ?? '—'}`} vs ${opp?.name || `Roster #${matchup.oppRoster?.roster_id ?? '—'}`}` : 'Confronto oficial indisponível';
+  container.innerHTML = `<div class="yl-card" style="margin-bottom:18px;padding:18px"><span class="badge badge-navy">SLEEPER · DADOS OFICIAIS</span><h2 style="font-size:18px;font-weight:500;color:var(--yl-navy);margin-top:6px">${league.name || 'Liga sincronizada'}</h2><p class="yl-muted">Liga ${league.providerLeagueId || league.id || '—'} · semana ${snapshot.week ?? '—'} · última sincronização ${snapshot.syncedAt || '—'}</p><button class="btn-yl btn-outline" onclick="typeof triggerDetailedSleeperAudit==='function'&&triggerDetailedSleeperAudit()">Atualizar snapshot</button></div><div class="yl-card" style="padding:18px"><span class="badge ${matchup ? 'badge-green' : 'badge-amber'}">${matchup ? 'MATCHUP OFICIAL' : 'MATCHUP INDISPONÍVEL'}</span><h3 style="font-size:16px;font-weight:500;color:var(--yl-navy);margin-top:6px">${title}</h3><p class="yl-muted">${matchup ? `Placar recebido: ${matchup.myScore ?? '—'} × ${matchup.oppScore ?? '—'}. Probabilidades e projeções não são exibidas sem uma fonte oficial correspondente.` : 'O snapshot atual não contém um confronto persistido para esta semana.'}</p></div>`;
 }
 
 // 7. WAIVERS
