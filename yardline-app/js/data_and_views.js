@@ -371,7 +371,7 @@ function getPlayerNews(playerId) {
     ? String(SLEEPER_TO_ESPN_MAP[id])
     : ((typeof ESPN_TO_SLEEPER_MAP !== "undefined" && ESPN_TO_SLEEPER_MAP[id]) ? String(ESPN_TO_SLEEPER_MAP[id]) : null);
 
-  const realNews = (typeof YL_NFL_NEWS_DATABASE !== "undefined" ? YL_NFL_NEWS_DATABASE : [])
+  const realNews = (Array.isArray(YL_LIVE_NEWS_CACHE) ? YL_LIVE_NEWS_CACHE : [])
     .filter(article => {
       const linked = (article.linkedPlayers || []).map(String);
       return linked.includes(id) || (altId && linked.includes(altId));
@@ -728,9 +728,7 @@ function getPlayerLeagueStatus(playerId) {
 
 // 2. PLAYER DOSSIER MODAL (5 ABAS COM DADOS REAIS & SITUAÇÃO NA LIGA)
 function openPlayerDossierModal(playerId, activeTab = "news") {
-  const p = (typeof resolveNFLPlayer === "function" ? resolveNFLPlayer(playerId) : null) ||
-            (typeof YL_PLAYER_DOSSIERS !== "undefined" ? YL_PLAYER_DOSSIERS[playerId] : null) ||
-            (typeof YL_ALL_NFL_PLAYERS !== "undefined" ? YL_ALL_NFL_PLAYERS[playerId] : null);
+  const p = typeof resolveNFLPlayer === "function" ? resolveNFLPlayer(playerId) : null;
   if (!p) return;
 
   const modal = document.getElementById("player-modal");
