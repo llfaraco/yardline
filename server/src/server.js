@@ -186,9 +186,10 @@ function sendSleeperSyncResult(res, result) {
 }
 
 function latestSleeperSyncRun(league, week) {
+  // Unscoped historical runs remain audit-only: their season/week cannot be inferred.
   return db.prepare(`SELECT status, error_message, metric_status_json FROM sync_runs WHERE league_id=?
-    AND (json_extract(metric_status_json, '$.context') IS NULL
-      OR (json_extract(metric_status_json, '$.context.season')=? AND json_extract(metric_status_json, '$.context.week')=?))
+    AND json_extract(metric_status_json, '$.context.season')=?
+    AND json_extract(metric_status_json, '$.context.week')=?
     ORDER BY finished_at DESC, rowid DESC LIMIT 1`).get(league.id, String(league.season), week);
 }
 

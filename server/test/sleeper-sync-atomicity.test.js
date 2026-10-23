@@ -31,6 +31,81 @@ function upstream(t) {
 }
 const league = id => db.prepare('SELECT * FROM leagues WHERE provider_league_id=?').get(id);
 
+async function contextFixture(t, id) {
+  // Historical and contextual records are explicit test fixtures, not upstream data.
+  const timestamp = '2026-10-01T00:00:00.000Z';
+  db.prepare(`INSERT INTO leagues (id,provider_league_id,season,name,total_rosters,last_synced_at,created_at,updated_at)
+    VALUES (?,?,'2026','Explicit context fixture',1,?,?,?)`).run(id, id, timestamp, timestamp, timestamp);
+  const http = app.listen(0, '127.0.0.1');
+  await new Promise(resolve => http.once('listening', resolve));
+  t.after(() => new Promise(resolve => http.close(resolve)));
+  const base = `http://127.0.0.1:${http.address().port}/api/leagues/${id}`;
+  let sequence = 0;
+  return {
+    base,
+    shell: async week => {
+      const response = await fetch(`${base}/shell?week=${week}`);
+      assert.equal(response.status, 200);
+      return response.json();
+    },
+    record(status, context, finishedAt) {
+      db.prepare(`INSERT INTO sync_runs (id,league_id,provider,resource,status,started_at,finished_at,error_message,metric_status_json)
+        VALUES (?,?,'sleeper','league_full',?,?,?,?,?)`).run(`fixture_${id}_${++sequence}`, id, status, finishedAt, finishedAt,
+        status === 'SUCCESS' ? null : `Explicit fixture ${status} ${context?.season}:${context?.week}`,
+        JSON.stringify(context ? { context } : {}));
+    }
+  };
+}
+
+test('context selection ignores unscoped history even without a current run or with a newer historical timestamp', async t => {
+  const fixture = await contextFixture(t, 'context-history');
+  fixture.record('ERROR', null, '2026-09-02T00:00:00Z');
+  let shell = await fixture.shell(7);
+  assert.equal(shell.syncStatus, null);
+  assert.notEqual(shell.dataStatus, 'stale');
+  assert.equal(shell.syncError, null);
+  fixture.record('SUCCESS', { season: '2026', week: 7 }, '2026-09-01T00:00:00Z');
+  fixture.record('PARTIAL', null, '2026-09-03T00:00:00Z');
+  shell = await fixture.shell(7);
+  assert.equal(shell.syncStatus, 'SUCCESS');
+  assert.equal(shell.dataStatus, 'synced');
+});
+
+test('context selection applies ERROR only to its exact season and week', async t => {
+  const fixture = await contextFixture(t, 'context-error');
+  fixture.record('ERROR', { season: '2026', week: 7 }, '2026-09-01T00:00:00Z');
+  fixture.record('SUCCESS', { season: '2026', week: 8 }, '2026-09-02T00:00:00Z');
+  fixture.record('SUCCESS', null, '2026-09-03T00:00:00Z');
+  let shell = await fixture.shell(7);
+  assert.equal(shell.syncStatus, 'ERROR');
+  assert.equal(shell.dataStatus, 'stale');
+  assert.match(shell.syncError, /2026:7/);
+  shell = await fixture.shell(8);
+  assert.equal(shell.syncStatus, 'SUCCESS');
+  assert.equal(shell.dataStatus, 'synced');
+  db.prepare('UPDATE leagues SET season=? WHERE id=?').run('2025', 'context-error');
+  shell = await fixture.shell(7);
+  assert.equal(shell.syncStatus, null);
+  assert.notEqual(shell.dataStatus, 'stale');
+});
+
+test('context selection keeps PARTIAL stale and diagnostic blocked only for the matching shell', async t => {
+  const fixture = await contextFixture(t, 'context-partial');
+  fixture.record('PARTIAL', { season: '2026', week: 7 }, '2026-09-01T00:00:00Z');
+  fixture.record('SUCCESS', { season: '2026', week: 8 }, '2026-09-02T00:00:00Z');
+  fixture.record('ERROR', { season: '2025', week: 7 }, '2026-09-03T00:00:00Z');
+  fixture.record('SUCCESS', null, '2026-09-04T00:00:00Z');
+  const shell = await fixture.shell(7);
+  assert.equal(shell.syncStatus, 'PARTIAL');
+  assert.equal(shell.dataStatus, 'stale');
+  assert.equal(shell.provenance.status, 'stale');
+  assert.match(shell.syncError, /PARTIAL 2026:7/);
+  assert.equal((await fixture.shell(8)).dataStatus, 'synced');
+  const response = await fetch(`${fixture.base}/matchups/current?sleeperUserId=fixture&week=7`);
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).status, 'PARTIAL');
+});
+
 test('late write failure rolls back snapshot and timestamp, records ERROR, then recovers', async t => {
   const fixture = upstream(t);
   await sync.syncLeagueDetails('atomic-existing', 1);
