@@ -1,0 +1,48 @@
+﻿name: Yardline CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - integration/yardline-manus
+  push:
+    branches:
+      - main
+      - integration/yardline-manus
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests and syntax
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci --prefix server
+
+      - name: Server tests
+        run: npm --prefix server test
+
+      - name: JavaScript syntax
+        shell: bash
+        run: |
+          find server/src server/scripts server/test \
+            yardline-app/js yardline-app/agent-command-center/js \
+            sync-agent news-worker \
+            -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' \) \
+            -print0 | xargs -0 -n1 node --check
+
+      - name: Diff check
+        run: git diff --check "${{ github.event.pull_request.base.sha }}...${{ github.sha }}"
