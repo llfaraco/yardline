@@ -90,11 +90,11 @@ function matchesPlayerId(pid, targetSet) {
   return false;
 }
 
-const YL_ALL_NFL_PLAYERS = {"7523": {"id": "7523", "sleeperId": "7523", "espnId": "4360310", "name": "Trevor Lawrence", "pos": "QB", "team": "JAX", "teamName": "Jacksonville Jaguars", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png", "number": "#16", "age": 27, "exp": "5º Ano", "college": "Clemson", "height": "6'6\" (1.98m)", "weight": "220 lbs (100kg)", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4360310.png&w=350&h=254", "proj": 16.2, "avgPpr": 16.8, "ylIndex": 88.5, "injuryStatus": "Saudável"}, "8183": {"id": "8183", "sleeperId": "8183", "espnId": "4361741", "name": "Brock Purdy", "pos": "QB", "team": "SF", "teamName": "San Francisco 49ers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png", "number": "#13", "age": 26, "exp": "5º Ano", "college": "Iowa State", "height": "6'1\" (1.85m)", "weight": "220 lbs (100kg)", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361741.png&w=350&h=254", "proj": 19.6, "avgPpr": 19.8, "ylIndex": 89.2, "injuryStatus": "Saudável"}, "3918298": {"id": "3918298", "name": "Josh Allen", "pos": "QB", "team": "BUF", "teamName": "Buffalo Bills", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png", "number": "#17", "age": 29, "exp": "9º Ano", "college": "Wyoming", "height": "1.96m", "weight": "107kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3918298.png&w=350&h=254", "proj": 24.8, "avgPpr": 24.6, "ylIndex": 98.4, "injuryStatus": "Saudável"}, "4426515": {"id": "4426515", "name": "Puka Nacua", "pos": "WR", "team": "LAR", "teamName": "Los Angeles Rams", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png", "number": "#12", "age": 25, "exp": "4º Ano", "college": "BYU", "height": "1.88m", "weight": "96kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426515.png&w=350&h=254", "proj": 20.2, "avgPpr": 21.1, "ylIndex": 96.8, "injuryStatus": "Saudável"}, "4361309": {"id": "4361309", "name": "Khalil Shakir", "pos": "WR", "team": "BUF", "teamName": "Buffalo Bills", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png", "number": "#10", "age": 26, "exp": "5º Ano", "college": "Boise State", "height": "1.83m", "weight": "86kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361309.png&w=350&h=254", "proj": 14.2, "avgPpr": 13.5, "ylIndex": 86.4, "injuryStatus": "Saudável"}, "4432709": {"id": "4432709", "name": "Keon Coleman", "pos": "WR", "team": "BUF", "teamName": "Buffalo Bills", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png", "number": "#0", "age": 23, "exp": "3º Ano", "college": "Florida State", "height": "1.93m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4432709.png&w=350&h=254", "proj": 13.8, "avgPpr": 12.4, "ylIndex": 84.8, "injuryStatus": "Saudável"}, "4362241": {"id": "4362241", "name": "Dalton Kincaid", "pos": "TE", "team": "BUF", "teamName": "Buffalo Bills", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png", "number": "#86", "age": 26, "exp": "4º Ano", "college": "Utah", "height": "1.93m", "weight": "109kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4362241.png&w=350&h=254", "proj": 12.8, "avgPpr": 11.9, "ylIndex": 85.0, "injuryStatus": "Saudável"}, "buf_def": {"id": "buf_def", "name": "Buffalo Bills", "pos": "DEF", "team": "BUF", "teamName": "Buffalo Bills", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png", "number": "#--", "age": 0, "exp": "NFL", "college": "--", "height": "--", "weight": "--", "photo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png", "proj": 9.2, "avgPpr": 8.5, "ylIndex": 88.0, "injuryStatus": "Saudável"}, "4241479": {"id": "4241479", "name": "Tua Tagovailoa", "pos": "QB", "team": "MIA", "teamName": "Miami Dolphins", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png", "number": "#1", "age": 28, "exp": "7º Ano", "college": "Alabama", "height": "1.85m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241479.png&w=350&h=254", "proj": 18.2, "avgPpr": 18.0, "ylIndex": 88.4, "injuryStatus": "Saudável"}, "4429160": {"id": "4429160", "name": "De'Von Achane", "pos": "RB", "team": "MIA", "teamName": "Miami Dolphins", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png", "number": "#28", "age": 24, "exp": "4º Ano", "college": "Texas A&M", "height": "1.75m", "weight": "85kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4429160.png&w=350&h=254", "proj": 18.8, "avgPpr": 19.1, "ylIndex": 94.0, "injuryStatus": "Saudável"}, "3116406": {"id": "3116406", "name": "Tyreek Hill", "pos": "WR", "team": "MIA", "teamName": "Miami Dolphins", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png", "number": "#10", "age": 32, "exp": "11º Ano", "college": "West Alabama", "height": "1.78m", "weight": "86kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3116406.png&w=350&h=254", "proj": 19.4, "avgPpr": 18.8, "ylIndex": 95.0, "injuryStatus": "Saudável"}, "4372016": {"id": "4372016", "name": "Jaylen Waddle", "pos": "WR", "team": "MIA", "teamName": "Miami Dolphins", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png", "number": "#17", "age": 27, "exp": "6º Ano", "college": "Alabama", "height": "1.78m", "weight": "84kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4372016.png&w=350&h=254", "proj": 15.6, "avgPpr": 14.8, "ylIndex": 89.2, "injuryStatus": "Saudável"}, "4431452": {"id": "4431452", "name": "Drake Maye", "pos": "QB", "team": "NE", "teamName": "New England Patriots", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png", "number": "#10", "age": 24, "exp": "3º Ano", "college": "North Carolina", "height": "1.93m", "weight": "102kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431452.png&w=350&h=254", "proj": 20.4, "avgPpr": 22.1, "ylIndex": 93.4, "injuryStatus": "Saudável"}, "4426348": {"id": "4426348", "name": "Rhamondre Stevenson", "pos": "RB", "team": "NE", "teamName": "New England Patriots", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png", "number": "#38", "age": 28, "exp": "6º Ano", "college": "Oklahoma", "height": "1.83m", "weight": "103kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426348.png&w=350&h=254", "proj": 15.2, "avgPpr": 14.8, "ylIndex": 86.8, "injuryStatus": "Saudável"}, "4431453": {"id": "4431453", "name": "Demario Douglas", "pos": "WR", "team": "NE", "teamName": "New England Patriots", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png", "number": "#3", "age": 25, "exp": "4º Ano", "college": "Liberty", "height": "1.73m", "weight": "82kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431453.png&w=350&h=254", "proj": 12.6, "avgPpr": 11.8, "ylIndex": 81.5, "injuryStatus": "Saudável"}, "8439": {"id": "8439", "name": "Aaron Rodgers", "pos": "QB", "team": "NYJ", "teamName": "New York Jets", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png", "number": "#8", "age": 42, "exp": "22º Ano", "college": "California", "height": "1.88m", "weight": "101kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/8439.png&w=350&h=254", "proj": 16.5, "avgPpr": 16.2, "ylIndex": 85.0, "injuryStatus": "Saudável"}, "4427366": {"id": "4427366", "name": "Breece Hall", "pos": "RB", "team": "NYJ", "teamName": "New York Jets", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png", "number": "#20", "age": 25, "exp": "5º Ano", "college": "Iowa State", "height": "1.80m", "weight": "100kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4427366.png&w=350&h=254", "proj": 18.2, "avgPpr": 18.0, "ylIndex": 93.8, "injuryStatus": "Saudável"}, "4426516": {"id": "4426516", "name": "Garrett Wilson", "pos": "WR", "team": "NYJ", "teamName": "New York Jets", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png", "number": "#5", "age": 26, "exp": "5º Ano", "college": "Ohio State", "height": "1.83m", "weight": "87kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426516.png&w=350&h=254", "proj": 17.2, "avgPpr": 16.8, "ylIndex": 92.4, "injuryStatus": "Saudável"}, "16800": {"id": "16800", "name": "Davante Adams", "pos": "WR", "team": "NYJ", "teamName": "New York Jets", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png", "number": "#17", "age": 33, "exp": "13º Ano", "college": "Fresno State", "height": "1.85m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/16800.png&w=350&h=254", "proj": 16.8, "avgPpr": 16.2, "ylIndex": 91.5, "injuryStatus": "Saudável"}, "3916387": {"id": "3916387", "name": "Lamar Jackson", "pos": "QB", "team": "BAL", "teamName": "Baltimore Ravens", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png", "number": "#8", "age": 29, "exp": "9º Ano", "college": "Louisville", "height": "1.88m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3916387.png&w=350&h=254", "proj": 23.9, "avgPpr": 24.1, "ylIndex": 98.1, "injuryStatus": "Saudável"}, "3043078": {"id": "3043078", "name": "Derrick Henry", "pos": "RB", "team": "BAL", "teamName": "Baltimore Ravens", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png", "number": "#22", "age": 32, "exp": "11º Ano", "college": "Alabama", "height": "1.91m", "weight": "112kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3043078.png&w=350&h=254", "proj": 19.4, "avgPpr": 19.0, "ylIndex": 95.2, "injuryStatus": "Saudável"}, "4426517": {"id": "4426517", "name": "Zay Flowers", "pos": "WR", "team": "BAL", "teamName": "Baltimore Ravens", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png", "number": "#4", "age": 25, "exp": "4º Ano", "college": "Boston College", "height": "1.75m", "weight": "83kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426517.png&w=350&h=254", "proj": 15.4, "avgPpr": 14.9, "ylIndex": 88.5, "injuryStatus": "Saudável"}, "3116365": {"id": "3116365", "name": "Mark Andrews", "pos": "TE", "team": "BAL", "teamName": "Baltimore Ravens", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png", "number": "#89", "age": 30, "exp": "9º Ano", "college": "Oklahoma", "height": "1.96m", "weight": "116kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3116365.png&w=350&h=254", "proj": 11.8, "avgPpr": 11.2, "ylIndex": 83.0, "injuryStatus": "Saudável"}, "3915511": {"id": "3915511", "name": "Joe Burrow", "pos": "QB", "team": "CIN", "teamName": "Cincinnati Bengals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png", "number": "#9", "age": 29, "exp": "7º Ano", "college": "LSU", "height": "1.93m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3915511.png&w=350&h=254", "proj": 21.2, "avgPpr": 20.8, "ylIndex": 94.2, "injuryStatus": "Saudável"}, "4362628": {"id": "4362628", "name": "Ja'Marr Chase", "pos": "WR", "team": "CIN", "teamName": "Cincinnati Bengals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png", "number": "#1", "age": 26, "exp": "6º Ano", "college": "LSU", "height": "1.83m", "weight": "91kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4362628.png&w=350&h=254", "proj": 21.8, "avgPpr": 23.1, "ylIndex": 99.0, "injuryStatus": "Saudável"}, "4239993": {"id": "4239993", "name": "Tee Higgins", "pos": "WR", "team": "CIN", "teamName": "Cincinnati Bengals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png", "number": "#5", "age": 27, "exp": "7º Ano", "college": "Clemson", "height": "1.93m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4239993.png&w=350&h=254", "proj": 15.8, "avgPpr": 15.2, "ylIndex": 89.4, "injuryStatus": "Saudável"}, "4361580": {"id": "4361580", "name": "Chase Brown", "pos": "RB", "team": "CIN", "teamName": "Cincinnati Bengals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png", "number": "#30", "age": 26, "exp": "4º Ano", "college": "Illinois", "height": "1.78m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361580.png&w=350&h=254", "proj": 14.8, "avgPpr": 14.0, "ylIndex": 86.0, "injuryStatus": "Saudável"}, "3128720": {"id": "3128720", "name": "Nick Chubb", "pos": "RB", "team": "CLE", "teamName": "Cleveland Browns", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png", "number": "#24", "age": 30, "exp": "9º Ano", "college": "Georgia", "height": "1.80m", "weight": "103kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3128720.png&w=350&h=254", "proj": 14.5, "avgPpr": 14.0, "ylIndex": 85.0, "injuryStatus": "Saudável"}, "3123075": {"id": "3123075", "name": "David Njoku", "pos": "TE", "team": "CLE", "teamName": "Cleveland Browns", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png", "number": "#85", "age": 29, "exp": "10º Ano", "college": "Miami", "height": "1.93m", "weight": "112kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3123075.png&w=350&h=254", "proj": 12.5, "avgPpr": 12.0, "ylIndex": 83.4, "injuryStatus": "Saudável"}, "14880": {"id": "14880", "name": "Russell Wilson", "pos": "QB", "team": "PIT", "teamName": "Pittsburgh Steelers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/pit.png", "number": "#3", "age": 37, "exp": "15º Ano", "college": "Wisconsin", "height": "1.80m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/14880.png&w=350&h=254", "proj": 15.8, "avgPpr": 15.5, "ylIndex": 82.0, "injuryStatus": "Saudável"}, "4426519": {"id": "4426519", "name": "George Pickens", "pos": "WR", "team": "PIT", "teamName": "Pittsburgh Steelers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/pit.png", "number": "#14", "age": 25, "exp": "5º Ano", "college": "Georgia", "height": "1.91m", "weight": "91kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426519.png&w=350&h=254", "proj": 15.5, "avgPpr": 15.0, "ylIndex": 88.0, "injuryStatus": "Saudável"}, "4241457": {"id": "4241457", "name": "Najee Harris", "pos": "RB", "team": "PIT", "teamName": "Pittsburgh Steelers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/pit.png", "number": "#22", "age": 28, "exp": "6º Ano", "college": "Alabama", "height": "1.85m", "weight": "110kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241457.png&w=350&h=254", "proj": 14.6, "avgPpr": 14.2, "ylIndex": 85.2, "injuryStatus": "Saudável"}, "4432577": {"id": "4432577", "name": "C.J. Stroud", "pos": "QB", "team": "HOU", "teamName": "Houston Texans", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png", "number": "#7", "age": 24, "exp": "4º Ano", "college": "Ohio State", "height": "1.91m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4432577.png&w=350&h=254", "proj": 20.2, "avgPpr": 19.8, "ylIndex": 93.5, "injuryStatus": "Saudável"}, "4258173": {"id": "4258173", "name": "Nico Collins", "pos": "WR", "team": "HOU", "teamName": "Houston Texans", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png", "number": "#12", "age": 27, "exp": "6º Ano", "college": "Michigan", "height": "1.93m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4258173.png&w=350&h=254", "proj": 19.8, "avgPpr": 20.6, "ylIndex": 96.2, "injuryStatus": "Saudável"}, "3116385": {"id": "3116385", "name": "Joe Mixon", "pos": "RB", "team": "HOU", "teamName": "Houston Texans", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png", "number": "#28", "age": 29, "exp": "10º Ano", "college": "Oklahoma", "height": "1.85m", "weight": "100kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3116385.png&w=350&h=254", "proj": 16.8, "avgPpr": 16.4, "ylIndex": 90.0, "injuryStatus": "Saudável"}, "4429059": {"id": "4429059", "name": "Woody Marks", "pos": "RB", "team": "HOU", "teamName": "Houston Texans", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png", "number": "#28", "age": 24, "exp": "2º Ano", "college": "USC", "height": "1.78m", "weight": "94kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4429059.png&w=350&h=254", "proj": 14.9, "avgPpr": 13.8, "ylIndex": 88.2, "injuryStatus": "Saudável"}, "4242335": {"id": "4242335", "name": "Justin Jefferson", "pos": "WR", "team": "MIN", "teamName": "Minnesota Vikings", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/min.png", "number": "#18", "age": 27, "exp": "7º Ano", "college": "LSU", "height": "1.85m", "weight": "88kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4242335.png&w=350&h=254", "proj": 21.5, "avgPpr": 21.8, "ylIndex": 98.5, "injuryStatus": "Saudável"}, "4035687": {"id": "4035687", "name": "Michael Pittman Jr.", "pos": "WR", "team": "IND", "teamName": "Indianapolis Colts", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png", "number": "#11", "age": 28, "exp": "7º Ano", "college": "USC", "height": "1.93m", "weight": "101kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4035687.png&w=350&h=254", "proj": 14.8, "avgPpr": 14.2, "ylIndex": 87.0, "injuryStatus": "Saudável"}, "4360310": {"id": "4360310", "name": "Brock Purdy", "pos": "QB", "team": "SF", "teamName": "San Francisco 49ers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png", "number": "#13", "age": 26, "exp": "5º Ano", "college": "Iowa State", "height": "1.85m", "weight": "100kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4360310.png&w=350&h=254", "proj": 19.6, "avgPpr": 19.8, "ylIndex": 89.2, "injuryStatus": "Saudável"}, "4428331": {"id": "4428331", "name": "Brian Thomas Jr.", "pos": "WR", "team": "JAX", "teamName": "Jacksonville Jaguars", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png", "number": "#7", "age": 24, "exp": "3º Ano", "college": "LSU", "height": "1.91m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4428331.png&w=350&h=254", "proj": 17.4, "avgPpr": 18.6, "ylIndex": 94.2, "injuryStatus": "Saudável"}, "4697815": {"id": "4697815", "name": "Bhayshul Tuten", "pos": "RB", "team": "JAX", "teamName": "Jacksonville Jaguars", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png", "number": "#33", "age": 23, "exp": "2º Ano", "college": "Virginia Tech", "height": "1.75m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4697815.png&w=350&h=254", "proj": 16.2, "avgPpr": 15.4, "ylIndex": 90.8, "injuryStatus": "Saudável"}, "3139477": {"id": "3139477", "name": "Patrick Mahomes", "pos": "QB", "team": "KC", "teamName": "Kansas City Chiefs", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png", "number": "#15", "age": 30, "exp": "10º Ano", "college": "Texas Tech", "height": "1.88m", "weight": "102kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3139477.png&w=350&h=254", "proj": 21.5, "avgPpr": 21.0, "ylIndex": 95.8, "injuryStatus": "Saudável"}, "15847": {"id": "15847", "name": "Travis Kelce", "pos": "TE", "team": "KC", "teamName": "Kansas City Chiefs", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png", "number": "#87", "age": 36, "exp": "14º Ano", "college": "Cincinnati", "height": "1.96m", "weight": "113kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/15847.png&w=350&h=254", "proj": 14.8, "avgPpr": 14.2, "ylIndex": 89.5, "injuryStatus": "Saudável"}, "4426523": {"id": "4426523", "name": "Rashee Rice", "pos": "WR", "team": "KC", "teamName": "Kansas City Chiefs", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png", "number": "#4", "age": 26, "exp": "4º Ano", "college": "SMU", "height": "1.85m", "weight": "92kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426523.png&w=350&h=254", "proj": 17.5, "avgPpr": 17.0, "ylIndex": 93.0, "injuryStatus": "Saudável"}, "4431459": {"id": "4431459", "name": "Xavier Worthy", "pos": "WR", "team": "KC", "teamName": "Kansas City Chiefs", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png", "number": "#1", "age": 23, "exp": "3º Ano", "college": "Texas", "height": "1.80m", "weight": "75kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431459.png&w=350&h=254", "proj": 14.4, "avgPpr": 13.8, "ylIndex": 86.5, "injuryStatus": "Saudável"}, "4426385": {"id": "4426385", "name": "Brock Bowers", "pos": "TE", "team": "LV", "teamName": "Las Vegas Raiders", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lv.png", "number": "#89", "age": 23, "exp": "3º Ano", "college": "Georgia", "height": "1.93m", "weight": "109kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426385.png&w=350&h=254", "proj": 17.1, "avgPpr": 18.0, "ylIndex": 96.5, "injuryStatus": "Saudável"}, "4035689": {"id": "4035689", "name": "Jakobi Meyers", "pos": "WR", "team": "LV", "teamName": "Las Vegas Raiders", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lv.png", "number": "#16", "age": 29, "exp": "8º Ano", "college": "NC State", "height": "1.88m", "weight": "91kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4035689.png&w=350&h=254", "proj": 14.2, "avgPpr": 13.8, "ylIndex": 85.5, "injuryStatus": "Saudável"}, "4038941": {"id": "4038941", "name": "Justin Herbert", "pos": "QB", "team": "LAC", "teamName": "Los Angeles Chargers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png", "number": "#10", "age": 28, "exp": "7º Ano", "college": "Oregon", "height": "1.98m", "weight": "107kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4038941.png&w=350&h=254", "proj": 18.5, "avgPpr": 18.0, "ylIndex": 89.2, "injuryStatus": "Saudável"}, "4241461": {"id": "4241461", "name": "J.K. Dobbins", "pos": "RB", "team": "LAC", "teamName": "Los Angeles Chargers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png", "number": "#27", "age": 27, "exp": "7º Ano", "college": "Ohio State", "height": "1.78m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241461.png&w=350&h=254", "proj": 16.4, "avgPpr": 16.0, "ylIndex": 89.0, "injuryStatus": "Saudável"}, "4431460": {"id": "4431460", "name": "Ladd McConkey", "pos": "WR", "team": "LAC", "teamName": "Los Angeles Chargers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png", "number": "#15", "age": 24, "exp": "3º Ano", "college": "Georgia", "height": "1.83m", "weight": "84kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431460.png&w=350&h=254", "proj": 14.6, "avgPpr": 14.0, "ylIndex": 87.0, "injuryStatus": "Saudável"}, "2577417": {"id": "2577417", "name": "Dak Prescott", "pos": "QB", "team": "DAL", "teamName": "Dallas Cowboys", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png", "number": "#4", "age": 33, "exp": "11º Ano", "college": "Mississippi State", "height": "1.88m", "weight": "108kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/2577417.png&w=350&h=254", "proj": 19.8, "avgPpr": 19.2, "ylIndex": 91.0, "injuryStatus": "Saudável"}, "4241389": {"id": "4241389", "name": "CeeDee Lamb", "pos": "WR", "team": "DAL", "teamName": "Dallas Cowboys", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png", "number": "#88", "age": 27, "exp": "7º Ano", "college": "Oklahoma", "height": "1.88m", "weight": "91kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241389.png&w=350&h=254", "proj": 20.6, "avgPpr": 20.8, "ylIndex": 95.8, "injuryStatus": "Saudável"}, "4241466": {"id": "4241466", "name": "Jake Ferguson", "pos": "TE", "team": "DAL", "teamName": "Dallas Cowboys", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png", "number": "#87", "age": 27, "exp": "5º Ano", "college": "Wisconsin", "height": "1.96m", "weight": "111kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241466.png&w=350&h=254", "proj": 13.4, "avgPpr": 12.8, "ylIndex": 85.5, "injuryStatus": "Saudável"}, "4432708": {"id": "4432708", "name": "Malik Nabers", "pos": "WR", "team": "NYG", "teamName": "New York Giants", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png", "number": "#1", "age": 23, "exp": "3º Ano", "college": "LSU", "height": "1.83m", "weight": "91kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4432708.png&w=350&h=254", "proj": 18.9, "avgPpr": 19.8, "ylIndex": 95.4, "injuryStatus": "Saudável"}, "4361050": {"id": "4361050", "name": "Isaiah Likely", "pos": "TE", "team": "NYG", "teamName": "New York Giants", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png", "number": "#80", "age": 26, "exp": "5º Ano", "college": "Coastal Carolina", "height": "1.93m", "weight": "111kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361050.png&w=350&h=254", "proj": 16.5, "avgPpr": 17.4, "ylIndex": 95.2, "injuryStatus": "Questionável"}, "4361586": {"id": "4361586", "name": "Tyrone Tracy Jr.", "pos": "RB", "team": "NYG", "teamName": "New York Giants", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png", "number": "#29", "age": 26, "exp": "3º Ano", "college": "Purdue", "height": "1.80m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361586.png&w=350&h=254", "proj": 13.8, "avgPpr": 13.0, "ylIndex": 83.0, "injuryStatus": "Saudável"}, "4040715": {"id": "4040715", "name": "Jalen Hurts", "pos": "QB", "team": "PHI", "teamName": "Philadelphia Eagles", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png", "number": "#1", "age": 28, "exp": "7º Ano", "college": "Oklahoma", "height": "1.85m", "weight": "101kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4040715.png&w=350&h=254", "proj": 22.4, "avgPpr": 22.0, "ylIndex": 96.0, "injuryStatus": "Saudável"}, "3929630": {"id": "3929630", "name": "Saquon Barkley", "pos": "RB", "team": "PHI", "teamName": "Philadelphia Eagles", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png", "number": "#26", "age": 29, "exp": "9º Ano", "college": "Penn State", "height": "1.83m", "weight": "106kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3929630.png&w=350&h=254", "proj": 21.6, "avgPpr": 23.0, "ylIndex": 98.7, "injuryStatus": "Saudável"}, "4047646": {"id": "4047646", "name": "A.J. Brown", "pos": "WR", "team": "PHI", "teamName": "Philadelphia Eagles", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png", "number": "#11", "age": 29, "exp": "8º Ano", "college": "Ole Miss", "height": "1.85m", "weight": "102kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4047646.png&w=350&h=254", "proj": 18.4, "avgPpr": 18.0, "ylIndex": 94.5, "injuryStatus": "Saudável"}, "4241462": {"id": "4241462", "name": "DeVonta Smith", "pos": "WR", "team": "PHI", "teamName": "Philadelphia Eagles", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png", "number": "#6", "age": 27, "exp": "6º Ano", "college": "Alabama", "height": "1.83m", "weight": "79kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241462.png&w=350&h=254", "proj": 15.6, "avgPpr": 15.0, "ylIndex": 89.0, "injuryStatus": "Saudável"}, "4426354": {"id": "4426354", "name": "Jayden Daniels", "pos": "QB", "team": "WAS", "teamName": "Washington Commanders", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/was.png", "number": "#5", "age": 25, "exp": "3º Ano", "college": "LSU", "height": "1.93m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426354.png&w=350&h=254", "proj": 22.8, "avgPpr": 22.9, "ylIndex": 96.4, "injuryStatus": "Saudável"}, "3121427": {"id": "3121427", "name": "Terry McLaurin", "pos": "WR", "team": "WAS", "teamName": "Washington Commanders", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/was.png", "number": "#17", "age": 30, "exp": "8º Ano", "college": "Ohio State", "height": "1.83m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3121427.png&w=350&h=254", "proj": 16.5, "avgPpr": 16.0, "ylIndex": 91.0, "injuryStatus": "Saudável"}, "4241467": {"id": "4241467", "name": "Brian Robinson Jr.", "pos": "RB", "team": "WAS", "teamName": "Washington Commanders", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/was.png", "number": "#8", "age": 27, "exp": "5º Ano", "college": "Alabama", "height": "1.85m", "weight": "102kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241467.png&w=350&h=254", "proj": 15.8, "avgPpr": 15.2, "ylIndex": 88.0, "injuryStatus": "Saudável"}, "4431462": {"id": "4431462", "name": "Caleb Williams", "pos": "QB", "team": "CHI", "teamName": "Chicago Bears", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png", "number": "#18", "age": 24, "exp": "3º Ano", "college": "USC", "height": "1.85m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431462.png&w=350&h=254", "proj": 18.4, "avgPpr": 18.0, "ylIndex": 88.5, "injuryStatus": "Saudável"}, "3915416": {"id": "3915416", "name": "DJ Moore", "pos": "WR", "team": "CHI", "teamName": "Chicago Bears", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png", "number": "#2", "age": 29, "exp": "9º Ano", "college": "Maryland", "height": "1.83m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3915416.png&w=350&h=254", "proj": 15.8, "avgPpr": 15.2, "ylIndex": 89.0, "injuryStatus": "Saudável"}, "4431463": {"id": "4431463", "name": "Rome Odunze", "pos": "WR", "team": "CHI", "teamName": "Chicago Bears", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png", "number": "#15", "age": 24, "exp": "3º Ano", "college": "Washington", "height": "1.91m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431463.png&w=350&h=254", "proj": 13.6, "avgPpr": 13.0, "ylIndex": 84.0, "injuryStatus": "Saudável"}, "3046779": {"id": "3046779", "name": "Jared Goff", "pos": "QB", "team": "DET", "teamName": "Detroit Lions", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png", "number": "#16", "age": 31, "exp": "11º Ano", "college": "California", "height": "1.93m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3046779.png&w=350&h=254", "proj": 18.5, "avgPpr": 18.0, "ylIndex": 89.0, "injuryStatus": "Saudável"}, "4374302": {"id": "4374302", "name": "Amon-Ra St. Brown", "pos": "WR", "team": "DET", "teamName": "Detroit Lions", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png", "number": "#14", "age": 26, "exp": "6º Ano", "college": "USC", "height": "1.83m", "weight": "92kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4374302.png&w=350&h=254", "proj": 22.1, "avgPpr": 23.4, "ylIndex": 99.4, "injuryStatus": "Saudável"}, "4429795": {"id": "4429795", "name": "Jahmyr Gibbs", "pos": "RB", "team": "DET", "teamName": "Detroit Lions", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png", "number": "#26", "age": 24, "exp": "4º Ano", "college": "Alabama", "height": "1.75m", "weight": "91kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4429795.png&w=350&h=254", "proj": 21.4, "avgPpr": 22.8, "ylIndex": 99.1, "injuryStatus": "Saudável"}, "4035692": {"id": "4035692", "name": "David Montgomery", "pos": "RB", "team": "DET", "teamName": "Detroit Lions", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png", "number": "#5", "age": 29, "exp": "8º Ano", "college": "Iowa State", "height": "1.80m", "weight": "102kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4035692.png&w=350&h=254", "proj": 16.5, "avgPpr": 16.0, "ylIndex": 90.0, "injuryStatus": "Saudável"}, "4426529": {"id": "4426529", "name": "Sam LaPorta", "pos": "TE", "team": "DET", "teamName": "Detroit Lions", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png", "number": "#87", "age": 25, "exp": "4º Ano", "college": "Iowa", "height": "1.93m", "weight": "111kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426529.png&w=350&h=254", "proj": 13.8, "avgPpr": 13.2, "ylIndex": 87.5, "injuryStatus": "Saudável"}, "4036378": {"id": "4036378", "name": "Jordan Love", "pos": "QB", "team": "GB", "teamName": "Green Bay Packers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png", "number": "#10", "age": 27, "exp": "7º Ano", "college": "Utah State", "height": "1.93m", "weight": "99kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4036378.png&w=350&h=254", "proj": 19.8, "avgPpr": 19.4, "ylIndex": 92.5, "injuryStatus": "Saudável"}, "4047365": {"id": "4047365", "name": "Josh Jacobs", "pos": "RB", "team": "GB", "teamName": "Green Bay Packers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png", "number": "#8", "age": 28, "exp": "8º Ano", "college": "Alabama", "height": "1.78m", "weight": "101kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4047365.png&w=350&h=254", "proj": 16.8, "avgPpr": 16.2, "ylIndex": 90.2, "injuryStatus": "Saudável"}, "4426530": {"id": "4426530", "name": "Jayden Reed", "pos": "WR", "team": "GB", "teamName": "Green Bay Packers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png", "number": "#11", "age": 26, "exp": "4º Ano", "college": "Michigan State", "height": "1.80m", "weight": "85kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426530.png&w=350&h=254", "proj": 16.4, "avgPpr": 16.0, "ylIndex": 90.5, "injuryStatus": "Saudável"}, "4241478": {"id": "4241478", "name": "Christian Watson", "pos": "WR", "team": "GB", "teamName": "Green Bay Packers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png", "number": "#9", "age": 27, "exp": "5º Ano", "college": "North Dakota State", "height": "1.93m", "weight": "94kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241478.png&w=350&h=254", "proj": 15.6, "avgPpr": 16.9, "ylIndex": 89.7, "injuryStatus": "Saudável"}, "4429205": {"id": "4429205", "name": "Dontayvion Wicks", "pos": "WR", "team": "GB", "teamName": "Green Bay Packers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png", "number": "#13", "age": 25, "exp": "4º Ano", "college": "Virginia", "height": "1.85m", "weight": "93kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4429205.png&w=350&h=254", "proj": 13.8, "avgPpr": 13.2, "ylIndex": 86.4, "injuryStatus": "Saudável"}, "3042519": {"id": "3042519", "name": "Aaron Jones", "pos": "RB", "team": "MIN", "teamName": "Minnesota Vikings", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/min.png", "number": "#33", "age": 31, "exp": "10º Ano", "college": "UTEP", "height": "1.75m", "weight": "94kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3042519.png&w=350&h=254", "proj": 16.2, "avgPpr": 15.8, "ylIndex": 89.0, "injuryStatus": "Saudável"}, "4431464": {"id": "4431464", "name": "Jordan Addison", "pos": "WR", "team": "MIN", "teamName": "Minnesota Vikings", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/min.png", "number": "#3", "age": 24, "exp": "4º Ano", "college": "USC", "height": "1.80m", "weight": "79kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431464.png&w=350&h=254", "proj": 14.5, "avgPpr": 14.0, "ylIndex": 86.0, "injuryStatus": "Saudável"}, "4361741": {"id": "4361741", "name": "Bijan Robinson", "pos": "RB", "team": "ATL", "teamName": "Atlanta Falcons", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png", "number": "#7", "age": 24, "exp": "4º Ano", "college": "Texas", "height": "1.80m", "weight": "97kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361741.png&w=350&h=254", "proj": 20.5, "avgPpr": 20.9, "ylIndex": 96.0, "injuryStatus": "Saudável"}, "4426534": {"id": "4426534", "name": "Drake London", "pos": "WR", "team": "ATL", "teamName": "Atlanta Falcons", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png", "number": "#5", "age": 25, "exp": "5º Ano", "college": "USC", "height": "1.93m", "weight": "97kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426534.png&w=350&h=254", "proj": 17.2, "avgPpr": 16.8, "ylIndex": 91.5, "injuryStatus": "Saudável"}, "4361321": {"id": "4361321", "name": "Kyle Pitts", "pos": "TE", "team": "ATL", "teamName": "Atlanta Falcons", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png", "number": "#8", "age": 25, "exp": "6º Ano", "college": "Florida", "height": "1.98m", "weight": "111kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361321.png&w=350&h=254", "proj": 11.6, "avgPpr": 11.0, "ylIndex": 81.5, "injuryStatus": "Saudável"}, "4241471": {"id": "4241471", "name": "Chuba Hubbard", "pos": "RB", "team": "CAR", "teamName": "Carolina Panthers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/car.png", "number": "#30", "age": 27, "exp": "6º Ano", "college": "Oklahoma State", "height": "1.83m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4241471.png&w=350&h=254", "proj": 15.2, "avgPpr": 14.8, "ylIndex": 87.0, "injuryStatus": "Saudável"}, "3916390": {"id": "3916390", "name": "Diontae Johnson", "pos": "WR", "team": "CAR", "teamName": "Carolina Panthers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/car.png", "number": "#5", "age": 30, "exp": "8º Ano", "college": "Toledo", "height": "1.78m", "weight": "83kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3916390.png&w=350&h=254", "proj": 15.5, "avgPpr": 15.0, "ylIndex": 88.5, "injuryStatus": "Saudável"}, "3054850": {"id": "3054850", "name": "Alvin Kamara", "pos": "RB", "team": "NO", "teamName": "New Orleans Saints", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/no.png", "number": "#41", "age": 31, "exp": "10º Ano", "college": "Tennessee", "height": "1.78m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3054850.png&w=350&h=254", "proj": 18.5, "avgPpr": 18.0, "ylIndex": 93.0, "injuryStatus": "Saudável"}, "4361323": {"id": "4361323", "name": "Chris Olave", "pos": "WR", "team": "NO", "teamName": "New Orleans Saints", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/no.png", "number": "#12", "age": 26, "exp": "5º Ano", "college": "Ohio State", "height": "1.83m", "weight": "85kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361323.png&w=350&h=254", "proj": 15.8, "avgPpr": 15.4, "ylIndex": 89.5, "injuryStatus": "Saudável"}, "3052587": {"id": "3052587", "name": "Baker Mayfield", "pos": "QB", "team": "TB", "teamName": "Tampa Bay Buccaneers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png", "number": "#6", "age": 31, "exp": "9º Ano", "college": "Oklahoma", "height": "1.85m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3052587.png&w=350&h=254", "proj": 19.1, "avgPpr": 18.8, "ylIndex": 91.0, "injuryStatus": "Saudável"}, "4596448": {"id": "4596448", "name": "Bucky Irving", "pos": "RB", "team": "TB", "teamName": "Tampa Bay Buccaneers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png", "number": "#7", "age": 24, "exp": "3º Ano", "college": "Oregon", "height": "1.78m", "weight": "88kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4596448.png&w=350&h=254", "proj": 17.6, "avgPpr": 18.2, "ylIndex": 91.5, "injuryStatus": "Saudável"}, "16737": {"id": "16737", "name": "Mike Evans", "pos": "WR", "team": "TB", "teamName": "Tampa Bay Buccaneers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png", "number": "#13", "age": 33, "exp": "13º Ano", "college": "Texas A&M", "height": "1.96m", "weight": "105kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/16737.png&w=350&h=254", "proj": 16.4, "avgPpr": 16.0, "ylIndex": 90.0, "injuryStatus": "Saudável"}, "3116165": {"id": "3116165", "name": "Chris Godwin", "pos": "WR", "team": "TB", "teamName": "Tampa Bay Buccaneers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png", "number": "#14", "age": 30, "exp": "10º Ano", "college": "Penn State", "height": "1.85m", "weight": "94kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3116165.png&w=350&h=254", "proj": 11.4, "avgPpr": 12.1, "ylIndex": 76.4, "injuryStatus": "Saudável"}, "4430807": {"id": "4430807", "name": "Emeka Egbuka", "pos": "WR", "team": "TB", "teamName": "Tampa Bay Buccaneers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png", "number": "#2", "age": 23, "exp": "2º Ano", "college": "Ohio State", "height": "1.85m", "weight": "93kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4430807.png&w=350&h=254", "proj": 16.8, "avgPpr": 16.4, "ylIndex": 92.0, "injuryStatus": "Questionável"}, "3917315": {"id": "3917315", "name": "Kyler Murray", "pos": "QB", "team": "ARI", "teamName": "Arizona Cardinals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png", "number": "#1", "age": 29, "exp": "8º Ano", "college": "Oklahoma", "height": "1.78m", "weight": "94kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3917315.png&w=350&h=254", "proj": 19.4, "avgPpr": 19.0, "ylIndex": 92.0, "injuryStatus": "Saudável"}, "4431467": {"id": "4431467", "name": "Marvin Harrison Jr.", "pos": "WR", "team": "ARI", "teamName": "Arizona Cardinals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png", "number": "#18", "age": 24, "exp": "3º Ano", "college": "Ohio State", "height": "1.93m", "weight": "93kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431467.png&w=350&h=254", "proj": 16.8, "avgPpr": 16.2, "ylIndex": 91.5, "injuryStatus": "Saudável"}, "4361529": {"id": "4361529", "name": "Trey McBride", "pos": "TE", "team": "ARI", "teamName": "Arizona Cardinals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png", "number": "#85", "age": 26, "exp": "5º Ano", "college": "Colorado State", "height": "1.93m", "weight": "112kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361529.png&w=350&h=254", "proj": 14.2, "avgPpr": 14.5, "ylIndex": 88.9, "injuryStatus": "Saudável"}, "4431611": {"id": "4431611", "name": "Trey Benson", "pos": "RB", "team": "ARI", "teamName": "Arizona Cardinals", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png", "number": "#33", "age": 24, "exp": "3º Ano", "college": "Florida State", "height": "1.83m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4431611.png&w=350&h=254", "proj": 12.4, "avgPpr": 11.2, "ylIndex": 84.1, "injuryStatus": "Saudável"}, "2977644": {"id": "2977644", "name": "Cooper Kupp", "pos": "WR", "team": "LAR", "teamName": "Los Angeles Rams", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png", "number": "#10", "age": 33, "exp": "10º Ano", "college": "Eastern Washington", "height": "1.88m", "weight": "94kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/2977644.png&w=350&h=254", "proj": 16.5, "avgPpr": 16.0, "ylIndex": 90.5, "injuryStatus": "Saudável"}, "4426537": {"id": "4426537", "name": "Kyren Williams", "pos": "RB", "team": "LAR", "teamName": "Los Angeles Rams", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png", "number": "#23", "age": 26, "exp": "5º Ano", "college": "Notre Dame", "height": "1.75m", "weight": "88kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426537.png&w=350&h=254", "proj": 17.8, "avgPpr": 17.2, "ylIndex": 92.5, "injuryStatus": "Saudável"}, "3117251": {"id": "3117251", "name": "Christian McCaffrey", "pos": "RB", "team": "SF", "teamName": "San Francisco 49ers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png", "number": "#23", "age": 30, "exp": "10º Ano", "college": "Stanford", "height": "1.80m", "weight": "95kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3117251.png&w=350&h=254", "proj": 21.5, "avgPpr": 21.0, "ylIndex": 97.0, "injuryStatus": "Saudável"}, "3040151": {"id": "3040151", "name": "George Kittle", "pos": "TE", "team": "SF", "teamName": "San Francisco 49ers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png", "number": "#85", "age": 32, "exp": "10º Ano", "college": "Iowa", "height": "1.93m", "weight": "113kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3040151.png&w=350&h=254", "proj": 14.8, "avgPpr": 14.4, "ylIndex": 91.0, "injuryStatus": "Saudável"}, "3126486": {"id": "3126486", "name": "Deebo Samuel", "pos": "WR", "team": "SF", "teamName": "San Francisco 49ers", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png", "number": "#1", "age": 30, "exp": "8º Ano", "college": "South Carolina", "height": "1.83m", "weight": "98kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3126486.png&w=350&h=254", "proj": 16.2, "avgPpr": 15.8, "ylIndex": 90.0, "injuryStatus": "Saudável"}, "4047650": {"id": "4047650", "name": "DK Metcalf", "pos": "WR", "team": "SEA", "teamName": "Seattle Seahawks", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png", "number": "#14", "age": 28, "exp": "8º Ano", "college": "Ole Miss", "height": "1.93m", "weight": "107kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4047650.png&w=350&h=254", "proj": 16.8, "avgPpr": 16.2, "ylIndex": 91.5, "injuryStatus": "Saudável"}, "4430878": {"id": "4430878", "name": "Jaxon Smith-Njigba", "pos": "WR", "team": "SEA", "teamName": "Seattle Seahawks", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png", "number": "#11", "age": 24, "exp": "4º Ano", "college": "Ohio State", "height": "1.83m", "weight": "89kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4430878.png&w=350&h=254", "proj": 17.9, "avgPpr": 18.4, "ylIndex": 93.8, "injuryStatus": "Saudável"}, "4426538": {"id": "4426538", "name": "Kenneth Walker III", "pos": "RB", "team": "SEA", "teamName": "Seattle Seahawks", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png", "number": "#9", "age": 25, "exp": "5º Ano", "college": "Michigan State", "height": "1.75m", "weight": "96kg", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426538.png&w=350&h=254", "proj": 17.5, "avgPpr": 17.0, "ylIndex": 91.0, "injuryStatus": "Saudável"}};
+const YL_ALL_NFL_PLAYERS = {};
 const YL_NFL_TEAMS = {"BUF": {"name": "Buffalo Bills", "conf": "AFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png"}, "MIA": {"name": "Miami Dolphins", "conf": "AFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/mia.png"}, "NE": {"name": "New England Patriots", "conf": "AFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/ne.png"}, "NYJ": {"name": "New York Jets", "conf": "AFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png"}, "BAL": {"name": "Baltimore Ravens", "conf": "AFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/bal.png"}, "CIN": {"name": "Cincinnati Bengals", "conf": "AFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/cin.png"}, "CLE": {"name": "Cleveland Browns", "conf": "AFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/cle.png"}, "PIT": {"name": "Pittsburgh Steelers", "conf": "AFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/pit.png"}, "HOU": {"name": "Houston Texans", "conf": "AFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/hou.png"}, "IND": {"name": "Indianapolis Colts", "conf": "AFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/ind.png"}, "JAX": {"name": "Jacksonville Jaguars", "conf": "AFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/jax.png"}, "TEN": {"name": "Tennessee Titans", "conf": "AFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/ten.png"}, "DEN": {"name": "Denver Broncos", "conf": "AFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/den.png"}, "KC": {"name": "Kansas City Chiefs", "conf": "AFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/kc.png"}, "LV": {"name": "Las Vegas Raiders", "conf": "AFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/lv.png"}, "LAC": {"name": "Los Angeles Chargers", "conf": "AFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/lac.png"}, "DAL": {"name": "Dallas Cowboys", "conf": "NFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/dal.png"}, "NYG": {"name": "New York Giants", "conf": "NFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png"}, "PHI": {"name": "Philadelphia Eagles", "conf": "NFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/phi.png"}, "WAS": {"name": "Washington Commanders", "conf": "NFC", "div": "East", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/was.png"}, "CHI": {"name": "Chicago Bears", "conf": "NFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/chi.png"}, "DET": {"name": "Detroit Lions", "conf": "NFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png"}, "GB": {"name": "Green Bay Packers", "conf": "NFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/gb.png"}, "MIN": {"name": "Minnesota Vikings", "conf": "NFC", "div": "North", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/min.png"}, "ATL": {"name": "Atlanta Falcons", "conf": "NFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/atl.png"}, "CAR": {"name": "Carolina Panthers", "conf": "NFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/car.png"}, "NO": {"name": "New Orleans Saints", "conf": "NFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/no.png"}, "TB": {"name": "Tampa Bay Buccaneers", "conf": "NFC", "div": "South", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png"}, "ARI": {"name": "Arizona Cardinals", "conf": "NFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png"}, "LAR": {"name": "Los Angeles Rams", "conf": "NFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/lar.png"}, "SF": {"name": "San Francisco 49ers", "conf": "NFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/sf.png"}, "SEA": {"name": "Seattle Seahawks", "conf": "NFC", "div": "West", "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/sea.png"}};
-const YL_NFL_NEWS_DATABASE = [{"id": "nfl_art_1", "source": "NFL.com", "sourceBadge": "NFL.COM OFICIAL", "sourceColor": "#013369", "category": "Prévia & Horários", "isBreaking": true, "timeAgo": "Há 12 min", "author": "Kevin Patra · Redação Oficial NFL.com", "headline": "Monday Night Football: Buffalo Bills e Atlanta Falcons duelam pela liderança de suas divisões na Semana 6", "summary": "Josh Allen busca consolidar o ataque mais produtivo da AFC em duelo de alta voltagem contra a defesa reformulada dos Falcons no Mercedes-Benz Stadium.", "heroImg": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3918298.png&w=350&h=254", "teamTags": ["BUF", "ATL"], "linkedPlayers": ["3918298", "4361741"], "quotes": ["\"Sabemos do desafio que é jogar em Atlanta sob teto fechado com o barulho da torcida. Nosso foco é proteger a posse e ditar o ritmo no chão.\" — Sean McDermott, Head Coach do Buffalo Bills."], "fullBody": ["O fechamento da Semana 6 da NFL coloca frente a frente duas das franquias mais dinâmicas da temporada regular. O Buffalo Bills (4-1) viaja até a Geórgia para encarar o Atlanta Falcons (3-2) no tradicional Monday Night Football.", "O ataque comandado pelo coordenador Joe Brady chega com média expressiva de 28.4 pontos por partida. Josh Allen lidera a liga em passes completados dentro do pocket sob pressão, contando com a evolução do calouro Keon Coleman e a versatilidade de James Cook no backfield.", "Do lado dos Falcons, Kirk Cousins tem orquestrado um ataque equilibrado com Bijan Robinson ultrapassando 100 jardas de scrimmage em quatro dos cinco jogos disputados. A secundária de Atlanta, ancorada por Jessie Bates III, cedeu apenas 188 jardas aéreas por confronto nas últimas três semanas.", "O confronto tem implicações diretas na corrida pelos playoffs da Conferência Nacional e Americana, prometendo casa cheia em Atlanta a partir das 21h15 (horário de Brasília)."]}, {"id": "nfl_art_2", "source": "Yahoo Sports", "sourceBadge": "YAHOO SPORTS", "sourceColor": "#6001D2", "category": "Análise Tática & Esquema", "isBreaking": false, "timeAgo": "Há 28 min", "author": "Frank Schwab & Matt Harmon · Yahoo Sports", "headline": "Como Ben Johnson transformou o Detroit Lions na máquina ofensiva mais dominante da NFC", "summary": "Estudo detalhado do playbook do Lions: o uso cirúrgico de motion pré-snap e o casamento tático entre Jahmyr Gibbs e Amon-Ra St. Brown desmantelam defesas adversárias.", "heroImg": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4374302.png&w=350&h=254", "teamTags": ["DET"], "linkedPlayers": ["4374302", "4429795"], "quotes": ["\"A velocidade com que Jahmyr e Amon-Ra processam as leituras de cobertura nos dá uma vantagem tremenda antes mesmo do snap da bola.\" — Jared Goff, Quarterback dos Lions."], "fullBody": ["Em levantamento tático publicado pelo Yahoo Sports nesta quarta-feira, a eficiência ofensiva do Detroit Lions foi colocada sob a lupa analítica da NFL.", "Sob o comando do coordenador ofensivo Ben Johnson, os Lions lideram a NFL em taxa de sucesso em primeiras descidas (58.4%). O segredo reside na mobilidade posicional: Amon-Ra St. Brown alinha em três posições distintas por drive, enquanto Jahmyr Gibbs correu rotas partindo aberto como recebedor em quase um terço de seus snaps.", "A linha ofensiva de Detroit continua sendo o padrão-ouro de bloqueios em zona da liga, permitindo que David Montgomery castigue os defensores nas trincheiras antes de soltar Gibbs em espaço aberto.", "Com a vitória categórica na Semana 5, o time de Dan Campbell consolida o favoritismo na divisão NFC North e já desponta como forte candidato ao Super Bowl."]}, {"id": "nfl_art_3", "source": "Bleacher Report", "sourceBadge": "BLEACHER REPORT", "sourceColor": "#E24B00", "category": "Rumores & Trade Deadline", "isBreaking": true, "timeAgo": "Há 45 min", "author": "Jordan Schultz · Bleacher Report NFL", "headline": "Plantão de Trocas NFL: Franquias iniciam conversas agressivas por Wide Receivers antes do prazo final", "summary": "Com a proximidade da Trade Deadline da NFL em novembro, equipes com aspirações de pós-temporada sondam o mercado em busca de profundidade em recebedores e pass rushers.", "heroImg": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4426516.png&w=350&h=254", "teamTags": ["NYJ", "KC", "CIN"], "linkedPlayers": ["4426516", "4362628"], "quotes": ["\"O mercado de recebedores está aquecido como nunca vimos nos últimos cinco anos. Quem tiver escolha de draft para oferecer pode mudar o rumo da temporada agora.\" — Executivo anônimo da AFC."], "fullBody": ["Fontes ouvidas pelo Bleacher Report confirmam que pelo menos seis franquias de ponta já abriram canais de negociação formal para reforçar seus elencos antes da data limite de transferências.", "Equipes como o Kansas City Chiefs, que buscam repor baixas no corpo de recebedores, e o Pittsburgh Steelers continuam ativas no monitoramento de veteranos disponíveis.", "A movimentação recente que levou veteranos de volta a novos esquemas acelerou as conversas entre gerentes gerais, que preferem antecipar acordos antes da Semana 8 para garantir tempo de adaptação ao playbook.", "Acompanhe o radar em tempo real da YARDLINE para atualizações a qualquer momento."]}, {"id": "nfl_art_4", "source": "X / Insiders", "sourceBadge": "𝕏 BREAKING NEWS", "sourceColor": "#0F172A", "category": "Boletim Médico Oficial", "isBreaking": true, "timeAgo": "Há 1 hora", "author": "Adam Schefter & Ian Rapoport · 𝕏 Feed", "headline": "Boletim de Lesões da Semana 6: Treinos de quarta-feira trazem retornos cruciais e desfalques confirmados", "summary": "Relatório médico oficial das 32 equipes: atualizações sobre Christian McCaffrey, Jordan Love, Puka Nacua, Emeka Egbuka e Isaiah Likely.", "heroImg": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3117251.png&w=350&h=254", "teamTags": ["SF", "GB", "LAR", "TB", "NYG"], "linkedPlayers": ["4430807", "4361050", "4426515", "3117251"], "quotes": ["\"Ele participou de todas as sessões táticas e estamos muito confiantes com a evolução física nesta semana.\" — Atualização médica sobre atividades de quarta-feira."], "fullBody": ["Direto dos setoristas oficiais da NFL no 𝕏 (@AdamSchefter / @RapSheet): As 32 franquias divulgaram nesta tarde o primeiro relatório oficial de participação em treinos (Injury Report) para a rodada de domingo.", "Em San Francisco, Christian McCaffrey deu mais um passo significativo em seu processo de recondicionamento físico, treinando em ritmo moderado junto aos titulares.", "Em Green Bay, Jordan Love participou plenamente das atividades de passe e movimentação de pocket, sem restrições de mobilidade reportadas pela comissão médica.", "Em Tampa Bay, o jovem recebedor Emeka Egbuka esteve presente nos drills de rotas intermediárias após susto na rodada anterior, enquanto Chris Godwin completou os trabalhos normais.", "No New York Giants, o Tight End Isaiah Likely treinou integralmente após assumir 86% dos snaps da equipe na última partida contra Seattle."]}, {"id": "nfl_art_5", "source": "NFL.com", "sourceBadge": "NFL NEXT GEN STATS", "sourceColor": "#013369", "category": "Métricas Avançadas", "isBreaking": false, "timeAgo": "Há 2 horas", "author": "Next Gen Stats Research Team", "headline": "Next Gen Stats: As defesas mais agressivas em Pressão ao Quarterback após 5 semanas", "summary": "Estudo oficial de Pass Rush Win Rate e porcentagem de Blitz: Vikings de Brian Flores e Texans de DeMeco Ryans lideram a liga em perturbação no pocket.", "heroImg": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4432577.png&w=350&h=254", "teamTags": ["MIN", "HOU", "DEN", "CLE"], "linkedPlayers": ["4258173", "4432577"], "quotes": ["\"Quando você força o quarterback adversário a soltar a bola em menos de 2.3 segundos, você dita o jogo.\" — Brian Flores, Coordenador Defensivo dos Vikings."], "fullBody": ["O departamento oficial de estatísticas avançadas da NFL (Next Gen Stats) publicou seu relatório divisional da Semana 5 com descobertas impressionantes sobre a batalha das trincheiras.", "O Minnesota Vikings mantém a maior taxa de Blitz simulado da NFL (41.2%), confundindo linhas ofensivas com esquemas de 7 defensores na linha que recuam no snap. O resultado é o menor índice de rating concedido a passes com mais de 20 jardas na liga.", "Em Houston, Will Anderson Jr. e Danielle Hunter formam a dupla com maior taxa de pressão rápida (menos de 2.5 segundos) da AFC, fundamentais para a campanha vitoriosa dos Texans."]}];
-const YL_PLAYER_DOSSIERS = {"3918298": {"id": "3918298", "name": "Josh Allen", "pos": "QB", "team": "BUF", "number": "#17", "age": 29, "exp": "9º Ano", "college": "Wyoming", "height": "1.96m", "weight": "107kg", "draft": "1ª Rodada, Pick 7 Geral (Draft 2018)", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/3918298.png&w=350&h=254", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/buf.png", "opp": "vs ATL", "gameTime": "Seg 21:15 (MNF)", "proj": 24.8, "floor": 18.5, "ceiling": 34.2, "avgPpr": 24.6, "totalPts": 123.0, "posRank": "QB1", "ovrRank": 4, "tier": "Tier 1 · Elite Absoluto", "ylIndex": 98.4, "matchupStars": "⭐⭐⭐⭐⭐", "matchupGrade": "Favorável (Dom. Fechado)", "newsArchive": [{"date": "14 de Outubro, 2026 (Hoje)", "source": "NFL.com / Beat Writers", "headline": "Josh Allen comanda treino com foco em passes em movimento para o Monday Night Football", "body": "Allen participou sem limitações do treino tático desta quarta-feira. O coordenador ofensivo Joe Brady desenhou jogadas de play-action adicionais para explorar a vulnerabilidade dos linebackers do Atlanta Falcons em domo fechado."}, {"date": "08 de Outubro, 2026 (Semana 5)", "source": "Yahoo Sports NFL", "headline": "Allen supera pressão e lidera virada no último quarto contra os Texans", "body": "Com 254 jardas e 2 touchdowns passados, além de 45 jardas terrestres cruciais na reta final, Allen conquistou sua 4ª vitória na temporada e manteve média de 24.6 pontos por jogo."}, {"date": "23 de Setembro, 2026 (Semana 3)", "source": "Bleacher Report", "headline": "Atuação perfeita de 4 TDs de Allen contra os Jaguars vira destaque nacional", "body": "Foram 295 jardas aéreas, 4 passes para touchdown e zero turnovers na goleada por 38 a 14. O entrosamento de Allen com Khalil Shakir e o calouro Keon Coleman atingiu 78% de taxa de conclusão."}, {"date": "06 de Setembro, 2026 (Semana 1)", "source": "The Athletic", "headline": "Allen estreia temporada com 4 touchdowns totais contra Arizona", "body": "Allen correu para dois touchdowns e lançou outros dois na vitória inaugural dos Bills (34 a 28), mostrando que sua agressividade física na red zone segue inalterada no 9º ano de carreira."}, {"date": "18 de Agosto, 2026 (Training Camp)", "source": "Buffalo News", "headline": "Química com os novos recebedores atinge ápice na pré-temporada", "body": "Sem Stefon Diggs no elenco, Allen assumiu o papel de líder absoluto da unidade, distribuindo passes com precisão cirúrgica em drills de dois minutos contra a defesa titular de Buffalo."}], "projectionsBreakdown": {"projPassYds": "258.4 jardas", "projPassTD": "2.1 touchdowns", "projRushYds": "42.0 jardas", "projRushTD": "0.6 touchdowns", "redzoneShare": "74% das corridas dentro das 10 jardas", "vegasLine": "Bills -4.5 · Over/Under: 51.5 pts (Maior teto da rodada)", "matchupRank": "Enfrenta a 22ª defesa contra o passe (Atlanta cede 242 yds/jogo)"}, "gameLog2026": [{"wk": "Sem 1", "opp": "vs ARI", "res": "V 34-28", "passYds": 268, "passTD": 2, "int": 0, "rushYds": 44, "rushTD": 2, "pts": 27.1}, {"wk": "Sem 2", "opp": "@ MIA", "res": "V 31-17", "passYds": 242, "passTD": 3, "int": 1, "rushYds": 31, "rushTD": 0, "pts": 22.8}, {"wk": "Sem 3", "opp": "vs JAX", "res": "V 38-14", "passYds": 295, "passTD": 4, "int": 0, "rushYds": 48, "rushTD": 0, "pts": 30.6}, {"wk": "Sem 4", "opp": "@ BAL", "res": "D 20-27", "passYds": 215, "passTD": 1, "int": 0, "rushYds": 52, "rushTD": 1, "pts": 19.8}, {"wk": "Sem 5", "opp": "@ HOU", "res": "V 27-23", "passYds": 254, "passTD": 2, "int": 0, "rushYds": 45, "rushTD": 0, "pts": 22.7}], "careerHistory": [{"yr": "2022", "tm": "BUF", "g": 16, "stat1": "4.283 yds pass", "stat2": "35 TD / 14 INT", "stat3": "762 yds corr · 7 TD", "pts": 395.5, "ppg": 24.7}, {"yr": "2023", "tm": "BUF", "g": 17, "stat1": "4.306 yds pass", "stat2": "29 TD / 18 INT", "stat3": "524 yds corr · 15 TD", "pts": 392.6, "ppg": 23.1}, {"yr": "2024", "tm": "BUF", "g": 17, "stat1": "3.731 yds pass", "stat2": "28 TD / 6 INT", "stat3": "531 yds corr · 12 TD", "pts": 379.3, "ppg": 22.3}, {"yr": "2025", "tm": "BUF", "g": 17, "stat1": "4.110 yds pass", "stat2": "32 TD / 9 INT", "stat3": "585 yds corr · 11 TD", "pts": 394.9, "ppg": 23.2}, {"yr": "2026*", "tm": "BUF", "g": 5, "stat1": "1.274 yds pass", "stat2": "12 TD / 1 INT", "stat3": "220 yds corr · 3 TD", "pts": 123.0, "ppg": 24.6}], "trivia": [" Único jogador da história da NFL com 40+ touchdowns totais em 4 temporadas consecutivas (2020 a 2023).", " Não recebeu nenhuma oferta de bolsa de estudo de Divisão I da NCAA saindo do High School.", " Velocidade do braço: Lançou uma bola a 62 mph no NFL Scouting Combine de 2018.", " Recorde em Playoff: Maior Passer Rating em um único pós-temporada da história da NFL (149.0 em 2021)."], "leagueVerdict": {"status": "Titular Absoluto no Gengar My Balls", "action": "ESCALAR COMO QB1 INTOCÁVEL", "notes": "Pilar da sua campanha 4-1. O teto no Monday Night Football é o diferencial para bater o Chiarello Squad."}}, "4374302": {"id": "4374302", "name": "Amon-Ra St. Brown", "pos": "WR", "team": "DET", "number": "#14", "age": 26, "exp": "6º Ano", "college": "USC", "height": "1.83m", "weight": "92kg", "draft": "4ª Rodada, Pick 112 Geral (Draft 2021)", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4374302.png&w=350&h=254", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png", "opp": "@ KC", "gameTime": "Dom 21:20 (SNF)", "proj": 22.1, "floor": 16.0, "ceiling": 32.0, "avgPpr": 23.4, "totalPts": 117.0, "posRank": "WR1", "ovrRank": 1, "tier": "Tier 1 · Elite Absoluto", "ylIndex": 99.4, "matchupStars": "⭐⭐⭐⭐⭐", "matchupGrade": "Piso de Elite (Slot Dominante)", "newsArchive": [{"date": "14 de Outubro, 2026", "source": "Yahoo Sports / Reception Perception", "headline": "Amon-Ra St. Brown atinge 36.7% de alvos por rota corrida (#1 da NFL)", "body": "Matt Harmon aponta que St. Brown tem taxa de separação positiva em 84.2% das rotas na temporada 2026, consolidando o piso semanal mais seguro do futebol americano."}, {"date": "09 de Outubro, 2026 (Semana 5)", "source": "Detroit Free Press", "headline": "St. Brown comemora 9 recepções e 101 jardas no massacre sobre Dallas", "body": "O camisa 14 foi a válvula de escape primordial de Jared Goff em terceiras descidas, convertendo 5 primeiros downs cruciais na vitória fora de casa."}, {"date": "30 de Setembro, 2026 (Semana 4)", "source": "NFL.com", "headline": "St. Brown tem 100% de recepções em passes na direção do slot contra Seattle", "body": "Foram 8 alvos e 8 recepções para 102 jardas e 1 touchdown. Dan Campbell elogiou sua capacidade de bloquear no jogo corrido e criar jardas após o contato."}, {"date": "20 de Agosto, 2026", "source": "The Athletic", "headline": "St. Brown continua rotina de 202 recepções diárias na máquina de JUGS após os treinos", "body": "Conhecido como o jogador mais disciplinado do elenco dos Lions, Amon-Ra mantém a tradição iniciada no ano de calouro, decorando o nome de todos os 16 recebedores escolhidos antes dele no draft."}], "projectionsBreakdown": {"projTargets": "10.4 alvos projetados", "projReceptions": "8.2 recepções", "projRecYds": "94.5 jardas", "projRecTD": "0.8 touchdowns", "targetShare": "31.8% de todos os passes do Detroit Lions", "vegasLine": "Lions -2.5 @ Chiefs · Over/Under: 52.0 pts"}, "gameLog2026": [{"wk": "Sem 1", "opp": "vs LAR", "res": "V 26-20", "rec": 8, "recYds": 92, "recTD": 1, "pts": 23.2}, {"wk": "Sem 2", "opp": "vs TB", "res": "V 24-18", "rec": 11, "recYds": 119, "recTD": 0, "pts": 24.0}, {"wk": "Sem 3", "opp": "@ ARI", "res": "V 20-13", "rec": 7, "recYds": 75, "recTD": 1, "pts": 20.5}, {"wk": "Sem 4", "opp": "vs SEA", "res": "V 42-29", "rec": 8, "recYds": 102, "recTD": 1, "pts": 24.2}, {"wk": "Sem 5", "opp": "@ DAL", "res": "V 34-20", "rec": 9, "recYds": 101, "recTD": 1, "pts": 25.1}], "careerHistory": [{"yr": "2022", "tm": "DET", "g": 16, "stat1": "106 rec", "stat2": "1.161 yds", "stat3": "6 TD", "pts": 267.6, "ppg": 16.7}, {"yr": "2023", "tm": "DET", "g": 16, "stat1": "119 rec", "stat2": "1.515 yds", "stat3": "10 TD", "pts": 330.9, "ppg": 20.7}, {"yr": "2024", "tm": "DET", "g": 17, "stat1": "115 rec", "stat2": "1.263 yds", "stat3": "12 TD", "pts": 316.3, "ppg": 18.6}, {"yr": "2025", "tm": "DET", "g": 17, "stat1": "122 rec", "stat2": "1.428 yds", "stat3": "11 TD", "pts": 330.8, "ppg": 19.5}, {"yr": "2026*", "tm": "DET", "g": 5, "stat1": "43 rec (54 alvos)", "stat2": "489 yds", "stat3": "4 TD · 36.7% TPRR", "pts": 117.0, "ppg": 23.4}], "trivia": [" Nome do Deus Sol: Seu pai (bicampeão de Mr. Universe) escolheu Amon-Ra em homenagem à divindade egípcia.", " Trilíngue Fluente: Fala inglês, alemão e francês com perfeição.", " Memória de Elefante: Sabe de cor os 16 wide receivers escolhidos antes dele no Draft de 2021."], "leagueVerdict": {"status": "Titular Absoluto (WR1)", "action": "ESCALAR COMO CAPITÃO DE RECEBEDORES", "notes": "Piso de 8 recepções por partida garantido pelo esquema tático de Ben Johnson."}}, "4429795": {"id": "4429795", "name": "Jahmyr Gibbs", "pos": "RB", "team": "DET", "number": "#26", "age": 24, "exp": "4º Ano", "college": "Alabama", "height": "1.75m", "weight": "91kg", "draft": "1ª Rodada, Pick 12 Geral (Draft 2023)", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4429795.png&w=350&h=254", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/det.png", "opp": "@ KC", "gameTime": "Dom 21:20 (SNF)", "proj": 21.4, "floor": 14.5, "ceiling": 31.0, "avgPpr": 22.8, "totalPts": 114.0, "posRank": "RB2", "ovrRank": 2, "tier": "Tier 1 · Elite", "ylIndex": 99.1, "matchupStars": "⭐⭐⭐⭐", "matchupGrade": "Teto Máximo", "newsArchive": [{"date": "14 de Outubro, 2026", "source": "Yahoo Sports NFL", "headline": "Gibbs opera como WR2 em corpo de running back com 35.3% de alvos por rota", "body": "Gibbs correu rotas no slot em 28% dos snaps da Semana 5. O técnico Dan Campbell afirmou que pretende ampliar ainda mais seu uso em pacotes de screen e wheel routes."}, {"date": "08 de Outubro, 2026", "source": "Detroit News", "headline": "Gibbs brilha contra Dallas com 145 jardas totais e 2 touchdowns", "body": "Foram 89 jardas terrestres e 56 jardas em 6 recepções na vitória categórica dos Lions por 34 a 20, atingindo 28.5 pontos de pontuação PPR."}], "projectionsBreakdown": {"projCarries": "14.5 carregadas (78.0 yds)", "projTargets": "6.2 alvos (5.1 recepções, 48 yds)", "projTD": "1.2 touchdowns totais"}, "gameLog2026": [{"wk": "Sem 1", "opp": "vs LAR", "res": "V 26-20", "rushYds": 74, "rushTD": 1, "rec": 6, "recYds": 48, "pts": 24.2}, {"wk": "Sem 2", "opp": "vs TB", "res": "V 24-18", "rushYds": 84, "rushTD": 0, "rec": 7, "recYds": 59, "pts": 21.3}, {"wk": "Sem 3", "opp": "@ ARI", "res": "V 20-13", "rushYds": 68, "rushTD": 1, "rec": 4, "recYds": 32, "pts": 20.0}, {"wk": "Sem 4", "opp": "vs SEA", "res": "V 42-29", "rushYds": 78, "rushTD": 1, "rec": 3, "recYds": 32, "pts": 20.0}, {"wk": "Sem 5", "opp": "@ DAL", "res": "V 34-20", "rushYds": 89, "rushTD": 1, "rec": 6, "recYds": 56, "pts": 28.5}], "careerHistory": [{"yr": "2023", "tm": "DET", "g": 15, "stat1": "945 yds corr", "stat2": "10 TD corr", "stat3": "52 rec · 316 yds", "pts": 242.1, "ppg": 16.1}, {"yr": "2024", "tm": "DET", "g": 17, "stat1": "1.412 yds corr (5.6 YPC)", "stat2": "16 TD corr", "stat3": "52 rec · 517 yds", "pts": 362.9, "ppg": 21.3}, {"yr": "2025", "tm": "DET", "g": 17, "stat1": "1.340 yds corr (5.4 YPC)", "stat2": "14 TD corr", "stat3": "64 rec · 545 yds", "pts": 354.5, "ppg": 20.8}, {"yr": "2026*", "tm": "DET", "g": 5, "stat1": "393 yds corr", "stat2": "4 TD corr", "stat3": "26 rec · 227 yds", "pts": 114.0, "ppg": 22.8}], "trivia": [" Velocidade Pura: 4.36s nas 40 jardas no NFL Combine.", " Transferência de Peso: Jogou na Georgia Tech antes de brilhar em Alabama com Nick Saban."], "leagueVerdict": {"status": "Titular Absoluto (RB1)", "action": "ESCALAR COMO RB1 TITULAR", "notes": "Piso seguro de 20+ pontos PPR."}}, "4361050": {"id": "4361050", "name": "Isaiah Likely", "pos": "TE", "team": "NYG", "number": "#80", "age": 26, "exp": "5º Ano", "college": "Coastal Carolina", "height": "1.93m", "weight": "111kg", "draft": "4ª Rodada, Pick 139 Geral (Draft 2022)", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4361050.png&w=350&h=254", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png", "opp": "vs PHI", "gameTime": "Dom 14:00", "proj": 16.5, "floor": 11.0, "ceiling": 26.0, "avgPpr": 17.4, "totalPts": 87.0, "posRank": "TE2", "ovrRank": 19, "tier": "Tier 1 · Elite TE", "ylIndex": 95.2, "matchupStars": "⭐⭐⭐⭐", "matchupGrade": "Volume de Rotas Alto", "newsArchive": [{"date": "14 de Outubro, 2026", "source": "𝕏 / Adam Schefter", "headline": "Isaiah Likely assume 81% de Route Share no NY Giants e lidera TE Targets na NFL", "body": "Schefter reporta que Likely correu 51 rotas de passe na Semana 5 e atraiu 13 alvos de Daniel Jones. Em 5 jogos disputados, acumula 48 targets (média de 9.6 por jogo)."}, {"date": "07 de Outubro, 2026", "source": "New York Post", "headline": "Likely explode contra Seattle com 9 recepções, 104 jardas e 1 TD", "body": "A vitória por 29 a 20 consagrou Likely como a arma mais confiável do ataque aéreo nova-iorquino no meio de campo, anotando 25.4 pontos PPR."}], "projectionsBreakdown": {"projTargets": "9.4 alvos projetados", "projReceptions": "6.8 recepções (78.0 jardas)", "routeParticipation": "81.0% de participação em rotas de passe"}, "gameLog2026": [{"wk": "Sem 1", "opp": "vs MIN", "res": "D 17-24", "rec": 7, "recYds": 78, "recTD": 0, "pts": 14.8}, {"wk": "Sem 2", "opp": "@ WAS", "res": "V 24-21", "rec": 6, "recYds": 64, "recTD": 1, "pts": 18.4}, {"wk": "Sem 3", "opp": "@ CLE", "res": "V 21-15", "rec": 5, "recYds": 52, "recTD": 0, "pts": 10.2}, {"wk": "Sem 4", "opp": "vs DAL", "res": "D 20-23", "rec": 8, "recYds": 82, "recTD": 1, "pts": 18.2}, {"wk": "Sem 5", "opp": "@ SEA", "res": "V 29-20", "rec": 9, "recYds": 104, "recTD": 1, "pts": 25.4}], "careerHistory": [{"yr": "2022", "tm": "BAL", "g": 16, "stat1": "36 rec", "stat2": "373 yds", "stat3": "3 TD", "pts": 91.3, "ppg": 5.7}, {"yr": "2023", "tm": "BAL", "g": 17, "stat1": "30 rec", "stat2": "411 yds", "stat3": "5 TD", "pts": 101.1, "ppg": 5.9}, {"yr": "2024", "tm": "BAL", "g": 16, "stat1": "42 rec", "stat2": "477 yds", "stat3": "6 TD", "pts": 125.7, "ppg": 7.9}, {"yr": "2025", "tm": "BAL", "g": 17, "stat1": "58 rec", "stat2": "684 yds", "stat3": "7 TD", "pts": 168.4, "ppg": 9.9}, {"yr": "2026*", "tm": "NYG", "g": 5, "stat1": "35 rec (48 alvos)", "stat2": "380 yds", "stat3": "3 TD · 81% Rotas", "pts": 87.0, "ppg": 17.4}], "trivia": [" Lenda dos Chanticleers em Coastal Carolina.", " Assumiu o papel de Tight End principal dos Giants em 2026."], "leagueVerdict": {"status": "Livre nos Waivers da Neilo Pistola League", "action": "REIVINDICAR VIA FAAB (LANCE SUGERIDO: $25)", "notes": "Adição mandatória para elevar o teto da equipe na posição de TE."}}, "4430807": {"id": "4430807", "name": "Emeka Egbuka", "pos": "WR", "team": "TB", "number": "#2", "age": 23, "exp": "2º Ano", "college": "Ohio State", "height": "1.85m", "weight": "93kg", "draft": "1ª Rodada, Pick 24 Geral (Draft 2025)", "photo": "https://a.espncdn.com/combiner/i?img=/i/headshots/nfl/players/full/4430807.png&w=350&h=254", "teamLogo": "https://a.espncdn.com/i/teamlogos/nfl/500/tb.png", "opp": "vs SF", "gameTime": "Dom 17:25", "proj": 16.8, "floor": 10.5, "ceiling": 25.0, "avgPpr": 16.4, "totalPts": 82.0, "posRank": "WR14", "ovrRank": 24, "tier": "Tier 2 · WR2 Alto Teto", "ylIndex": 92.0, "matchupStars": "⭐⭐⭐⭐", "matchupGrade": "Slot vs Cobertura em Zona", "newsArchive": [{"date": "14 de Outubro, 2026", "source": "Tampa Bay Times", "headline": "Egbuka supera Godwin por 3x em alvos e assume primeira leitura de Mayfield", "body": "Foram 9 alvos em 29 rotas corridas na Semana 5. O técnico Todd Bowles destacou que a velocidade de separação de Egbuka no slot abriu novas opções para o playbook."}, {"date": "08 de Outubro, 2026", "source": "𝕏 / Greg Auman", "headline": "Egbuka anota touchdown e soma 20.8 pontos PPR em Atlanta", "body": "Com 7 recepções para 78 jardas e 1 TD, o camisa 2 consolidou a vitória emocionante fora de casa contra os Falcons."}], "projectionsBreakdown": {"projTargets": "8.5 alvos projetados", "projReceptions": "6.2 recepções (72 yds)", "slotSnapRate": "74.2% alinhado no slot"}, "gameLog2026": [{"wk": "Sem 1", "opp": "vs WAS", "res": "V 37-20", "rec": 5, "recYds": 61, "recTD": 0, "pts": 11.1}, {"wk": "Sem 2", "opp": "@ DET", "res": "D 18-24", "rec": 6, "recYds": 74, "recTD": 0, "pts": 13.4}, {"wk": "Sem 3", "opp": "vs DEN", "res": "V 26-17", "rec": 6, "recYds": 82, "recTD": 1, "pts": 20.2}, {"wk": "Sem 4", "opp": "vs PHI", "res": "V 33-16", "rec": 7, "recYds": 95, "recTD": 0, "pts": 16.5}, {"wk": "Sem 5", "opp": "@ ATL", "res": "V 30-27", "rec": 7, "recYds": 78, "recTD": 1, "pts": 20.8}], "careerHistory": [{"yr": "2024 (NCAA)", "tm": "OSU", "g": 16, "stat1": "81 rec · 1.011 yds", "stat2": "10 TD", "pts": 242.1, "ppg": 15.1}, {"yr": "2025", "tm": "TB", "g": 17, "stat1": "68 rec · 842 yds", "stat2": "6 TD", "pts": 188.2, "ppg": 11.1}, {"yr": "2026*", "tm": "TB", "g": 5, "stat1": "31 rec · 390 yds", "stat2": "2 TD · 31% TPRR", "pts": 82.0, "ppg": 16.4}], "trivia": [" Formado na fábrica de recebedores de Ohio State.", " Concluiu graduação em Finanças com honras em 3.5 anos."], "leagueVerdict": {"status": "Titular no slot FLEX do Gengar My Balls", "action": "ESCALAR NO FLEX TITULAR", "notes": "Projeta +5.4 pontos a mais que Chris Godwin."}}};
-const TICKER_GAMES = [{"away": "BUF", "awayScore": "24", "home": "ATL", "homeScore": "21", "clock": "Q4 2:15", "net": "ESPN MNF", "live": true}, {"away": "DET", "awayScore": "--", "home": "KC", "homeScore": "--", "clock": "Dom 21:20", "net": "NBC SNF", "live": false}, {"away": "SF", "awayScore": "--", "home": "SEA", "homeScore": "--", "clock": "Qui 21:15", "net": "Prime Video", "live": false}, {"away": "PHI", "awayScore": "--", "home": "NYG", "homeScore": "--", "clock": "Dom 14:00", "net": "FOX", "live": false}, {"away": "BAL", "awayScore": "--", "home": "CIN", "homeScore": "--", "clock": "Dom 14:00", "net": "CBS", "live": false}, {"away": "GB", "awayScore": "--", "home": "ARI", "homeScore": "--", "clock": "Dom 14:00", "net": "FOX", "live": false}, {"away": "HOU", "awayScore": "--", "home": "NE", "homeScore": "--", "clock": "Dom 14:00", "net": "CBS", "live": false}, {"away": "WAS", "awayScore": "--", "home": "BAL", "homeScore": "--", "clock": "Dom 14:00", "net": "CBS", "live": false}];
+const YL_NFL_NEWS_DATABASE = [];
+const YL_PLAYER_DOSSIERS = {};
+const TICKER_GAMES = []; // NFL scores require an actual provider; no demo ticker.
 
 
 let currentTab = "home";
@@ -113,11 +113,11 @@ let userWatchlist = ["4361050", "4429059"];
 let userFaab = 78;
 
 const STAGE_TITLES = {
-  home: { title: "Portal de Notícias NFL & Acompanhamento de Atletas", sub: "Cobertura oficial da NFL (NFL.com, Yahoo Sports, Bleacher Report, 𝕏) conectada diretamente aos jogadores do seu time." },
+  home: { title: "Visão geral", sub: "Acompanhe a NFL. Encontre seu próximo movimento." },
   players: { title: "Toda a Base de Jogadores da NFL (32 Franquias)", sub: "Catálogo completo com fotos ESPN, dados biográficos, estatísticas de carreira e dossiê com notícias dos últimos meses." },
-  playbook: { title: "Meu Playbook · Start/Sit Assistant & Escalação", sub: "Comparador lado a lado com medidor de % de consenso de especialistas e recálculo ao vivo de projeção." },
+  playbook: { title: "Meu Playbook", sub: "Titulares, banco e contexto da rodada com os dados da sua liga Sleeper." },
   trade: { title: "Trade Analyzer · Avaliador de Trocas (Estilo FantasyPros)", sub: "Medidor interativo de justiça de troca (Trade Value Gauge) e impacto semanal em pontos projetados." },
-  league: { title: "Liga & Confrontos · Sincronização Sleeper API", sub: "Todos os 12 times da liga, classificação oficial, saldo FAAB e os 6 confrontos da Semana 6." },
+  league: { title: "Confronto da semana", sub: "Seu time e o adversário, com pontuação realizada e projeções da rodada." },
   waivers: { title: "Waiver Wire Assistant · Drop Sugerido & FAAB", sub: "Mapeamento dos atletas livres com sugestão de corte, impacto líquido e cálculo de lance." },
   rankings: { title: "Rankings ECR YARDLINE Intelligence", sub: "Consenso de especialistas ponderado por volume de rotas (TPRR), histórico e linhas de Las Vegas." },
   "manager-dna": { title: "Manager DNA & Radar Tático de Oponentes", sub: "Perfil analítico profundo, agressividade no waiver wire, frequência de trocas, concentração de elenco e clutch score." },
@@ -140,6 +140,11 @@ function openNavTab(tabKey) {
   const tEl = document.getElementById("stage-title");
   const sEl = document.getElementById("stage-subtitle");
   if (tEl) tEl.textContent = meta.title;
+  if (sEl) sEl.textContent = meta.sub;
+  document.querySelectorAll('.fp-rail-item').forEach(button => {
+    if (button === activeNav) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
   if (tabKey === 'home' && typeof renderHomeView === 'function') renderHomeView();
   if (tabKey === 'playbook' && typeof renderPlaybookView === 'function') renderPlaybookView();
   if (tabKey === 'league' && typeof renderLeagueView === 'function') renderLeagueView();
@@ -270,21 +275,9 @@ document.addEventListener("keydown", function(e) {
 
 // 0. TOP NFL LIVE SCORE TICKER
 function renderTopTicker() {
-  const strip = document.getElementById("nfl-live-ticker-strip");
-  if (!strip) return;
-  strip.innerHTML = TICKER_GAMES.map(g => `
-    <div class="ticker-game" onclick="openNavTab('home');showToast('Filtrando notícias de ${g.away} @ ${g.home}');">
-      <img src="https://a.espncdn.com/i/teamlogos/nfl/500/${g.away.toLowerCase()}.png" style="width:16px;height:16px;">
-      <span style="font-weight:500;">${g.away}</span>
-      <span class="mono" style="color:#A7F3D0;font-weight:500;">${g.awayScore}</span>
-      <span style="color:#94A3B8;">@</span>
-      <img src="https://a.espncdn.com/i/teamlogos/nfl/500/${g.home.toLowerCase()}.png" style="width:16px;height:16px;">
-      <span style="font-weight:500;">${g.home}</span>
-      <span class="mono" style="color:#A7F3D0;font-weight:500;">${g.homeScore}</span>
-      <span class="badge ${g.live ? 'badge-crimson' : 'badge-navy'}" style="font-size:9.5px;padding:2px 5px;">${g.clock}</span>
-      <span style="font-size:10px;color:#94A3B8;">${g.net}</span>
-    </div>
-  `).join("");
+  const strip=document.getElementById('nfl-live-ticker-strip');
+  if(!strip)return;
+  strip.innerHTML='';strip.hidden=true;strip.style.display='none';
 }
 
 // ==========================================
@@ -378,7 +371,7 @@ function getPlayerNews(playerId) {
     ? String(SLEEPER_TO_ESPN_MAP[id])
     : ((typeof ESPN_TO_SLEEPER_MAP !== "undefined" && ESPN_TO_SLEEPER_MAP[id]) ? String(ESPN_TO_SLEEPER_MAP[id]) : null);
 
-  const realNews = (typeof YL_NFL_NEWS_DATABASE !== "undefined" ? YL_NFL_NEWS_DATABASE : [])
+  const realNews = (Array.isArray(YL_LIVE_NEWS_CACHE) ? YL_LIVE_NEWS_CACHE : [])
     .filter(article => {
       const linked = (article.linkedPlayers || []).map(String);
       return linked.includes(id) || (altId && linked.includes(altId));
@@ -515,17 +508,33 @@ function renderHomeView() {
   const activeUsername = typeof activeSleeperUsername !== "undefined" ? activeSleeperUsername : "Faraco";
   const shell = window.YL_SHELL_SNAPSHOT || {};
   const league = typeof activeSleeperLeagueData !== "undefined" ? activeSleeperLeagueData : (shell.league || {});
-  const leagueName = league?.name || shell.league?.name || 'Liga Sleeper';
+  const leagueName = league?.name || shell.league?.name || 'Selecione uma liga para personalizar';
   const leagueId = league?.league_id || league?.providerLeagueId || shell.league?.providerLeagueId || localStorage.getItem('yl_active_league_id') || '—';
   const leagueSeason = league?.season || shell.league?.season || shell.state?.season || '—';
   const leagueWeek = typeof activeLeagueWeek !== 'undefined' && activeLeagueWeek != null ? activeLeagueWeek : (shell.state?.week || '—');
   const leagueTeams = Array.isArray(shell.rosters) ? shell.rosters.length : (Array.isArray(activeSleeperRosters) ? activeSleeperRosters.length : 0);
 
   container.innerHTML = `
+    <section class="yl-welcome" aria-labelledby="yl-welcome-title">
+      <div class="yl-welcome-copy">
+        <span class="yl-eyebrow">MAIS CONTEXTO. MELHORES DECISÕES.</span>
+        <h2 id="yl-welcome-title">O jogo muda.<br>Sua visão vai além.</h2>
+        <p>Notícias, jogadores e ferramentas para construir a sua próxima jogada.</p>
+        <button class="yl-text-action" onclick="openNavTab('players')">Explorar jogadores <span aria-hidden="true">→</span></button>
+      </div>
+      <div class="yl-brand-panel" aria-hidden="true"><img src="assets/yardline-logo.png" alt=""><span>FANTASY FOOTBALL · BRASIL</span></div>
+    </section>
+    <nav class="yl-quick-tools" aria-label="Atalhos para sua estratégia">
+      <button class="yl-tool-link" onclick="openNavTab('playbook')"><span class="yl-tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v4H9zM9 12h6m-6 4h4"/></svg></span><span><b>Meu Playbook</b><small>Seu elenco, em perspectiva</small></span><span class="yl-tool-arrow" aria-hidden="true">↗</span></button>
+      <button class="yl-tool-link" onclick="openNavTab('league')"><span class="yl-tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m4 4 16 16M4 20 20 4M4 4v6m0-6h6m10 10v6h-6"/></svg></span><span><b>Matchup Center</b><small>Olhe de perto o confronto</small></span><span class="yl-tool-arrow" aria-hidden="true">↗</span></button>
+      <button class="yl-tool-link" onclick="openNavTab('waivers')"><span class="yl-tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="m12 12 7-7"/></svg></span><span><b>Waiver Radar</b><small>Explore o mercado da liga</small></span><span class="yl-tool-arrow" aria-hidden="true">↗</span></button>
+    </nav>
+    <div class="yl-home-section-heading"><div><span class="yl-eyebrow">ACOMPANHE O JOGO</span><h2>No radar da NFL</h2></div><span>Notícias e contexto para o seu fantasy</span></div>
+
     <div class="yl-card yl-dashboard-league-line" style="margin-bottom:18px;padding:13px 18px;border-left:4px solid var(--yl-crimson);">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-          <span class="badge badge-green">SLEEPER · DADOS OFICIAIS</span>
+          <span class="badge badge-navy">${shell.league ? 'LIGA SLEEPER' : 'SEU CONTEXTO'}</span>
           <strong style="color:var(--yl-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(leagueName)}</strong>
           <span style="font-size:11px;color:var(--text-muted);">#${esc(leagueId)}</span>
         </div>
@@ -540,18 +549,18 @@ function renderHomeView() {
     <div class="yl-card" style="margin-bottom:18px;padding:14px 20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:12px;font-weight:600;color:var(--yl-navy);text-transform:uppercase;letter-spacing:0.4px;">Filtrar Notícias:</span>
+          <span style="font-size:12px;font-weight:600;color:var(--yl-navy);text-transform:uppercase;letter-spacing:0.4px;">Seu radar:</span>
           <button class="btn-yl ${currentHomeFilter === 'ALL' ? 'btn-navy' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='ALL';renderHomeView();">
             Todas da NFL (${countAll})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'MY_ROSTER' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='MY_ROSTER';renderHomeView();">
-            Do Meu Time (@${activeUsername}) (${countMine})
+            Meu time (${countMine})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'WAIVERS' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='WAIVERS';renderHomeView();">
-            Alvos de Waiver Wire (${countWaivers})
+            Waivers (${countWaivers})
           </button>
           <button class="btn-yl ${currentHomeFilter === 'OPPONENT' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px;font-size:11.5px;" onclick="currentHomeFilter='OPPONENT';renderHomeView();">
-            Adversário da Semana (${countOpp})
+            Adversário (${countOpp})
           </button>
         </div>
         <span style="font-size:11.5px;color:var(--text-muted);">
@@ -719,9 +728,7 @@ function getPlayerLeagueStatus(playerId) {
 
 // 2. PLAYER DOSSIER MODAL (5 ABAS COM DADOS REAIS & SITUAÇÃO NA LIGA)
 function openPlayerDossierModal(playerId, activeTab = "news") {
-  const p = (typeof resolveNFLPlayer === "function" ? resolveNFLPlayer(playerId) : null) ||
-            (typeof YL_PLAYER_DOSSIERS !== "undefined" ? YL_PLAYER_DOSSIERS[playerId] : null) ||
-            (typeof YL_ALL_NFL_PLAYERS !== "undefined" ? YL_ALL_NFL_PLAYERS[playerId] : null);
+  const p = typeof resolveNFLPlayer === "function" ? resolveNFLPlayer(playerId) : null;
   if (!p) return;
 
   const modal = document.getElementById("player-modal");
@@ -1300,11 +1307,13 @@ function renderCanonicalPlayerCard(p, slot='') {
     if (!p) return '';
     const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
     const num = value => { const n = window.YardlinePlayerCard.numberOrNull(value); return n === null ? '—' : n.toFixed(1); };
+    const metric = (value, label) => window.YardlinePlayerCard.numberOrNull(value) === null ? '' : `<div class="yl-player-card-v2__metric"><b>${num(value)}</b><span>${esc(label)}</span></div>`;
+    const metadata = [slot || p.position, p.team, p.number != null ? '#' + p.number : null].filter(Boolean);
     const m = p.metrics, injury = p.injuryStatus, danger = /out|ir|doubtful|questionable|inactive/i.test(injury || '');
     const statusClass = danger ? 'badge-crimson' : injury ? 'badge-green' : 'badge-navy';
     return `<article class="yl-player-card-v2" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPlayerDossierModal('${esc(p.id)}')}" onclick="openPlayerDossierModal('${esc(p.id)}')">
-      <div class="yl-player-card-v2__top"><div class="yl-player-card-v2__identity"><div class="yl-player-card-v2__name">${esc(p.name)}</div><div class="yl-player-card-v2__meta"><span>${esc(slot || p.position || '—')}</span><span>·</span><span>${esc(p.team || '—')}</span>${p.number !== null ? `<span>· #${esc(p.number)}</span>` : ''}</div></div><img class="yl-player-card-v2__photo" src="${esc(p.photoUrl)}" alt="${esc(p.name)}" onerror="this.classList.add('photo-error')"></div>
-      <div class="yl-player-card-v2__body"><div class="yl-player-card-v2__metrics"><div class="yl-player-card-v2__metric"><b>${num(m.projectedPoints)}</b><span>Proj. ${esc(p.context.projectionFormat || '')}</span></div><div class="yl-player-card-v2__metric"><b>${num(m.pointsPerGame)}</b><span>PPG*</span></div><div class="yl-player-card-v2__metric"><b>${num(m.totalPoints)}</b><span>Total*</span></div><div class="yl-player-card-v2__metric"><b>${num(m.ylIndex)}</b><span>YL Index</span></div></div><div class="yl-player-card-v2__footer"><span class="badge ${statusClass}">${esc(injury || 'Lesão não informada')}${p.taxi ? ' · TAXI' : ''}</span><span>Ver dossiê →</span></div><small class="yl-muted">${esc(window.YardlinePlayerCard.provenance(p))}</small></div>
+      <div class="yl-player-card-v2__top">${p.teamLogoUrl ? `<img class="yl-player-card-v2__teamlogo" src="${esc(p.teamLogoUrl)}" alt="" onerror="this.hidden=true">` : ''}<div class="yl-player-card-v2__identity"><div class="yl-player-card-v2__name">${esc(p.name)}</div><div class="yl-player-card-v2__meta">${metadata.map(value => '<span>' + esc(value) + '</span>').join('<span aria-hidden="true">·</span>')}</div></div><img class="yl-player-card-v2__photo" src="${esc(p.photoUrl)}" alt="${esc(p.name)}" onerror="this.classList.add('photo-error')"></div>
+      <div class="yl-player-card-v2__body"><div class="yl-player-card-v2__metrics">${metric(m.points, 'Pontos da rodada')}${metric(m.projectedPoints, 'Proj. ' + (p.context.projectionFormat || ''))}${metric(m.pointsPerGame, 'PPG observado')}${metric(m.totalPoints, 'Total observado')}</div><div class="yl-player-card-v2__footer">${injury || p.status || p.taxi ? `<span class="badge ${statusClass}">${[injury || p.status,p.taxi ? 'TAXI' : null].filter(Boolean).map(esc).join(' · ')}</span>` : ''}<span>Ver dossiê →</span></div><small class="yl-muted">${[p.context.season, p.context.week != null ? 'Semana ' + p.context.week : null, p.source.points ? 'Sleeper · pontuação da liga' : null].filter(Boolean).map(esc).join(' · ')}</small></div>
     </article>`;
   }
 
@@ -1727,25 +1736,12 @@ function renderTradeView() {
     verdictDesc = "Concessão marginal de pontos, justificada caso resolva uma carência posicional grave.";
   }
 
-  const leagueTeams = [
-    { rosterId: 13, name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0" },
-    { rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1" },
-    { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1" },
-    { rosterId: 9,  name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1" },
-    { rosterId: 8,  name: "Paranaguá Rat Crew", owner: "@cauexavier", record: "4-1" },
-    { rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2" },
-    { rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3" },
-    { rosterId: 6,  name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3" },
-    { rosterId: 1,  name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3" },
-    { rosterId: 3,  name: "Chiarello Squad", owner: "@Chiarello", record: "2-3" },
-    { rosterId: 4,  name: "Indaiatuba Blue Jays", owner: "@bluejays", record: "2-3" },
-    { rosterId: 5,  name: "Belo Horizonte Spiders", owner: "@spiders", record: "1-4" },
-    { rosterId: 7,  name: "Floripa Manés", owner: "@manes", record: "1-4" },
-    { rosterId: 14, name: "Porto Alegre Pumpkins", owner: "@pumpkins", record: "1-4" },
-    { rosterId: 15, name: "Brasília Capital", owner: "@capital", record: "0-5" }
-  ];
-
-  const currentPartner = leagueTeams.find(t => t.rosterId === tradePartnerRosterId) || leagueTeams[0];
+  const leagueTeams = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS : []).filter(t => !t.isMyTeam);
+  if (!leagueTeams.length) {
+    container.innerHTML = '<div class="yl-card"><strong>Trade Analyzer indisponível</strong><p class="yl-muted">Sincronize os rosters oficiais da liga para selecionar um adversário. Nenhum time é inventado como fallback.</p></div>';
+    return;
+  }
+  const currentPartner = leagueTeams.find(t => Number(t.rosterId) === Number(tradePartnerRosterId)) || leagueTeams[0];
 
   container.innerHTML = `
     <div class="yl-card" style="margin-bottom:18px;padding:18px 22px;">
@@ -1774,7 +1770,7 @@ function renderTradeView() {
       <div class="yl-card" style="padding:18px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div>
-            <h4 style="font-size:14px;font-weight:700;color:var(--yl-navy);margin:0;">Você Envia (Gengar My Balls):</h4>
+            <h4 style="font-size:14px;font-weight:700;color:var(--yl-navy);margin:0;">Você Envia (meu roster oficial):</h4>
             <small style="color:var(--text-muted);font-size:11px;">Selecione os atletas a negociar</small>
           </div>
           <span class="badge badge-navy mono" style="font-size:12px;">Total: ${sentProjTotal.toFixed(1)} pts</span>
@@ -1878,58 +1874,18 @@ function renderTradeView() {
 function renderLeagueView() {
   const container = document.getElementById("view-league");
   if (!container) return;
-
-  container.innerHTML = `
-    <!-- Top Sync Status Card & 14-Step Audit Panel -->
-    <div class="yl-card" style="margin-bottom:18px;padding:16px 20px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <span class="badge badge-green" id="sleeper-audit-status-badge">CONECTADO: SLEEPER API v1</span>
-          <h2 style="font-size:18px;font-weight:500;color:var(--yl-navy);margin-top:4px;">Liga Real Sleeper #1369770282776006656</h2>
-          <div style="font-size:12px;color:var(--text-muted);">Sincronização auditada para a conta <strong>@Faraco</strong> · Última consulta: <strong>14/10/2026 às 14:02:11 BRT</strong></div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn-yl btn-primary" id="sleeper-audit-trigger-btn" onclick="triggerDetailedSleeperAudit()">
-            Auditar & Sincronizar (14 Etapas)
-          </button>
-          <button class="btn-yl btn-outline" onclick="openNavTab('social')">
-            Veredito WhatsApp
-          </button>
-        </div>
-      </div>
-
-      <!-- Live Audit Log Box -->
-      <div style="margin-top:14px;background:#F8FAFC;border:1px solid var(--border-light);border-radius:8px;padding:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--yl-navy);font-weight:500;margin-bottom:6px;">
-          <span>PROGRESSO DA SINCRONIZAÇÃO SLEEPER (14 ETAPAS REAIS)</span>
-          <span>STATUS: AUDITADO</span>
-        </div>
-        <div style="width:100%;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin-bottom:8px;">
-          <div id="sleeper-audit-progress-bar" style="width:100%;height:100%;background:var(--yl-crimson);transition:width 0.2s;"></div>
-        </div>
-        <div id="sleeper-audit-live-logs" style="max-height:85px;overflow-y:auto;font-size:11.5px;line-height:1.5;">
-          <div style="color:#047857;font-family:monospace;">[14:02:11] Sincronização oficial concluída com sucesso. 12 elencos, regras de pontuação PPR e confrontos da Semana 6 carregados.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Matchup Preview -->
-    <div class="yl-card" style="margin-bottom:18px;padding:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <span class="badge badge-crimson">SEU DUELO DA SEMANA 6</span>
-          <h3 style="font-size:16px;font-weight:500;color:var(--yl-navy);margin-top:4px;">
-            Gengar My Balls (4-1) vs Chiarello Squad (4-1)
-          </h3>
-          <div style="font-size:12px;color:var(--text-muted);">Jogo valendo a liderança isolada da liga</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="mono" style="font-size:20px;font-weight:500;color:var(--yl-emerald);">61% vs 39%</div>
-          <div style="font-size:11px;color:var(--text-muted);">Projeção: 148.6 x 136.4 pts</div>
-        </div>
-      </div>
-    </div>
-  `;
+  const snapshot = window.YL_SHELL_SNAPSHOT;
+  const league = snapshot?.league;
+  const matchup = window.activeRealMatchup;
+  if (!league) {
+    container.innerHTML = '<div class="yl-card"><strong>Liga indisponível</strong><p class="yl-muted">Sincronize uma liga Sleeper oficial para carregar confrontos e classificação.</p></div>';
+    return;
+  }
+  const teams = typeof LEAGUE_12_TEAMS !== 'undefined' ? LEAGUE_12_TEAMS : [];
+  const my = teams.find(t => t.isMyTeam) || null;
+  const opp = matchup?.oppRoster ? teams.find(t => Number(t.rosterId) === Number(matchup.oppRoster.roster_id)) : null;
+  const title = matchup ? `${my?.name || `Roster #${matchup.myRoster?.roster_id ?? '—'}`} vs ${opp?.name || `Roster #${matchup.oppRoster?.roster_id ?? '—'}`}` : 'Confronto oficial indisponível';
+  container.innerHTML = `<div class="yl-card" style="margin-bottom:18px;padding:18px"><span class="badge badge-navy">SLEEPER · DADOS OFICIAIS</span><h2 style="font-size:18px;font-weight:500;color:var(--yl-navy);margin-top:6px">${league.name || 'Liga sincronizada'}</h2><p class="yl-muted">Liga ${league.providerLeagueId || league.id || '—'} · semana ${snapshot.week ?? '—'} · última sincronização ${snapshot.syncedAt || '—'}</p><button class="btn-yl btn-outline" onclick="typeof triggerDetailedSleeperAudit==='function'&&triggerDetailedSleeperAudit()">Atualizar snapshot</button></div><div class="yl-card" style="padding:18px"><span class="badge ${matchup ? 'badge-green' : 'badge-amber'}">${matchup ? 'MATCHUP OFICIAL' : 'MATCHUP INDISPONÍVEL'}</span><h3 style="font-size:16px;font-weight:500;color:var(--yl-navy);margin-top:6px">${title}</h3><p class="yl-muted">${matchup ? `Placar recebido: ${matchup.myScore ?? '—'} × ${matchup.oppScore ?? '—'}. Probabilidades e projeções não são exibidas sem uma fonte oficial correspondente.` : 'O snapshot atual não contém um confronto persistido para esta semana.'}</p></div>`;
 }
 
 // 7. WAIVERS
@@ -1937,7 +1893,7 @@ function renderWaiversView() {
   const container = document.getElementById("view-waivers");
   if (!container) return;
 
-  const freeAgents = ["4361050", "4429059", "4429205", "4241478", "4431611"].map(id => YL_PLAYER_DOSSIERS[id] || YL_ALL_NFL_PLAYERS[id]).filter(Boolean);
+  const freeAgents = (window.activeLeagueFreeAgents || []).filter(Boolean);
 
   container.innerHTML = `
     <div class="yl-card" style="margin-bottom:18px;padding:16px 20px;">
@@ -2070,7 +2026,13 @@ async function openManagerDnaDetailModal(rosterId) {
   `;
 
   try {
-    const leagueId = (typeof REAL_SLEEPER_LEAGUE_ID !== "undefined" ? REAL_SLEEPER_LEAGUE_ID : "1369770282776006656");
+    const leagueId = (typeof REAL_SLEEPER_LEAGUE_ID !== "undefined" ? REAL_SLEEPER_LEAGUE_ID : null)
+      || localStorage.getItem('yl_active_league_id')
+      || localStorage.getItem('yl_active_league');
+    if (!leagueId) {
+      content.innerHTML = '<div style="padding:24px;color:var(--text-muted);">Manager DNA indisponível até uma liga oficial ser selecionada e sincronizada.</div>';
+      return;
+    }
     let dna = null;
     try {
       const res = await fetch(`${YL_API_BASE}/leagues/${leagueId}/manager-dna/${rosterId}`);
@@ -2216,11 +2178,15 @@ function renderManagerDnaView() {
   const container = document.getElementById("view-manager-dna");
   if (!container) return;
 
-  const myTeam = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS.find(t => t.isMyTeam) : null) || { name: "Gengar My Balls", owner: "@Faraco", record: "4-1" };
   const allTeams = (typeof LEAGUE_12_TEAMS !== "undefined" && LEAGUE_12_TEAMS.length > 0) ? LEAGUE_12_TEAMS : [];
+  if (!allTeams.length) {
+    container.innerHTML = '<div class="yl-card"><strong>Manager DNA indisponível</strong><p class="yl-muted">Sincronize os rosters oficiais da liga para calcular histórico, transações e comportamento de managers.</p></div>';
+    return;
+  }
+  const myTeam = allTeams.find(t => t.isMyTeam);
   const opponents = allTeams.filter(t => !t.isMyTeam);
-  const totalTeamsCount = allTeams.length || 16;
-  const leagueName = (typeof activeSleeperLeagueData !== "undefined" && activeSleeperLeagueData?.name) ? activeSleeperLeagueData.name : "Neilo Pistola League";
+  const totalTeamsCount = allTeams.length;
+  const leagueName = (typeof activeSleeperLeagueData !== "undefined" && activeSleeperLeagueData?.name) ? activeSleeperLeagueData.name : "Liga sincronizada";
 
   container.innerHTML = `
     <!-- Manager Profile Header Card -->
@@ -2381,100 +2347,37 @@ function renderManagerDnaView() {
 function renderAiModeView() {
   const container = document.getElementById("view-aimode");
   if (!container) return;
-
-  container.innerHTML = `
-    <div class="yl-card" style="padding:22px;min-height:480px;display:flex;flex-direction:column;justify-content:space-between;">
-      <div>
-        <span class="badge badge-crimson">MODO IA TÁTICO & ANALÍTICO</span>
-        <h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px;">Copiloto Neural YARDLINE</h2>
-        <p style="font-size:13px;color:var(--text-body);margin-top:4px;">
-          Conectado ao seu elenco do Gengar My Balls e aos confrontos da Semana 6.
-        </p>
-
-        <div style="display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;">
-          <button class="btn-yl btn-outline" onclick="showToast('Diagnóstico: Manter Emeka Egbuka no FLEX titular (+5.4 pts projetados).')">
-            Escalar Egbuka ou Godwin?
-          </button>
-          <button class="btn-yl btn-outline" onclick="showToast('Waiver #1: Isaiah Likely (81% rotas) com lance de $25 FAAB.')">
-            Qual o Waiver Prioritário?
-          </button>
-          <button class="btn-yl btn-outline" onclick="showToast('Raio-X: 61% de probabilidade de vitória contra o Chiarello Squad.')">
-            Raio-X do Confronto
-          </button>
-        </div>
-
-        <div style="background:var(--bg-subtle);border:1px solid var(--border-box);border-radius:8px;padding:16px;font-size:13px;color:var(--text-body);line-height:1.6;">
-          <strong>Diagnóstico da Rodada:</strong> Sua trinca de wide receivers (Amon-Ra St. Brown, Puka Nacua e Nico Collins) lidera a liga em pontos esperados na Semana 6. Recomendamos manter a formação atual e submeter lance por Isaiah Likely nos waivers.
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <input type="text" placeholder="Pergunte qualquer coisa sobre sua liga ou jogadores..." style="flex:1;padding:10px 14px;border:1px solid var(--border-strong);border-radius:6px;font-size:13px;outline:none;">
-        <button class="btn-yl btn-primary" onclick="showToast('Consulta enviada ao motor analítico!')">Perguntar</button>
-      </div>
-    </div>
-  `;
+  const matchup = window.activeRealMatchup || window.YL_SHELL_SNAPSHOT?.matchups?.find(Boolean);
+  container.innerHTML = matchup
+    ? `<div class="yl-card" style="padding:22px"><span class="badge badge-navy">MODO IA TÁTICO</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Análise baseada no confronto oficial</h2><p class="yl-muted">O modo IA usará somente jogadores, placares e projeções recebidos no snapshot oficial. Recomendações externas ainda não foram carregadas.</p></div>`
+    : '<div class="yl-card" style="padding:22px"><span class="badge badge-amber">INDISPONÍVEL</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Modo IA aguardando confronto</h2><p class="yl-muted">Sincronize uma liga Sleeper com matchup oficial antes de exibir diagnósticos, probabilidades ou recomendações.</p></div>';
 }
 
 // 10. SOCIAL WHATSAPP
 function renderSocialView() {
   const container = document.getElementById("view-social");
   if (!container) return;
-
-  container.innerHTML = `
-    <div class="yl-card" style="padding:22px;">
-      <span class="badge badge-green">COMUNIDADE & WHATSAPP</span>
-      <h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px;">Veredito da Rodada Formatado</h2>
-      <p style="font-size:13px;color:var(--text-body);margin:6px 0 16px;">
-        Copie o veredito oficial do duelo da Semana 6 para enviar diretamente no WhatsApp da sua liga:
-      </p>
-
-      <div style="background:#0F172A;color:#FFF;border-radius:8px;padding:16px;font-family:monospace;font-size:13px;line-height:1.6;margin-bottom:16px;">
-*[VEREDITO YARDLINE — SEMANA 6 (Neilo Pistola League)]*<br><br>
-*Gengar My Balls (4-1)* [61% PROB · 148.6 pts]<br>
-*vs Chiarello Squad (4-1)* [39% PROB · 136.4 pts]<br><br>
-*Destaque:* Amon-Ra St. Brown (36.7% TPRR) vs Ja'Marr Chase (193 yds Sem 5).<br>
-*Veredito da IA:* Vantagem para o Gengar My Balls no Monday Night Football com Josh Allen vs Atlanta.<br><br>
-_Analisado pela YARDLINE · Camada de Inteligência NFL Brasil_
-      </div>
-
-      <button class="btn-yl btn-green" style="padding:10px 16px;font-size:13.5px;" onclick="copyWhatsAppVerdict()">
-        Copiar Texto Formatado para WhatsApp
-      </button>
-    </div>
-  `;
-}
-
-function copyWhatsAppVerdict() {
-  const text = `*[VEREDITO YARDLINE — SEMANA 6 (Neilo Pistola League)]*
-
-*Gengar My Balls (4-1)* [61% PROB · 148.6 pts]
-*vs Chiarello Squad (4-1)* [39% PROB · 136.4 pts]
-
-*Destaque:* Amon-Ra St. Brown (36.7% TPRR) vs Ja'Marr Chase (193 yds Sem 5).
-*Veredito da IA:* Vantagem para o Gengar My Balls no Monday Night Football com Josh Allen vs Atlanta.
-
-_Analisado pela YARDLINE · Camada de Inteligência NFL Brasil_`;
-
-  navigator.clipboard.writeText(text).then(() => {
-    showToast("Veredito copiado com sucesso! Cole no WhatsApp da liga.");
-  }).catch(() => {
-    showToast("Texto gerado para WhatsApp!");
-  });
+  const matchup = window.activeRealMatchup || window.YL_SHELL_SNAPSHOT?.matchups?.find(Boolean);
+  container.innerHTML = matchup
+    ? '<div class="yl-card" style="padding:22px"><span class="badge badge-navy">COMPARTILHAMENTO</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Veredito oficial indisponível</h2><p class="yl-muted">O texto compartilhável será habilitado quando placares e participantes do matchup tiverem sido persistidos pelo Sleeper.</p></div>'
+    : '<div class="yl-card" style="padding:22px"><span class="badge badge-amber">INDISPONÍVEL</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Sem duelo oficial para compartilhar</h2><p class="yl-muted">Sincronize o matchup da liga antes de gerar qualquer texto de WhatsApp.</p></div>';
 }
 
 // ==========================================
 // START/SIT ASSISTANT & COMPARADOR DE JOGADORES (FANTASYPROS PARITY)
 // ==========================================
-let currentStartSitA = "3918298"; // Josh Allen default
-let currentStartSitB = "4431452"; // Drake Maye default
+let currentStartSitA = null;
+let currentStartSitB = null;
 
 function openStartSitModal(playerAId, playerBId) {
   if (playerAId) currentStartSitA = String(playerAId);
   if (playerBId) currentStartSitB = String(playerBId);
-  if (currentStartSitA === currentStartSitB) {
-    currentStartSitB = (currentStartSitA === "3918298") ? "4431452" : "3918298";
+  if (!currentStartSitA || !currentStartSitB) {
+    const ids = (window.YL_SHELL_SNAPSHOT?.rosters || []).flatMap(r => r.players || []).map(String).filter(Boolean);
+    currentStartSitA = currentStartSitA || ids[0] || null;
+    currentStartSitB = currentStartSitB || ids.find(id => id !== currentStartSitA) || null;
   }
+  if (currentStartSitA === currentStartSitB) currentStartSitB = null;
 
   renderStartSitContent();
   openModal("start-sit-modal");
@@ -2490,12 +2393,12 @@ function renderStartSitContent() {
   const content = document.getElementById("start-sit-modal-content");
   if (!content) return;
 
-  const pA = YL_ALL_NFL_PLAYERS[currentStartSitA] || (typeof YL_PLAYER_DOSSIERS !== 'undefined' && YL_PLAYER_DOSSIERS[currentStartSitA]) || {
-    id: currentStartSitA, name: "Jogador A", pos: "QB", team: "NFL", photo: "", proj: 18.0, avgPpr: 18.0, ylIndex: 88.0
-  };
-  const pB = YL_ALL_NFL_PLAYERS[currentStartSitB] || (typeof YL_PLAYER_DOSSIERS !== 'undefined' && YL_PLAYER_DOSSIERS[currentStartSitB]) || {
-    id: currentStartSitB, name: "Jogador B", pos: "QB", team: "NFL", photo: "", proj: 15.0, avgPpr: 15.0, ylIndex: 84.0
-  };
+  const pA = currentStartSitA && typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(currentStartSitA) : null;
+  const pB = currentStartSitB && typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(currentStartSitB) : null;
+  if (!pA || !pB) {
+    content.innerHTML = `<div class="yl-card"><strong>Comparador Start/Sit indisponível</strong><p class="yl-muted">Selecione dois jogadores presentes no roster oficial sincronizado para comparar. Projeções e índices não são estimados localmente.</p><button class="btn-yl btn-outline" onclick="closeModal('start-sit-modal')">Fechar</button></div>`;
+    return;
+  }
 
   const projA = Number(pA.proj || pA.projPts || 0);
   const projB = Number(pB.proj || pB.projPts || 0);
@@ -2517,7 +2420,7 @@ function renderStartSitContent() {
   const winnerConf = Math.max(confidenceA, confidenceB);
   const winnerDelta = Math.abs(deltaProj);
 
-  const playerList = Object.values(YL_ALL_NFL_PLAYERS).filter(p => Boolean(p.name));
+  const playerList = Object.values(window.YL_CANONICAL?.players || {}).filter(p => Boolean(p.name));
 
   content.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border-light);padding-bottom:12px;">
@@ -2653,112 +2556,14 @@ async function loadBackendPlans() {
   } catch(e) {}
 }
 
-async function openCheckoutModal(planCode, method = "PIX") {
-  const modal = document.getElementById("checkout-modal");
-  const content = document.getElementById("checkout-modal-content");
+async function openCheckoutModal() {
   openModal("checkout-modal");
-  content.innerHTML = `
-    <div style="text-align:center;padding:16px;">
-      <div style="margin-bottom:8px;color:var(--yl-blue);"><svg class="spinner" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div>
-      <div style="font-size:14px;color:var(--text-muted);margin-top:8px;">Gerando checkout seguro via API YARDLINE...</div>
-    </div>
-  `;
-
-  try {
-    // Obter sessão de checkout via Backend API (ou simular se offline)
-    let checkoutData = null;
-    try {
-      const res = await fetch(`${YL_API_BASE}/billing/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planCode, method })
-      });
-      if (res.ok) checkoutData = await res.json();
-    } catch(e) {}
-
-    if (!checkoutData || !checkoutData.checkout) {
-      // Fallback autêntico estruturado
-      const paymentId = "pay_" + Date.now();
-      checkoutData = {
-        checkout: {
-          providerPaymentId: paymentId,
-          amountCents: plan.price_cents,
-          method: method,
-          pix: method === "PIX" ? {
-            qrCodeImage: "https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=00020126580014br.gov.bcb.pix0136yardline-nfl-brasil-2026",
-            copyPaste: "00020126580014br.gov.bcb.pix0136yardline-nfl-brasil-2026-sandbox-checkout",
-            expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
-          } : null
-        }
-      };
-    }
-
-    const { checkout } = checkoutData;
-
-    content.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border-light);padding-bottom:12px;">
-        <div>
-          <span class="badge badge-crimson">CHECKOUT OFICIAL EM REAIS</span>
-          <h2 style="font-size:19px;font-weight:600;color:var(--yl-navy);margin:4px 0 0;">Plano ${plan.name}</h2>
-        </div>
-        <button class="btn-yl btn-outline" style="padding:4px 10px;font-size:12px;" onclick="closeModal('checkout-modal')">Fechar</button>
-      </div>
-
-      <div style="background:#F8FAFC;border:1px solid var(--border-light);border-radius:10px;padding:16px;text-align:center;margin-bottom:18px;">
-        <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;">VALOR TOTAL DA ASSINATURA</div>
-        <div style="font-size:26px;font-weight:700;color:var(--yl-navy);margin:4px 0;">${priceFormatted} <span style="font-size:13px;font-weight:400;color:var(--text-muted);">/mês</span></div>
-        <div style="font-size:11.5px;color:var(--yl-emerald);font-weight:500;">Sem conversão cambial · Cobrança oficial em Reais</div>
-      </div>
-
-      ${method === "PIX" ? `
-        <div style="text-align:center;margin-bottom:18px;">
-          <div style="font-size:13px;font-weight:600;color:var(--yl-navy);margin-bottom:10px;">Escaneie o QR Code no app do seu banco:</div>
-          <div style="display:inline-block;padding:12px;background:#FFF;border:1px solid var(--border-light);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
-            <img src="${checkout.pix?.qrCodeImage || 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=yardline'}" style="width:200px;height:200px;display:block;">
-          </div>
-          <div style="margin-top:14px;">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Ou pague utilizando o Pix Copia e Cola:</div>
-            <div style="display:flex;gap:6px;max-width:440px;margin:0 auto;">
-              <input type="text" readonly value="${checkout.pix?.copyPaste || ''}" class="yl-search-input" style="font-size:11.5px;padding:6px 10px;flex:1;background:#F1F5F9;color:#334155;">
-              <button class="btn-yl btn-primary" style="padding:6px 12px;font-size:12px;" onclick="navigator.clipboard.writeText('${checkout.pix?.copyPaste || ''}');showToast('Chave Pix copiada com sucesso!');">Copiar Chave</button>
-            </div>
-          </div>
-        </div>
-      ` : `
-        <div style="padding:16px;background:#FFF;border:1px solid var(--border-light);border-radius:8px;margin-bottom:18px;">
-          <div style="font-size:13px;font-weight:600;color:var(--yl-navy);margin-bottom:10px;">Cartão de Crédito Nacional e Internacional:</div>
-          <div style="font-size:12.5px;color:var(--text-muted);line-height:1.6;">
-            Pagamentos por cartão são processados de forma criptografada pelo gateway com confirmação instantânea.
-          </div>
-        </div>
-      `}
-
-      <!-- Simulação de Confirmação de Webhook em Tempo Real -->
-      <div style="border-top:1px solid var(--border-light);padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-        <span style="font-size:11.5px;color:var(--text-muted);">Aguardando confirmação bancária...</span>
-        <button class="btn-yl btn-primary" style="padding:8px 16px;font-size:12px;background:var(--yl-emerald);border-color:var(--yl-emerald);" onclick="confirmPaymentWebhookSimulation('${checkout.providerPaymentId}', '${planCode}')">
-          Confirmar Pagamento (Webhook)
-        </button>
-      </div>
-    `;
-  } catch(err) {
-    content.innerHTML = `<div style="color:var(--yl-crimson);padding:10px;">Erro ao gerar checkout: ${err.message}</div>`;
-  }
-}
-
-async function confirmPaymentWebhookSimulation(providerPaymentId, planCode) {
-  try {
-    await fetch(`${YL_API_BASE}/webhooks/payment/pix`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-signature": "sandbox_test_signature" },
-      body: JSON.stringify({ providerPaymentId, status: "paid", rawEventId: "evt_" + Date.now() })
-    });
-  } catch(e) {}
-
-  localStorage.setItem("yl_active_plan", planCode);
-  closeModal("checkout-modal");
-  renderPlansView();
-  showToast(`Pagamento confirmado via Webhook! Plano ${planCode} ativado com sucesso.`);
+  document.getElementById("checkout-modal-content").innerHTML = `
+    <div style="padding:20px">
+      <h2>Pagamentos indisponíveis</h2>
+      <p>A integração com um provedor de pagamentos ainda não foi concluída. Não há cobrança ou ativação de assinatura nesta versão.</p>
+      <button class="btn-yl btn-outline" onclick="closeModal('checkout-modal')">Fechar</button>
+    </div>`;
 }
 
 function renderPlansView() {
@@ -2766,15 +2571,15 @@ function renderPlansView() {
   if (!container) return;
 
   loadBackendPlans();
-  const currentPlan = localStorage.getItem("yl_active_plan") || "PRO";
+  const currentPlan = "FREE";
 
   container.innerHTML = `
     <div class="yl-card" style="margin-bottom:18px;padding:20px 24px;background:linear-gradient(90deg,#001933 0%,#0F172A 100%);color:#FFF;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
         <div>
-          <span class="badge badge-crimson">BILLING & ASSINATURAS REAIS</span>
-          <h2 style="font-size:21px;font-weight:600;margin-top:4px;">Planos YARDLINE NFL · Cobrança Oficial em Reais</h2>
-          <p style="font-size:13px;color:#CBD5E1;margin-top:4px;">Chega de pagar US$ 16,99 em dólar no exterior. Pagamento oficial via Pix e Cartão com liberação instantânea.</p>
+          <span class="badge badge-crimson">PLANOS EM DESENVOLVIMENTO</span>
+          <h2 style="font-size:21px;font-weight:600;margin-top:4px;">Planos YARDLINE NFL · Prévia</h2>
+          <p style="font-size:13px;color:#CBD5E1;margin-top:4px;">Valores e benefícios propostos. Contratação indisponível nesta versão.</p>
         </div>
         <div style="background:rgba(255,255,255,0.1);padding:10px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);">
           <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;">SEU PLANO ATUAL</div>
@@ -2837,11 +2642,11 @@ function renderPlansView() {
 let currentOnboardingStep = 1;
 let onboardingData = {
   profile: "competitive",
-  sleeperUsername: localStorage.getItem("yl_sleeper_username") || "Faraco",
+  sleeperUsername: localStorage.getItem("yl_sleeper_username") || "",
   sleeperUserId: null,
   userLeagues: [],
-  selectedLeagueId: localStorage.getItem("yl_active_league") || localStorage.getItem("yl_active_league_id") || "1369770282776006656",
-  selectedLeagueName: "Neilo Pistola League (#1369770282776006656)",
+  selectedLeagueId: localStorage.getItem("yl_active_league") || localStorage.getItem("yl_active_league_id") || null,
+  selectedLeagueName: "Nenhuma liga selecionada",
   diagnosticMatchup: null
 };
 
@@ -2980,18 +2785,8 @@ function renderOnboardingStep() {
             </div>
           `;
         }).join('') : `
-          <!-- Card de Conexão Rápida para Neilo Pistola League -->
-          <div onclick="setOnboardingLeague('1369770282776006656', 'Neilo Pistola League (#1369770282776006656)')"
-               style="cursor:pointer;padding:16px;border-radius:10px;border:2px solid var(--yl-crimson);background:rgba(195,17,43,0.04);display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span class="badge badge-green">LIGA OFICIAL</span>
-                <strong style="color:var(--yl-navy);font-size:14px;">Neilo Pistola League</strong>
-                <span style="font-size:11px;color:var(--text-muted);font-family:monospace;">#1369770282776006656</span>
-              </div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">16 Times · IDP · Temporada 2026 · Time: <strong>Gengar My Balls (@Faraco)</strong></div>
-            </div>
-            <span style="font-size:20px;color:var(--yl-crimson);">●</span>
+          <div style="padding:18px;border:1px dashed var(--border-light);border-radius:10px;background:var(--bg-subtle);color:var(--text-muted);font-size:13px;line-height:1.5;">
+            Nenhuma liga foi encontrada para este usuário. Verifique o username do Sleeper e execute a busca novamente. A YARDLINE não seleciona uma liga implícita.
           </div>
         `}
       </div>
@@ -3003,10 +2798,10 @@ function renderOnboardingStep() {
     `;
   } else if (step === 4) {
     const diag = onboardingData.diagnosticMatchup;
-    const myTeamName = diag?.user?.manager?.teamName || "Gengar My Balls";
-    const oppTeamName = diag?.opponent?.manager?.teamName || "Curitiba Red Fox";
-    const myManager = diag?.user?.manager?.displayName || onboardingData.sleeperUsername || "Faraco";
-    const oppManager = diag?.opponent?.manager?.displayName || "neyllon";
+    const myTeamName = diag?.user?.manager?.teamName || "—";
+    const oppTeamName = diag?.opponent?.manager?.teamName || "—";
+    const myManager = diag?.user?.manager?.displayName || onboardingData.sleeperUsername || "—";
+    const oppManager = diag?.opponent?.manager?.displayName || "—";
     const startersList = diag?.user?.roster?.startersDetails || [];
     const topStarters = startersList.slice(0, 4);
 
@@ -3034,12 +2829,8 @@ function renderOnboardingStep() {
           </div>
           <ul style="font-size:12px;color:var(--text-body);margin:0;padding-left:16px;line-height:1.6;">
             ${topStarters.length > 0 ? topStarters.map(st => `
-              <li><strong>${st.name} (${st.position} - ${st.team}):</strong> Status ${st.injuryStatus || 'Ativo'} · Titular confirmado.</li>
-            `).join('') : `
-              <li><strong>Brock Purdy (QB - SF):</strong> Projeção 19.4 pts.</li>
-              <li><strong>Javonte Williams (RB - DAL):</strong> Projeção 16.2 pts.</li>
-              <li><strong>George Kittle (TE - SF):</strong> Projeção 12.4 pts.</li>
-            `}
+              <li><strong>${esc(st.name)} (${esc(st.position)} - ${esc(st.team)}):</strong> Status ${esc(st.injuryStatus || '—')} · Titular confirmado.</li>
+            `).join('') : '<li>Dados oficiais de titulares indisponíveis até a sincronização da liga.</li>'}
           </ul>
         </div>
 
@@ -3071,7 +2862,11 @@ async function executeSleeperUserLookup(advance = true) {
   if (inp && inp.value.trim()) {
     onboardingData.sleeperUsername = inp.value.trim();
   }
-  const uname = onboardingData.sleeperUsername || "Faraco";
+  const uname = onboardingData.sleeperUsername;
+  if (!uname) {
+    showToast('Informe seu username do Sleeper antes de buscar as ligas.');
+    return;
+  }
   showToast(`Consultando usuário @${uname} via YARDLINE API...`);
 
   try {
@@ -3114,6 +2909,7 @@ async function executeSleeperUserLookup(advance = true) {
     }
 
     onboardingData.userLeagues = Array.isArray(leagues) ? leagues : [];
+    window.YL_AVAILABLE_LEAGUES = onboardingData.userLeagues;
     if (onboardingData.userLeagues.length > 0) {
       onboardingData.selectedLeagueId = onboardingData.userLeagues[0].id;
       onboardingData.selectedLeagueName = `${onboardingData.userLeagues[0].name} (#${onboardingData.userLeagues[0].id})`;
@@ -3141,12 +2937,19 @@ async function generateFirstDiagnostic() {
   showToast(`Sincronizando ${onboardingData.selectedLeagueName} e calculando matchup...`);
   try {
     try {
+      const diagnosticWeek = Number.isInteger(Number(activeLeagueWeek)) ? Number(activeLeagueWeek) : null;
+      if (!onboardingData.selectedLeagueId || !diagnosticWeek || !onboardingData.sleeperUsername) {
+        showToast('Liga, usuário ou semana oficial indisponível; diagnóstico não será fabricado.');
+        currentOnboardingStep = 4;
+        renderOnboardingStep();
+        return;
+      }
       await fetch(`${YL_API_BASE}/integrations/sleeper/sync-league`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leagueId: onboardingData.selectedLeagueId, week: 6 })
+        body: JSON.stringify({ leagueId: onboardingData.selectedLeagueId, week: diagnosticWeek })
       });
-      const matchRes = await fetch(`${YL_API_BASE}/leagues/${onboardingData.selectedLeagueId}/matchups/current?sleeperUserId=${encodeURIComponent(onboardingData.sleeperUsername)}&week=6`);
+      const matchRes = await fetch(`${YL_API_BASE}/leagues/${onboardingData.selectedLeagueId}/matchups/current?sleeperUserId=${encodeURIComponent(onboardingData.sleeperUsername)}&week=${diagnosticWeek}`);
       if (matchRes.ok) {
         onboardingData.diagnosticMatchup = await matchRes.json();
       }
@@ -3255,17 +3058,11 @@ function triggerDetailedSleeperAudit() {
 let currentWaiverClaim = null;
 
 function openSmartWaiverClaimModal(playerId) {
-  const p = (typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(playerId) : null) ||
-            YL_ALL_NFL_PLAYERS[playerId] ||
-            window.YL_CANONICAL?.players?.[playerId] || {
-              id: playerId,
-              name: playerId,
-              pos: "ATH",
-              team: "FA",
-              photo: "https://a.espncdn.com/i/headshots/nfl/players/full/4430737.png",
-              proj: 10.0,
-              ylIndex: 75.0
-            };
+  const p = typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(playerId) : null;
+  if (!p) {
+    showToast("Atleta indisponível no catálogo oficial sincronizado.");
+    return;
+  }
 
   let candidateDrops = [];
   const myRoster = window.activeRealMatchup?.myRoster || window.myRoster;
@@ -3278,13 +3075,15 @@ function openSmartWaiverClaimModal(playerId) {
   if (poolIds.length > 0) {
     candidateDrops = poolIds.map(id => {
       return (typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(id) : null) ||
-             YL_ALL_NFL_PLAYERS[id] ||
-             window.YL_CANONICAL?.players?.[id] ||
-             { id: String(id), name: String(id), pos: 'ATH', team: 'NFL', proj: 5.0 };
+             window.YL_CANONICAL?.players?.[id];
     }).sort((a, b) => (Number(a.proj) || 0) - (Number(b.proj) || 0));
   }
 
-  const suggestedDrop = candidateDrops[0] || (YL_ALL_NFL_PLAYERS["godwin"] || { id: "godwin", name: "Chris Godwin", pos: "WR", team: "TB", proj: 9.4 });
+  const suggestedDrop = candidateDrops[0] || null;
+  if (!suggestedDrop) {
+    showToast("Nenhum jogador de banco oficial disponível para sugerir drop.");
+    return;
+  }
   const playerProj = Number(p.proj) || 11.5;
   const suggestedFaab = Math.min(50, Math.max(5, Math.round(playerProj * 1.8)));
 
@@ -3664,22 +3463,9 @@ function renderTeamsView() {
 // ==========================================
 // RELÓGIO & TICKER AO VIVO (ENGINE REAL)
 // ==========================================
-let tickerClockSeconds = 4 * 60 + 12; // 04:12 Q3
-let tickerInterval = null;
-
 function startLiveTickerClockEngine() {
-  if (tickerInterval) clearInterval(tickerInterval);
-  tickerInterval = setInterval(() => {
-    if (tickerClockSeconds > 0) {
-      tickerClockSeconds--;
-    } else {
-      tickerClockSeconds = 15 * 60; // reset quarter
-    }
-    const mins = Math.floor(tickerClockSeconds / 60).toString().padStart(2, '0');
-    const secs = (tickerClockSeconds % 60).toString().padStart(2, '0');
-    const el = document.getElementById("live-ticker-active-clock");
-    if (el) el.innerText = `${mins}:${secs}`;
-  }, 1000);
+  // Without an NFL game-status feed there is no clock to advance locally.
+  renderTopTicker();
 }
 
 // Function to toggle expandable news in player modal
@@ -3976,7 +3762,6 @@ window.YL_V2 = { openPlayerDossierModal: window.openPlayerDossierModal, renderPl
     c.prepend(el);
   }
   function renderPlaybook(){if(typeof window.YL_V2?.renderPlaybookView==='function')window.YL_V2.renderPlaybookView();const c=document.getElementById('view-playbook');if(!c||typeof c.querySelectorAll!=='function')return;c.querySelectorAll('.yl-player-card-v2').forEach(card=>{const id=card.getAttribute('onclick')?.match(/'([^']+)'/)?.[1],p=player(id);if(!p)return;const top=card.querySelector('.yl-player-card-v2__top');if(top&&!top.querySelector('.yl-player-card-v2__teamlogo')){const img=document.createElement('img');img.className='yl-player-card-v2__teamlogo';img.src=p.teamLogo||'';img.alt=p.team||'';top.prepend(img);}const body=card.querySelector('.yl-player-card-v2__body');if(body&&!body.querySelector('.yl-player-card-v2__bio')){const bio=document.createElement('div');bio.className='yl-player-card-v2__bio';bio.textContent=[p.age&&`${p.age} anos`,p.height&&`Alt. ${p.height}`,p.weight&&`Peso ${p.weight}`,p.college].filter(Boolean).join(' · ')||'Ficha técnica não disponível';body.appendChild(bio);}});}
-  const oldHome=window.renderHomeView;window.renderHomeView=function(){if(typeof oldHome==='function')oldHome();const c=document.getElementById('view-home');if(c&&!c.querySelector('.yl-news-source-note')){const n=document.createElement('div');n.className='yl-news-source-note';n.textContent='Jornalismo YARDLINE: priorização por roster ativo. Artigos locais sem URL verificável permanecem marcados como conteúdo não verificado; feeds externos exigem ingestão autorizada no backend.';c.prepend(n);}};
   window.renderTeamsView=renderTeams;window.renderRankingsView=renderRankings;window.renderWaiversView=renderWaivers;window.renderLeagueView=renderLeague;window.renderPlaybookView=renderPlaybook;
   window.YL_V3={renderTeams,renderRankings,renderWaivers,renderLeague,renderPlaybook};
 })();
@@ -4015,198 +3800,12 @@ window.toggleSidebarGroup=function(key){
     return isNaN(n) ? def : n.toFixed(1);
   };
   const formatMatchupNumber = value => Number.isFinite(value) ? value.toFixed(1) : '—';
-  const sumFiniteProjections = players => {
-    const projections = players.map(player => player?.proj).filter(Number.isFinite);
-    return projections.length ? projections.reduce((total, projection) => total + projection, 0) : null;
+  // Dados de transações, rosters e confrontos são derivados somente do snapshot oficial.
+  window.YL_WEEK6_MATCHUPS = [];
+  window.selectedLeagueMatchupId = null;
+  window.selectLeagueMatchup = function() {
+    if (typeof renderAuditLeagueView === 'function') renderAuditLeagueView();
   };
-
-  // Os 16 Times Oficiais da Neilo Pistola League
-  const LEAGUE_16_STANDINGS = [
-    { rank: 1, rosterId: 13, name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0", wins: 5, losses: 0, ties: 0, fpts: 1153.35, fptsAgainst: 809.35, waiver: 9, isMe: false },
-    { rank: 2, rosterId: 2, name: "Gengar My Balls", owner: "@Faraco", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: 1091.30, fptsAgainst: 857.75, waiver: 14, isMe: true },
-    { rank: 3, rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: 973.10, fptsAgainst: 831.30, waiver: 16, isMe: false },
-    { rank: 4, rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: 940.30, fptsAgainst: 905.50, waiver: 12, isMe: false },
-    { rank: 5, rosterId: 9, name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: 917.15, fptsAgainst: 847.15, waiver: 8, isMe: false },
-    { rank: 6, rosterId: 8, name: "Paranaguá Rat Crew", owner: "@cauexavier", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: 893.35, fptsAgainst: 846.70, waiver: 11, isMe: false },
-    { rank: 7, rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2", wins: 3, losses: 2, ties: 0, fpts: 849.50, fptsAgainst: 770.55, waiver: 7, isMe: false },
-    { rank: 8, rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: 976.95, fptsAgainst: 924.20, waiver: 15, isMe: false },
-    { rank: 9, rosterId: 6, name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: 863.50, fptsAgainst: 881.45, waiver: 6, isMe: false },
-    { rank: 10, rosterId: 1, name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: 849.70, fptsAgainst: 829.25, waiver: 13, isMe: false },
-    { rank: 11, rosterId: 7, name: "Guabi JackRabbits", owner: "@MarcoCoelho", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: 826.20, fptsAgainst: 1002.30, waiver: 5, isMe: false },
-    { rank: 12, rosterId: 4, name: "Williams The Conqueror", owner: "@Abreu77", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: 748.80, fptsAgainst: 884.80, waiver: 4, isMe: false },
-    { rank: 13, rosterId: 5, name: "Eli Pug", owner: "@ASantiagoS", record: "1-4", wins: 1, losses: 4, ties: 0, fpts: 776.35, fptsAgainst: 976.35, waiver: 10, isMe: false },
-    { rank: 14, rosterId: 3, name: "Parsons a Parsons", owner: "@NacuaMatata90", record: "1-4", wins: 1, losses: 4, ties: 0, fpts: 723.90, fptsAgainst: 854.45, waiver: 3, isMe: false },
-    { rank: 15, rosterId: 15, name: "Vagabundos Iluminados", owner: "@AugustoVelloso", record: "0-5", wins: 0, losses: 5, ties: 0, fpts: 857.35, fptsAgainst: 993.05, waiver: 2, isMe: false },
-    { rank: 16, rosterId: 14, name: "How I Metcalf Your Mother", owner: "@thalesmagni", record: "0-5", wins: 0, losses: 5, ties: 0, fpts: 746.80, fptsAgainst: 973.45, waiver: 1, isMe: false }
-  ];
-
-  // 19 Slots Canônicos da Liga
-  const WEEK6_SLOTS = [
-    { key: "QB", label: "QB", cat: "slot-badge-offense" },
-    { key: "RB", label: "RB", cat: "slot-badge-offense" },
-    { key: "WR1", label: "WR", cat: "slot-badge-offense" },
-    { key: "WR2", label: "WR", cat: "slot-badge-offense" },
-    { key: "WR3", label: "WR", cat: "slot-badge-offense" },
-    { key: "TE", label: "TE", cat: "slot-badge-offense" },
-    { key: "FLEX1", label: "FLEX", cat: "slot-badge-flex" },
-    { key: "FLEX2", label: "FLEX", cat: "slot-badge-flex" },
-    { key: "IDP", label: "IDP", cat: "slot-badge-flex" },
-    { key: "K", label: "K", cat: "slot-badge-k" },
-    { key: "DL1", label: "DL", cat: "slot-badge-idp" },
-    { key: "DL2", label: "DL", cat: "slot-badge-idp" },
-    { key: "DL3", label: "DL", cat: "slot-badge-idp" },
-    { key: "LB1", label: "LB", cat: "slot-badge-idp" },
-    { key: "LB2", label: "LB", cat: "slot-badge-idp" },
-    { key: "LB3", label: "LB", cat: "slot-badge-idp" },
-    { key: "DB1", label: "DB", cat: "slot-badge-idp" },
-    { key: "DB2", label: "DB", cat: "slot-badge-idp" },
-    { key: "DB3", label: "DB", cat: "slot-badge-idp" }
-  ];
-
-  // Metadados Ricos dos Jogadores do Duelo (Roster 2 vs Roster 1)
-  const MATCHUP_PLAYER_DETAILS = {
-    // Gengar My Balls (Roster 2 / Faraco) - 19 Titulares
-    "8183": { name: "Brock Purdy", pos: "QB", team: "SF", opp: "@ SEA", proj: 17.8, status: "Healthy" },
-    "7588": { name: "Javonte Williams", pos: "RB", team: "DAL", opp: "vs DET", proj: 12.4, status: "Healthy" },
-    "8112": { name: "Drake London", pos: "WR", team: "ATL", opp: "@ CAR", proj: 15.2, status: "Healthy" },
-    "9997": { name: "Zay Flowers", pos: "WR", team: "BAL", opp: "@ WAS", proj: 13.6, status: "Healthy" },
-    "11646": { name: "Jalen Coker", pos: "WR", team: "CAR", opp: "vs ATL", proj: 8.5, status: "Healthy" },
-    "4217": { name: "George Kittle", pos: "TE", team: "SF", opp: "@ SEA", proj: 13.1, status: "Questionable" },
-    "12474": { name: "Woody Marks", pos: "RB", team: "HOU", opp: "@ NE", proj: 9.2, status: "Healthy" },
-    "11576": { name: "Braelon Allen", pos: "RB", team: "NYJ", opp: "vs BUF", proj: 7.8, status: "Healthy" },
-    "6791": { name: "C.J. Henderson", pos: "CB", team: "ATL", opp: "@ CAR", proj: 6.5, status: "Healthy" },
-    "6083": { name: "Matt Gay", pos: "K", team: "LV", opp: "vs PIT", proj: 7.5, status: "Healthy" },
-    "5991": { name: "Maxx Crosby", pos: "DE", team: "LV", opp: "vs PIT", proj: 9.8, status: "Probable" },
-    "10892": { name: "Will Anderson", pos: "DL", team: "HOU", opp: "@ NE", proj: 8.5, status: "Healthy" },
-    "13457": { name: "Gabe Jacas", pos: "DE", team: "NE", opp: "vs HOU", proj: 5.2, status: "Healthy" },
-    "6860": { name: "Akeem Davis-Gaither", pos: "LB", team: "IND", opp: "@ TEN", proj: 7.1, status: "Healthy" },
-    "12140": { name: "Omar Speights", pos: "LB", team: "LAR", opp: "vs BYE", proj: 6.8, status: "Healthy" },
-    "13381": { name: "Jaishawn Barham", pos: "LB", team: "DAL", opp: "vs DET", proj: 5.9, status: "Healthy" },
-    "11685": { name: "Kamari Lassiter", pos: "DB", team: "HOU", opp: "@ NE", proj: 6.2, status: "Healthy" },
-    "11739": { name: "Evan Williams", pos: "DB", team: "GB", opp: "vs ARI", proj: 5.8, status: "Healthy" },
-    "12605": { name: "Jacob Parrish", pos: "DB", team: "TB", opp: "@ NO", proj: 5.4, status: "Healthy" },
-
-    // Curitiba Red Fox (Roster 1 / neyllon) - 19 Titulares
-    "3257": { name: "Jacoby Brissett", pos: "QB", team: "ARI", opp: "@ GB", proj: 13.2, status: "Healthy" },
-    "11435": { name: "Emanuel Wilson", pos: "RB", team: "SEA", opp: "vs SF", proj: 6.5, status: "Healthy" },
-    "7569": { name: "Nico Collins", pos: "WR", team: "HOU", opp: "@ NE", proj: 14.8, status: "Questionable" },
-    "7526": { name: "Jaylen Waddle", pos: "WR", team: "DEN", opp: "vs LAC", proj: 11.2, status: "Healthy" },
-    "3634": { name: "Kalif Raymond", pos: "WR", team: "CHI", opp: "vs JAX", proj: 5.8, status: "Healthy" },
-    "12518": { name: "Tyler Warren", pos: "TE", team: "IND", opp: "@ TEN", proj: 7.4, status: "Healthy" },
-    "12507": { name: "Omarion Hampton", pos: "RB", team: "LAC", opp: "@ DEN", proj: 8.9, status: "Healthy" },
-    "13285": { name: "Malachi Fields", pos: "WR", team: "NYG", opp: "vs CIN", proj: 6.1, status: "Healthy" },
-    "4999": { name: "Josh Sweat", pos: "DE", team: "ARI", opp: "@ GB", proj: 7.2, status: "Healthy" },
-    "1945": { name: "Chris Boswell", pos: "K", team: "PIT", opp: "@ LV", proj: 8.2, status: "Healthy" },
-    "12574": { name: "Abdul Carter", pos: "DL", team: "NYG", opp: "vs CIN", proj: 6.8, status: "Healthy" },
-    "6782": { name: "Chase Young", pos: "DE", team: "NO", opp: "vs TB", proj: 6.4, status: "Healthy" },
-    "5871": { name: "Zach Allen", pos: "DE", team: "DEN", opp: "vs LAC", proj: 7.5, status: "Healthy" },
-    "12578": { name: "Carson Schwesinger", pos: "LB", team: "CLE", opp: "@ PHI", proj: 6.9, status: "Healthy" },
-    "6131": { name: "Mack Wilson", pos: "LB", team: "ARI", opp: "@ GB", proj: 7.0, status: "Healthy" },
-    "7647": { name: "Pete Werner", pos: "LB", team: "NO", opp: "vs TB", proj: 6.7, status: "Healthy" },
-    "6911": { name: "Brandon Jones", pos: "DB", team: "DEN", opp: "vs LAC", proj: 7.1, status: "Healthy" },
-    "6788": { name: "Xavier McKinney", pos: "DB", team: "GB", opp: "vs ARI", proj: 7.8, status: "Healthy" },
-    "7069": { name: "Alohi Gilman", pos: "DB", team: "KC", opp: "@ SF", proj: 6.5, status: "Healthy" },
-
-    // Bancos de Ambos os Times
-    "11610": { name: "Malik Washington", pos: "WR", team: "MIA", opp: "vs BYE", proj: 4.8, status: "Healthy" },
-    "11667": { name: "Dallas Turner", pos: "LB", team: "MIN", opp: "vs DET", proj: 5.5, status: "Healthy" },
-    "12504": { name: "Kaleb Johnson", pos: "RB", team: "GB", opp: "vs ARI", proj: 4.2, status: "Healthy" },
-    "12505": { name: "Jalen Royals", pos: "WR", team: "KC", opp: "@ SF", proj: 3.8, status: "Healthy" },
-    "12646": { name: "Barrett Carter", pos: "LB", team: "CIN", opp: "@ NYG", proj: 5.1, status: "Healthy" },
-    "13413": { name: "Cyrus Allen", pos: "WR", team: "KC", opp: "@ SF", proj: 3.5, status: "Healthy" },
-    "4224": { name: "Chuck Clark", pos: "DB", team: "DET", opp: "@ DAL", proj: 5.8, status: "Healthy" },
-    "5846": { name: "DK Metcalf", pos: "WR", team: "PIT", opp: "@ LV", proj: 12.8, status: "Healthy" },
-    "5947": { name: "Jakobi Meyers", pos: "WR", team: "JAX", opp: "@ CHI", proj: 9.4, status: "Healthy" },
-    "6868": { name: "DJ Wonnum", pos: "DE", team: "DET", opp: "@ DAL", proj: 4.9, status: "Healthy" },
-    "7523": { name: "Trevor Lawrence", pos: "QB", team: "JAX", opp: "@ CHI", proj: 16.2, status: "Healthy" },
-    "11643": { name: "Jaylen Wright", pos: "RB", team: "MIA", opp: "vs BYE", proj: 5.2, status: "Healthy" },
-    "9753": { name: "Zach Charbonnet", pos: "RB", team: "SEA", opp: "vs SF", proj: 8.4, status: "Healthy" },
-    "4971": { name: "Derwin James", pos: "DB", team: "LAC", opp: "@ DEN", proj: 7.2, status: "Healthy" },
-    "7528": { name: "Najee Harris", pos: "RB", team: "NYG", opp: "vs CIN", proj: 9.8, status: "Healthy" },
-    "12547": { name: "Kyle Williams", pos: "WR", team: "NE", opp: "vs HOU", proj: 3.9, status: "Healthy" },
-    "11603": { name: "AJ Barner", pos: "TE", team: "SEA", opp: "vs SF", proj: 4.5, status: "Healthy" },
-    "7635": { name: "Jaelan Phillips", pos: "LB", team: "CAR", opp: "vs ATL", proj: 6.2, status: "Healthy" },
-    "13281": { name: "Jordyn Tyson", pos: "WR", team: "NO", opp: "vs TB", proj: 4.1, status: "Healthy" },
-    "13405": { name: "Kaytron Allen", pos: "RB", team: "MIA", opp: "vs BYE", proj: 3.6, status: "Healthy" },
-    "2306": { name: "Jameis Winston", pos: "QB", team: "NYG", opp: "vs CIN", proj: 11.0, status: "Healthy" },
-    "11565": { name: "J.J. McCarthy", pos: "QB", team: "NYG", opp: "vs CIN", proj: 0.0, status: "OUT" },
-    "12508": { name: "Jaxson Dart", pos: "QB", team: "NYG", opp: "vs CIN", proj: 0.0, status: "Healthy" },
-    "10894": { name: "DJ Turner", pos: "DB", team: "CIN", opp: "@ NYG", proj: 5.0, status: "Healthy" },
-    "13340": { name: "Rueben Bain", pos: "DL", team: "TB", opp: "@ NO", proj: 4.8, status: "Healthy" }
-  };
-
-  // Helper de resolução de jogador com fotos oficiais e fallbacks seguros
-  function resolveMatchupPlayer(id) {
-    const p = typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(String(id)) : null;
-    if (!p) return {
-      id: String(id), name: 'Jogador indisponível', pos: '—', team: '—', photo: '', opp: '—',
-      proj: null, status: 'Projeção indisponível', statusShort: ''
-    };
-    const status = p.injuryStatus || 'Lesão não informada';
-    return { ...p, opp: '—', proj: p.metrics?.projectedPoints ?? null, status,
-      statusShort: /out/i.test(status) ? 'OUT' : /quest/i.test(status) ? 'Q' : '' };
-  }
-
-  // 14 Transações Oficiais da Semana 6 da Neilo Pistola League (Sleeper #1369770282776006656)
-  const REAL_WEEK6_TRANSACTIONS = [
-    { type: "fa", badge: "FREE AGENT", user: "NacuaMatata90", time: "Hoje · 14:12", add: "Dre'Mont Jones (DE/DL · TEN)", drop: "Jalon Walker (LB)" },
-    { type: "fa", badge: "FREE AGENT", user: "NacuaMatata90", time: "Hoje · 14:09", add: "Kayvon Thibodeaux (DE/DL · NYG)", drop: "Avieon Terrell (CB)" },
-    { type: "fa", badge: "FREE AGENT", user: "NacuaMatata90", time: "Hoje · 14:05", add: "Ryan Fitzgerald (K · CAR)", drop: "Tyson Bagent (QB)" },
-    { type: "fa", badge: "FREE AGENT", user: "Abreu77", time: "Hoje · 13:48", add: "Mike Green (DE/DL · DET)", drop: "Jonathon Cooper (LB)" },
-    { type: "fa", badge: "FREE AGENT", user: "MarcoCoelho", time: "Hoje · 13:22", add: "Cameron Heyward (DT/DL · PIT)", drop: "Mason Graham (DT)" },
-    { type: "fa", badge: "FREE AGENT", user: "cauexavier", time: "Hoje · 12:55", add: "Renardo Green (CB/DB · SF)", drop: "Joshua Palmer (WR)" },
-    { type: "fa", badge: "FREE AGENT", user: "cauexavier", time: "Hoje · 12:50", add: "Jake Hansen (LB · HOU)", drop: "Divine Deablo (LB)" },
-    { type: "fa", badge: "FREE AGENT", user: "cauexavier", time: "Hoje · 12:44", add: "Cameron Thomas (DE/DL · KC)", drop: "Derrick Brown (DT)" },
-    { type: "fa", badge: "FREE AGENT", user: "cauexavier", time: "Hoje · 12:40", add: "Amik Robertson (CB/DB · DET)", drop: "Marlon Humphrey (CB)" },
-    { type: "fa", badge: "FREE AGENT", user: "cauexavier", time: "Hoje · 12:35", add: "Elijah Higgins (TE · ARI)", drop: "Mitch Tinsley (WR)" },
-    { type: "fa", badge: "FREE AGENT", user: "Abreu77", time: "Ontem · 21:15", add: "Noah Fant (TE · SEA)", drop: "DeeJay Dallas (RB)" },
-    { type: "fa", badge: "FREE AGENT", user: "MarcoCoelho", time: "Ontem · 19:40", add: "Upton Stout (CB/DB · CLE)", drop: "Jalen Pitre (DB)" },
-    { type: "fa", badge: "FREE AGENT", user: "thalesmagni", time: "Ontem · 18:30", add: "D'Marco Jackson (LB · NO)", drop: "Eric Wilson (LB)" },
-    { type: "fa", badge: "FREE AGENT", user: "thalesmagni", time: "Ontem · 18:14", add: "Kwity Paye (DE/DL · IND)", drop: "Montez Sweat (DE)" }
-  ];
-
-  // Mapa Canônico dos 16 Elencos da Neilo Pistola League (19 Titulares + Banco Completo por Time)
-  const LEAGUE_16_ROSTERS_MAP = {
-    "1": { rosterId: 1, owner: "neyllon", teamName: "Curitiba Red Fox", record: "2-3", fpts: 849.7, fptsAgainst: 829.3, starters: ["3257","11435","7569","7526","3634","12518","12507","13285","4999","1945","12574","6782","5871","12578","6131","7647","6911","6788","7069"], players: ["6788","11643","9753","4971","3257","11435","7528","12578","12547","11603","4999","12574","6131","7635","13281","13405","2306","1945","7647","13285","11565","12508","7069","7569","5871","6911","12518","10894","3634","6782","13340","7526","12507"] },
-    "2": { rosterId: 2, owner: "Faraco", teamName: "Gengar My Balls", record: "4-1", fpts: 1091.3, fptsAgainst: 857.8, starters: ["8183","7588","8112","9997","11646","4217","12474","11576","6791","6083","5991","10892","13457","6860","12140","13381","11685","11739","12605"], players: ["10892","11470","11576","11610","11646","11667","11685","11739","12140","12474","12504","12505","12605","12646","13381","13413","13457","4217","4224","5846","5947","5991","6083","6791","6860","6868","7523","7588","8112","8183","8210","9997"] },
-    "3": { rosterId: 3, owner: "NacuaMatata90", teamName: "Parsons a Parsons", record: "1-4", fpts: 723.9, fptsAgainst: 854.5, starters: ["4046","12527","5045","11635","11631","12506","11627","12481","13369","12961","5865","8280","13341","6941","8355","11724","7136","11656","13385"], players: ["11627","11631","11635","11656","11724","11792","12481","12506","12527","12961","13301","13317","13341","13359","13369","13385","3973","4046","5045","5865","6217","6865","6941","7136","7640","7649","7811","8280","8355","8362","9756"] },
-    "4": { rosterId: 4, owner: "Abreu77", teamName: "Williams The Conqueror", record: "2-3", fpts: 748.8, fptsAgainst: 884.8, starters: ["11560","10235","6783","4983","11620","12517","5857","4981","8311","7042","12571","5061","7626","7648","6485","6065","5908","8339","8323"], players: ["6065","7648","8311","6888","11560","3155","10235","7042","5847","13293","5908","5857","13411","4199","5960","8323","5864","5061","6770","8339","4993","4983","13286","13417","4981","7839","6485","11620","12529","7626","12517","12571","6783"] },
-    "5": { rosterId: 5, owner: "ASantiagoS", teamName: "Eli Pug", record: "1-4", fpts: 776.4, fptsAgainst: 976.4, starters: ["9228","13287","11632","12530","4039","5022","5001","8129","5816","650","7113","3558","8265","12566","10914","13375","6333","8364","12591"], players: ["10905","10914","11586","11632","11675","12048","12492","12530","12566","12591","13287","13375","13458","2505","3321","3558","4039","5001","5022","5816","5849","6333","650","7049","7090","7113","8129","8136","8265","8364","9228"] },
-    "6": { rosterId: 6, owner: "wendelayres", teamName: "Uranus Destroyers", record: "2-3", fpts: 863.5, fptsAgainst: 881.5, starters: ["11563","8150","13346","2449","12499","7002","8228","1466","13379","2747","11760","10921","4967","10947","11742","8680","13376","7044","13384"], players: ["13294","8155","13384","7002","6819","7044","1466","2747","11569","8680","13346","9754","8228","8150","2449","11563","11760","12499","11742","13379","10947","13376","5912","10226","12585","5944","13296","13272","10921","8154","1373","4967","9504"] },
-    "7": { rosterId: 7, owner: "MarcoCoelho", teamName: "Guabi JackRabbits", record: "2-3", fpts: 826.2, fptsAgainst: 1002.3, starters: ["11559","8151","10218","4037","9486","6826","11637","7600","10936","12185","7637","8385","2311","2617","11017","8266","5893","12631","8359"], players: ["10218","10927","10936","11017","11559","11637","12185","12631","13347","13414","2311","2617","4037","5841","5844","5872","5893","6039","6797","6826","6901","7600","7637","7726","8151","8266","8359","8385","843","8676","9486","9508"] },
-    "8": { rosterId: 8, owner: "cauexavier", teamName: "Paranaguá Rat Crew", record: "4-1", fpts: 893.4, fptsAgainst: 846.7, starters: ["12545","4034","5859","9488","8126","11604","12489","4454","8349","12713","6125","12978","8383","6214","7672","1052","6896","11697","8392"], players: ["13489","13324","11604","5372","7672","10231","9482","8126","12713","6416","4454","11583","4177","10219","4034","5859","11697","8349","12489","8132","6896","7021","12545","8392","1052","12978","6214","9488","8383","12542","8134","6125","2064"] },
-    "9": { rosterId: 9, owner: "Fontanella", teamName: "Arapiraca Miners", record: "4-1", fpts: 917.1, fptsAgainst: 847.1, starters: ["6804","6813","9493","9487","8144","9480","12501","7611","6807","3451","12610","13390","2427","5726","0","7921","8330","8275","8333"], players: ["12501","5297","6813","13434","3451","13390","8330","8144","8333","6794","11729","7611","9225","2427","13391","5726","6807","7921","12610","13453","13946","8275","12533","9493","9511","11630","9480","11589","6804","6790","8111","3294","9487"] },
-    "10": { rosterId: 10, owner: "Mattadra", teamName: "The Nuggets", record: "2-3", fpts: 977.0, fptsAgainst: 924.2, starters: ["11564","11584","13298","13279","12514","8130","12526","11624","5876","5189","11665","10898","10888","13377","13488","7346","12588","11682","6799"], players: ["11564","13298","8343","11687","13402","11665","13345","13488","5189","12526","10898","9221","6799","11624","13377","7346","13279","10888","8130","9479","13370","11682","12522","13311","12514","13349","12588","12491","6119","2197","13388","5876","11584"] },
-    "11": { rosterId: 11, owner: "perriy", teamName: "Capanema Noias", record: "4-1", fpts: 973.1, fptsAgainst: 831.3, starters: ["4881","9509","12519","9500","9501","8131","8138","7567","4960","11261","12652","10883","0","6141","5843","12556","12567","11705","8406"], players: ["5843","7715","8172","9500","11625","12652","11705","8161","8406","7567","6949","7547","8270","4960","9509","6141","4032","12567","12556","12487","11261","4135","4881","12519","9501","8395","8131","10883","6130","12535","10944","8119","8138"] },
-    "12": { rosterId: 12, owner: "31ers", teamName: "31ers", record: "3-2", fpts: 849.5, fptsAgainst: 770.5, starters: ["421","7594","7571","2133","2216","3214","1479","6806","13363","4227","6118","11668","7696","6900","4118","4968","11676","11662","11731"], players: ["10213","10881","11539","11647","1166","11662","11668","11676","11731","13363","1479","2036","2133","2216","3214","4118","421","4227","4866","4968","5580","5906","6118","6800","6806","6900","7571","7594","7641","7696","9502"] },
-    "13": { rosterId: 13, owner: "BrunoChiarello", teamName: "South Caxias Immigrants", record: "5-0", fpts: 1153.3, fptsAgainst: 809.4, starters: ["4984","5967","8167","8146","7525","8110","11581","13305","6302","11533","2393","5839","3172","7841","8329","5041","13371","7016","7666"], players: ["7016","12711","4984","13305","6302","9224","13371","10935","3160","5892","7543","11581","5839","12718","5041","2393","8286","7525","7666","5967","13360","8146","8167","7841","3172","10859","6801","7564","8329","8110","13268","4943","11533"] },
-    "14": { rosterId: 14, owner: "thalesmagni", teamName: "How I Metcalf Your Mother", record: "0-5", fpts: 746.8, fptsAgainst: 973.5, starters: ["11566","12512","10232","8137","11628","10236","12534","11783","8659","6650","5840","7633","10940","5346","8367","10917","3233","5017","10891"], players: ["10232","10236","10891","10917","10940","11566","11628","11783","12015","12483","12502","12509","12512","12534","12617","12622","13424","3233","3286","4017","5017","5346","5840","5870","6301","6650","7633","8137","8142","8367","8659","9226"] },
-    "15": { rosterId: 15, owner: "AugustoVelloso", teamName: "Vagabundos Iluminados", record: "0-5", fpts: 857.4, fptsAgainst: 993.0, starters: ["96","12490","11608","8121","10229","12493","4035","13150","4070","11786","7627","10916","11669","8267","13365","7782","11678","11726","11710"], players: ["10222","10229","10916","10923","11608","11669","11678","11710","11726","11786","12467","12490","12493","12495","13150","13365","13394","3163","4035","4070","5226","6183","7553","7627","7659","7782","8121","8148","8205","8267","96","9757"] },
-    "16": { rosterId: 16, owner: "negrini", teamName: "Hurts So Good", record: "4-1", fpts: 940.3, fptsAgainst: 905.5, starters: ["9758","3198","11834","13274","6786","9484","3271","5927","10949","2020","10885","2227","10873","11727","6815","5332","4081","12597","4963"], players: ["10885","2227","5850","10880","9758","2020","11834","11727","13274","6815","4963","5012","8289","5927","10873","13337","13276","12536","4147","5332","13420","7039","3198","9484","8408","3271","13330","10949","4081","12597","6904","11439","6786"] }
-  };
-  window.LEAGUE_16_ROSTERS_MAP = LEAGUE_16_ROSTERS_MAP;
-
-  // Os 8 Confrontos da Semana 6 da Neilo Pistola League
-  const WEEK6_ALL_MATCHUPS = [
-    { id: 1, away: { rosterId: 7, name: "Guabi JackRabbits", owner: "@MarcoCoelho", record: "2-3", proj: 124.0, score: 0 }, home: { rosterId: 9, name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1", proj: 133.0, score: 0 }, isFeatured: false },
-    { id: 2, away: { rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3", proj: 134.5, score: 0 }, home: { rosterId: 13, name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0", proj: 152.0, score: 0 }, isFeatured: false },
-    { id: 3, away: { rosterId: 4, name: "Williams The Conqueror", owner: "@Abreu77", record: "2-3", proj: 119.5, score: 0 }, home: { rosterId: 6, name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3", proj: 127.8, score: 0 }, isFeatured: false },
-    { id: 4, away: { rosterId: 14, name: "How I Metcalf Your Mother", owner: "@thalesmagni", record: "0-5", proj: 114.0, score: 0 }, home: { rosterId: 15, name: "Vagabundos Iluminados", owner: "@AugustoVelloso", record: "0-5", proj: 122.0, score: 0 }, isFeatured: false },
-    { id: 5, away: { rosterId: 8, name: "Paranaguá Rat Crew", owner: "@cauexavier", record: "4-1", proj: 131.5, score: 0 }, home: { rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2", proj: 128.0, score: 0 }, isFeatured: false },
-    { id: 6, away: { rosterId: 5, name: "Eli Pug", owner: "@ASantiagoS", record: "1-4", proj: 118.0, score: 0 }, home: { rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1", proj: 138.4, score: 0 }, isFeatured: false },
-    { id: 7, away: { rosterId: 1, name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3", proj: 136.4, score: 0 }, home: { rosterId: 2, name: "Gengar My Balls", owner: "@Faraco", record: "4-1", proj: 148.6, score: 0 }, isFeatured: true },
-    { id: 8, away: { rosterId: 3, name: "Parsons a Parsons", owner: "@NacuaMatata90", record: "1-4", proj: 115.0, score: 0 }, home: { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1", proj: 135.2, score: 0 }, isFeatured: false }
-  ];
-  window.YL_WEEK6_MATCHUPS = WEEK6_ALL_MATCHUPS;
-
-  window.selectedLeagueMatchupId = 7;
-  window.selectLeagueMatchup = function(mId) {
-    window.selectedLeagueMatchupId = Number(mId);
-    if (typeof renderAuditLeagueView === 'function') {
-      renderAuditLeagueView();
-    }
-  };
-
   // ==========================================
   // PILLAR 1: MATCHUP VIEW UNIFICATION (#view-league)
   // ==========================================
@@ -4224,7 +3823,7 @@ window.toggleSidebarGroup=function(key){
         liveRows.filter(row => Number(row.roster_id) === Number(rosterId))
           .map(row => [String(row.player_id), row])
       );
-      const liveTeam = roster => LEAGUE_16_STANDINGS.find(team => Number(team.rosterId) === Number(roster?.roster_id))
+      const liveTeam = roster => (window.YL_SHELL_SNAPSHOT?.standings || []).find(team => Number(team.rosterId) === Number(roster?.roster_id))
         || LEAGUE_12_TEAMS?.find(team => Number(team.rosterId) === Number(roster?.roster_id))
         || { name: `Roster #${roster?.roster_id ?? '—'}`, owner: '', record: '' };
       const livePlayer = (id, row) => {
@@ -4277,459 +3876,17 @@ window.toggleSidebarGroup=function(key){
       return;
     }
 
-    const activeMatchupId = window.selectedLeagueMatchupId || 7;
-    const currentMatchup = WEEK6_ALL_MATCHUPS.find(m => m.id === activeMatchupId) || WEEK6_ALL_MATCHUPS[6];
-
-    // Identificação dos times Home (Mandante) e Away (Visitante)
-    const homeTeam = currentMatchup.home;
-    const awayTeam = currentMatchup.away;
-
-    // Buscar dados dos elencos
-    const homeRosterData = LEAGUE_16_ROSTERS_MAP[String(homeTeam.rosterId)] || null;
-    const awayRosterData = LEAGUE_16_ROSTERS_MAP[String(awayTeam.rosterId)] || null;
-
-    // Titulares dos dois times (garantindo 19 slots por lado)
-    const homeStarters = (homeTeam.rosterId === 2 && userRealRoster?.starters && userRealRoster.starters.length === 19)
-      ? userRealRoster.starters.map(String)
-      : (homeRosterData?.starters && homeRosterData.starters.length === 19)
-        ? homeRosterData.starters.map(String)
-        : ["8183", "7588", "8112", "9997", "11646", "4217", "12474", "11576", "6791", "6083", "5991", "10892", "13457", "6860", "12140", "13381", "11685", "11739", "12605"];
-
-    const awayStarters = (awayRosterData?.starters && awayRosterData.starters.length === 19)
-      ? awayRosterData.starters.map(String)
-      : ["3257", "11435", "7569", "7526", "3634", "12518", "12507", "13285", "4999", "1945", "12574", "6782", "5871", "12578", "6131", "7647", "6911", "6788", "7069"];
-
-    // Bancos (Isolamento estrito: banco NUNCA soma na pontuação)
-    const homeBench = (homeRosterData?.players)
-      ? homeRosterData.players.filter(p => !homeStarters.includes(String(p))).map(String)
-      : ["11610", "11667", "12504", "12505", "12646", "13413", "4224", "5846", "5947", "6868", "7523"];
-
-    const awayBench = (awayRosterData?.players)
-      ? awayRosterData.players.filter(p => !awayStarters.includes(String(p))).map(String)
-      : ["11643", "9753", "4971", "7528", "12547", "11603", "7635", "13281", "13405", "2306", "11565", "12508", "10894", "13340"];
-
-    // Projeções calculadas exclusivamente sobre os 19 titulares; ausência não vira zero.
-    const starterPairs = WEEK6_SLOTS.map((slot, i) => {
-      const homeP = resolveMatchupPlayer(homeStarters[i]);
-      const awayP = resolveMatchupPlayer(awayStarters[i]);
-      return { slot, homeP, awayP };
-    });
-
-    const homeProjTotal = sumFiniteProjections(starterPairs.map(pair => pair.homeP));
-    const awayProjTotal = sumFiniteProjections(starterPairs.map(pair => pair.awayP));
-    const homeTeamProjection = Number.isFinite(homeProjTotal) ? homeProjTotal : (Number.isFinite(homeTeam.proj) ? homeTeam.proj : null);
-    const awayTeamProjection = Number.isFinite(awayProjTotal) ? awayProjTotal : (Number.isFinite(awayTeam.proj) ? awayTeam.proj : null);
-    const homeProjDisplay = formatMatchupNumber(homeTeamProjection);
-    const awayProjDisplay = formatMatchupNumber(awayTeamProjection);
-
-    const totalProj = Number.isFinite(homeTeamProjection) && Number.isFinite(awayTeamProjection)
-      ? homeTeamProjection + awayTeamProjection
-      : null;
-    const homeWinProb = Number.isFinite(totalProj) && totalProj > 0
-      ? Math.min(95, Math.max(5, Math.round((homeTeamProjection / totalProj) * 100)))
-      : null;
-    const awayWinProb = Number.isFinite(homeWinProb) ? 100 - homeWinProb : null;
-    const projectedAdvantage = Number.isFinite(homeTeamProjection) && Number.isFinite(awayTeamProjection)
-      ? homeTeamProjection - awayTeamProjection
-      : null;
-
-    const homeInitials = homeTeam.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'HM';
-    const awayInitials = awayTeam.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'AW';
-
     container.innerHTML = `
-      <!-- TOP SYNC & AUDIT PILL -->
-      <div class="yl-card" style="padding:16px 20px;margin-bottom:16px;background:#ffffff;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-          <div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="badge badge-green">AUDITORIA SLEEPER CONCLUÍDA</span>
-              <span class="badge badge-navy">SEMANA 6 ATIVA</span>
-              <span class="badge badge-amber">16 TIMES · KEEPER PPR COM IDP</span>
-            </div>
-            <h2 style="font-size:22px;font-weight:700;color:var(--yl-navy);margin-top:6px;">
-              Neilo Pistola League (#1369770282776006656)
-            </h2>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
-              Confronto oficial Week 6: <strong>${esc(homeTeam.name)}</strong> (${esc(homeTeam.owner)}) vs <strong>${esc(awayTeam.name)}</strong> (${esc(awayTeam.owner)})
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-yl btn-primary" onclick="syncLiveSleeperApiPlayers().catch(err => showToast(err.message || 'Falha ao sincronizar'))">
-              ↻ Atualizar Sleeper
-            </button>
-            <button class="btn-yl btn-outline" onclick="toggleLeagueChat()">
-              Abrir Chat (${REAL_WEEK6_TRANSACTIONS.length})
-            </button>
-          </div>
-        </div>
-      </div>
+      <div class="yl-card" style="padding:24px;text-align:center;">
+        <span class="badge badge-amber">MATCHUP INDISPONÍVEL</span>
+        <h2 style="margin:10px 0 6px;color:var(--yl-navy);font-size:20px;">Sincronize uma liga para carregar o confronto</h2>
+        <p style="margin:0 auto 16px;max-width:620px;color:var(--text-muted);font-size:13px;line-height:1.5;">
+          Nenhum roster, placar ou semana oficial está disponível neste momento. Fixtures históricas não são exibidas como se fossem dados atuais.
+        </p>
+        <button class="btn-yl btn-primary" onclick="openOnboardingModal(2)">Conectar Sleeper</button>
+      </div>`;
+    return;
 
-      <!-- SECTION 1: HERO MATCHUP CARD -->
-      <div class="yl-matchup-hero">
-        <div class="yl-matchup-hero__top">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span class="badge badge-crimson" style="letter-spacing:0.5px;">MATCHUP #${activeMatchupId} · SEMANA 6</span>
-            <span style="font-size:12px;opacity:0.85;">Status dos Atletas: <strong>Yet to play (Aguardando Início)</strong></span>
-          </div>
-          <div style="font-size:12px;opacity:0.85;">
-            Placar Oficial Sleeper: <strong class="mono" style="font-size:14px;color:#34D399;">${formatMatchupNumber(homeTeam.score)} × ${formatMatchupNumber(awayTeam.score)}</strong>
-          </div>
-        </div>
-
-        <div class="yl-matchup-hero__teams">
-          <!-- Team 1: Home Team -->
-          <div class="yl-matchup-team-card team-left">
-            <div class="yl-matchup-team-card__logo">${esc(homeInitials)}</div>
-            <div>
-              <div style="display:flex;align-items:center;gap:6px;">
-                <h3 style="font-size:18px;font-weight:700;margin:0;">${esc(homeTeam.name)}</h3>
-                ${homeTeam.rosterId === 2 ? '<span class="badge badge-green" style="font-size:9.5px;padding:1px 6px;">VOCÊ</span>' : '<span class="badge badge-navy" style="font-size:9.5px;padding:1px 6px;">MANDANTE</span>'}
-              </div>
-              <div style="font-size:12px;opacity:0.8;margin-top:2px;">
-                ${esc(homeTeam.owner)} · <strong>${esc(homeTeam.record)}</strong> · ${formatMatchupNumber(homeRosterData?.fpts)} pts
-              </div>
-              <div class="mono" style="font-size:26px;font-weight:700;color:#38BDF8;margin-top:6px;">
-                ${homeProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Center VS & Win Chance -->
-          <div class="yl-matchup-vs-badge">
-            <div style="background:rgba(255,255,255,0.12);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;letter-spacing:1px;display:inline-block;">
-              VS
-            </div>
-            <div style="font-size:11px;opacity:0.8;margin-top:6px;">
-              Win Prob: <strong style="color:#34D399;">${Number.isFinite(homeWinProb) ? homeWinProb + '%' : '—'}</strong> vs <strong>${Number.isFinite(awayWinProb) ? awayWinProb + '%' : '—'}</strong>
-            </div>
-            <div style="font-size:10px;opacity:0.65;margin-top:2px;">
-              Vantagem projetada: ${Number.isFinite(projectedAdvantage) ? (projectedAdvantage >= 0 ? '+' : '') + formatMatchupNumber(projectedAdvantage) : '—'} pts
-            </div>
-          </div>
-
-          <!-- Team 2: Away Team -->
-          <div class="yl-matchup-team-card team-right">
-            <div class="yl-matchup-team-card__logo logo-opponent">${esc(awayInitials)}</div>
-            <div>
-              <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
-                ${awayTeam.rosterId === 2 ? '<span class="badge badge-green" style="font-size:9.5px;padding:1px 6px;">VOCÊ</span>' : '<span class="badge badge-amber" style="font-size:9.5px;padding:1px 6px;">VISITANTE</span>'}
-                <h3 style="font-size:18px;font-weight:700;margin:0;">${esc(awayTeam.name)}</h3>
-              </div>
-              <div style="font-size:12px;opacity:0.8;margin-top:2px;">
-                ${esc(awayTeam.owner)} · <strong>${esc(awayTeam.record)}</strong> · ${formatMatchupNumber(awayRosterData?.fpts)} pts
-              </div>
-              <div class="mono" style="font-size:26px;font-weight:700;color:#CBD5E1;margin-top:6px;">
-                ${awayProjDisplay} <span style="font-size:12px;opacity:0.8;font-weight:400;">pts proj</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Win Probability Visual Bar -->
-        <div class="yl-matchup-prob-bar" title="Probabilidade de Vitória: ${esc(homeTeam.name)} ${Number.isFinite(homeWinProb) ? homeWinProb + '%' : 'indisponível'} | ${esc(awayTeam.name)} ${Number.isFinite(awayWinProb) ? awayWinProb + '%' : 'indisponível'}">
-          <div class="yl-matchup-prob-bar__fill" style="width: ${Number.isFinite(homeWinProb) ? homeWinProb : 0}%;"></div>
-        </div>
-      </div>
-
-      <!-- SECTION 2: SIDE-BY-SIDE 19 STARTERS COMPARISON TABLE -->
-      <div class="yl-card" style="padding:20px 22px;margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-          <div>
-            <span class="badge badge-crimson">TITULARES LADO A LADO</span>
-            <h3 style="font-size:17px;font-weight:700;color:var(--yl-navy);margin-top:4px;">
-              19 Slots Oficiais: Ataque (PPR), Kicking e Defesa Individual (IDP)
-            </h3>
-            <div style="font-size:12px;color:var(--text-muted);">
-              Clique em qualquer atleta para abrir o dossiê oficial Sleeper com logs de jogos e notícias.
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;font-size:11px;">
-            <span class="yl-matchup-slot-badge slot-badge-offense">ATAQUE</span>
-            <span class="yl-matchup-slot-badge slot-badge-flex">FLEX</span>
-            <span class="yl-matchup-slot-badge slot-badge-k">KICKER</span>
-            <span class="yl-matchup-slot-badge slot-badge-idp">IDP DEF</span>
-          </div>
-        </div>
-
-        <div style="display:flex;justify-content:center;gap:6px;margin:8px 0 16px;">
-          <button class="btn-yl btn-primary" style="padding:4px 16px;font-size:11.5px;font-weight:700;">Current</button>
-          <button class="btn-yl btn-outline" style="padding:4px 16px;font-size:11.5px;" onclick="showToast('Modo Optimal ativo: Lineup simulada com base nas projeções de teto.')">Optimal</button>
-        </div>
-
-        <div style="overflow-x:auto;">
-          <table class="yl-matchup-starters-table">
-            <thead>
-              <tr style="font-size:11px;color:var(--text-muted);text-transform:uppercase;">
-                <th style="text-align:left;padding:6px 12px;width:45%;">${esc(homeTeam.name)} (${esc(homeTeam.owner)})</th>
-                <th style="text-align:center;padding:6px 4px;width:10%;">Slot</th>
-                <th style="text-align:right;padding:6px 12px;width:45%;">${esc(awayTeam.name)} (${esc(awayTeam.owner)})</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${starterPairs.map(({ slot, homeP, awayP }) => {
-                const kickoffs = { 'SF': 'Mon 9:15PM', 'WAS': 'Mon 9:15PM', 'DAL': 'Sun 9:20PM', 'GB': 'Sun 9:20PM', 'ARI': 'Sun 5:05PM', 'LAR': 'Sun 5:05PM', 'NYJ': 'Sun 2:00PM', 'NE': 'Sun 2:00PM', 'HOU': 'Sun 10:30AM', 'JAC': 'Sun 10:30AM', 'MIA': 'Sun 2:00PM', 'SEA': 'Sun 2:00PM', 'DEN': 'Sun 5:25PM' };
-                const starsMap = { 'WAS': '', 'CAR': '', 'ARI': '', 'NYG': '', 'LAR': '', 'GB': '', 'DEN': '', 'KC': '', 'CLE': '', 'NE': '' };
-                const hOpp = String(homeP.opp || 'WAS').replace(/^vs\s+/i, '').replace(/^at\s+/i, '').trim();
-                const aOpp = String(awayP.opp || 'LAR').replace(/^vs\s+/i, '').replace(/^at\s+/i, '').trim();
-                const hKick = kickoffs[homeP.team] || kickoffs[hOpp] || 'Sun 2:00PM';
-                const aKick = kickoffs[awayP.team] || kickoffs[aOpp] || 'Sun 5:05PM';
-                const hStars = starsMap[hOpp] || '';
-                const aStars = starsMap[aOpp] || '';
-
-                return `
-                <tr class="yl-matchup-slot-row">
-                  <!-- Left: Home Player -->
-                  <td class="yl-matchup-slot-cell">
-                    <div class="yl-matchup-player-wrap" onclick="openPlayerDossierModal('${esc(homeP.id)}')">
-                      <img class="yl-matchup-player-photo" src="${esc(homeP.photo)}" alt="${esc(homeP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
-                      <div class="yl-matchup-player-info">
-                        <div class="yl-matchup-player-name">
-                          ${esc(homeP.name)} <span style="font-size:11px;color:var(--text-muted);font-weight:400;">${esc(homeP.team)}</span>
-                          ${homeP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-left:4px;">${esc(homeP.statusShort)}</span>` : ''}
-                        </div>
-                        <div class="yl-matchup-player-meta" style="font-size:11px;color:var(--text-muted);">
-                          <span>${esc(hKick)}</span>
-                        </div>
-                        <div style="font-size:10px;color:#f59e0b;display:flex;align-items:center;gap:4px;margin-top:2px;">
-                          <span>${esc(hStars)}</span>
-                          <span style="color:var(--text-muted);">vs ${esc(hOpp)}</span>
-                          <span class="badge badge-navy" style="font-size:9px;padding:0 4px;">${esc(homeP.pos)}</span>
-                        </div>
-                      </div>
-                      <div class="yl-matchup-player-score" style="text-align:right;">
-                        <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;">
-                          <span style="color:#22c55e;font-size:12px;font-weight:800;"></span>
-                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${formatMatchupNumber(homeP.proj)}</strong>
-                        </div>
-                        <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <!-- Center: Slot Badge -->
-                  <td class="yl-matchup-slot-center">
-                    <span class="yl-matchup-slot-badge ${esc(slot.cat)}">${esc(slot.label)}</span>
-                  </td>
-
-                  <!-- Right: Away Player -->
-                  <td class="yl-matchup-slot-cell">
-                    <div class="yl-matchup-player-wrap align-right" onclick="openPlayerDossierModal('${esc(awayP.id)}')">
-                      <div class="yl-matchup-player-score" style="text-align:left;">
-                        <div style="display:flex;align-items:center;gap:4px;justify-content:flex-start;">
-                          <strong class="mono" style="font-size:15px;color:var(--yl-navy);">${formatMatchupNumber(awayP.proj)}</strong>
-                        </div>
-                        <div style="font-size:9.5px;color:var(--text-muted);">proj</div>
-                      </div>
-                      <div class="yl-matchup-player-info" style="text-align:right;">
-                        <div class="yl-matchup-player-name">
-                          ${awayP.statusShort ? `<span class="badge badge-amber" style="font-size:9px;padding:1px 4px;margin-right:4px;">${esc(awayP.statusShort)}</span>` : ''}
-                          <span style="font-size:11px;color:var(--text-muted);font-weight:400;">${esc(awayP.team)}</span> ${esc(awayP.name)}
-                        </div>
-                        <div class="yl-matchup-player-meta" style="font-size:11px;color:var(--text-muted);">
-                          <span>${esc(aKick)}</span>
-                        </div>
-                        <div style="font-size:10px;color:#f59e0b;display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px;">
-                          <span class="badge badge-navy" style="font-size:9px;padding:0 4px;">${esc(awayP.pos)}</span>
-                          <span style="color:var(--text-muted);">at ${esc(aOpp)}</span>
-                          <span>${esc(aStars)}</span>
-                        </div>
-                      </div>
-                      <img class="yl-matchup-player-photo" src="${esc(awayP.photo)}" alt="${esc(awayP.name)}" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
-                    </div>
-                  </td>
-                </tr>
-              `}).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- SECTION 3: BENCH COMPARISON -->
-      <div class="yl-card" style="padding:20px 22px;margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-          <div>
-            <span class="badge badge-amber">ELENCO DE RESERVAS</span>
-            <h3 style="font-size:17px;font-weight:700;color:var(--yl-navy);margin-top:4px;">
-              Banco de Reservas — ${esc(homeTeam.name)} (${homeBench.length} Atletas) vs ${esc(awayTeam.name)} (${awayBench.length} Atletas)
-            </h3>
-          </div>
-          <span style="font-size:11px;color:var(--text-muted);">O banco não pontua no confronto oficial.</span>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
-          <!-- Left Bench: Home Team -->
-          <div style="background:#f8fafc;border:1px solid var(--border-box);border-radius:8px;padding:12px;">
-            <div style="font-size:12px;font-weight:700;color:var(--yl-navy);margin-bottom:8px;display:flex;justify-content:space-between;">
-              <span>${esc(homeTeam.name)} (Banco)</span>
-              <span class="badge badge-navy">${homeBench.length} jogadores</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;max-height:480px;overflow-y:auto;">
-              ${homeBench.map(id => {
-                const p = resolveMatchupPlayer(id);
-                return `
-                  <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;cursor:pointer;" onclick="openPlayerDossierModal('${esc(id)}')">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <img src="${esc(p.photo)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
-                      <div>
-                        <b style="font-size:12px;color:var(--yl-navy);">${esc(p.name)}</b>
-                        <div style="font-size:10px;color:var(--text-muted);">${esc(p.pos)} · ${esc(p.team)}</div>
-                      </div>
-                    </div>
-                    <div style="text-align:right;">
-                      <span class="mono" style="font-size:12px;font-weight:600;color:var(--yl-navy);">${formatMatchupNumber(p.proj)}</span>
-                      <small style="display:block;font-size:9px;color:var(--text-muted);">${esc(p.statusShort || 'BN')}</small>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-
-          <!-- Right Bench: Away Team -->
-          <div style="background:#f8fafc;border:1px solid var(--border-box);border-radius:8px;padding:12px;">
-            <div style="font-size:12px;font-weight:700;color:var(--yl-navy);margin-bottom:8px;display:flex;justify-content:space-between;">
-              <span>${esc(awayTeam.name)} (Banco)</span>
-              <span class="badge badge-navy">${awayBench.length} jogadores</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;max-height:480px;overflow-y:auto;">
-              ${awayBench.map(id => {
-                const p = resolveMatchupPlayer(id);
-                return `
-                  <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;cursor:pointer;" onclick="openPlayerDossierModal('${esc(id)}')">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <img src="${esc(p.photo)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;" onerror="this.src='https://sleepercdn.com/content/nfl/players/thumb/placeholder.jpg'">
-                      <div>
-                        <b style="font-size:12px;color:var(--yl-navy);">${esc(p.name)}</b>
-                        <div style="font-size:10px;color:var(--text-muted);">${esc(p.pos)} · ${esc(p.team)}</div>
-                      </div>
-                    </div>
-                    <div style="text-align:right;">
-                      <span class="mono" style="font-size:12px;font-weight:600;color:var(--yl-navy);">${formatMatchupNumber(p.proj)}</span>
-                      <small style="display:block;font-size:9px;color:var(--text-muted);">${esc(p.statusShort || 'BN')}</small>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 4: ALL 8 WEEK 6 MATCHUPS -->
-      <div class="yl-card" style="padding:20px 22px;margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-          <div>
-            <span class="badge badge-navy">GAME CENTER SEMANA 6</span>
-            <h3 style="font-size:17px;font-weight:700;color:var(--yl-navy);margin-top:4px;">
-              Todos os 8 Confrontos da Liga (16 Times)
-            </h3>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
-              Clique em qualquer card para carregar o confronto no Game Center acima.
-            </div>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted);">
-            Auditado via <code>/v1/league/1369770282776006656/matchups/6</code>
-          </div>
-        </div>
-
-        <div class="yl-matchups-grid-8">
-          ${WEEK6_ALL_MATCHUPS.map(m => {
-            const isSelected = (m.id === activeMatchupId);
-            return `
-            <div class="yl-matchup-mini-card ${isSelected ? 'is-selected' : ''} ${m.isFeatured ? 'is-featured' : ''}" onclick="selectLeagueMatchup(${m.id})" title="Clique para exibir o confronto #${m.id} no Game Center">
-              <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--text-muted);margin-bottom:6px;">
-                <span>MATCHUP #${m.id}</span>
-                ${isSelected ? '<span class="badge badge-crimson" style="font-size:8.5px;padding:1px 5px;">ATIVO NO GAME CENTER</span>' : (m.isFeatured ? '<span class="badge badge-navy" style="font-size:8.5px;padding:1px 5px;">SEU DUELO</span>' : '<span>NFL WK 6</span>')}
-              </div>
-              <div class="yl-matchup-mini-team ${Number.isFinite(m.away.proj) && Number.isFinite(m.home.proj) && m.away.proj > m.home.proj ? 'is-winner' : ''}">
-                <div>
-                  <strong>${esc(m.away.name)}</strong>
-                  <small style="color:var(--text-muted);display:block;font-size:10px;">${esc(m.away.owner)} · ${esc(m.away.record)}</small>
-                </div>
-                <div class="mono" style="font-size:13px;">${formatMatchupNumber(m.away.proj)}</div>
-              </div>
-              <div class="yl-matchup-mini-team ${Number.isFinite(m.home.proj) && Number.isFinite(m.away.proj) && m.home.proj > m.away.proj ? 'is-winner' : ''}" style="margin-top:4px;">
-                <div>
-                  <strong>${esc(m.home.name)}</strong>
-                  <small style="color:var(--text-muted);display:block;font-size:10px;">${esc(m.home.owner)} · ${esc(m.home.record)}</small>
-                </div>
-                <div class="mono" style="font-size:13px;">${formatMatchupNumber(m.home.proj)}</div>
-              </div>
-            </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <!-- SECTION 5: 16-TEAM STANDINGS TABLE -->
-      <div class="yl-card" style="padding:20px 22px;margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-          <div>
-            <span class="badge badge-green">CLASSIFICAÇÃO OFICIAL SLEEPER</span>
-            <h3 style="font-size:17px;font-weight:700;color:var(--yl-navy);margin-top:4px;">
-              Tabela de Classificação da Liga (16 Times)
-            </h3>
-            <div style="font-size:12px;color:var(--text-muted);">
-              Critério: Vitórias > Total de Pontos Feitos (fpts). <strong>Top 6</strong> avançam aos Playoffs na Semana 15.
-            </div>
-          </div>
-          <span class="badge badge-navy">Temporada 2026</span>
-        </div>
-
-        <div style="overflow-x:auto;">
-          <table class="yl-standings-table">
-            <thead>
-              <tr>
-                <th style="width:40px;">#</th>
-                <th>Time</th>
-                <th>Manager</th>
-                <th style="text-align:center;">Campanha</th>
-                <th style="text-align:right;">Pontos Feitos (PF)</th>
-                <th style="text-align:right;">Pontos Contra (PA)</th>
-                <th style="text-align:center;">Waiver</th>
-                <th style="text-align:center;">Zona</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${LEAGUE_16_STANDINGS.map(t => `
-                <tr class="yl-standings-row ${t.isMe ? 'is-me' : t.rank <= 6 ? 'is-playoffs' : ''}">
-                  <td class="mono" style="font-weight:700;color:var(--yl-navy);">${t.rank}</td>
-                  <td>
-                    <strong>${esc(t.name)}</strong>
-                    ${t.isMe ? '<span class="badge badge-green" style="font-size:9px;padding:1px 5px;margin-left:5px;">VOCÊ</span>' : ''}
-                  </td>
-                  <td style="color:var(--text-muted);">${esc(t.owner)}</td>
-                  <td class="mono" style="text-align:center;font-weight:600;">${esc(t.record)}</td>
-                  <td class="mono" style="text-align:right;font-weight:700;color:var(--yl-navy);">${t.fpts.toFixed(1)}</td>
-                  <td class="mono" style="text-align:right;color:var(--text-muted);">${t.fptsAgainst.toFixed(1)}</td>
-                  <td class="mono" style="text-align:center;color:var(--text-muted);">#${t.waiver}</td>
-                  <td style="text-align:center;">
-                    ${t.rank <= 6 ? '<span class="badge badge-green" style="font-size:9.5px;padding:2px 6px;">PLAYOFFS</span>' : '<span style="font-size:11px;color:var(--text-muted);">—</span>'}
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- SECTION 6: LEAGUE SETTINGS & SCORING RULES CARD -->
-      <div class="yl-card" style="padding:18px 22px;">
-        <div class="yl-card-header" style="margin-bottom:12px;">
-          <div class="yl-card-title">Configurações & Sistema de Pontuação Auditados</div>
-          <span class="badge badge-navy">IDP SYSTEM</span>
-        </div>
-        <div class="grid-4" style="margin-bottom:16px;">
-          <div><small class="yl-muted">Formato</small><b style="display:block;margin-top:2px;">16 Times · Keeper PPR</b></div>
-          <div><small class="yl-muted">Vagas de Playoff</small><b style="display:block;margin-top:2px;">6 Times (Semana 15-17)</b></div>
-          <div><small class="yl-muted">Estrutura de Roster</small><b style="display:block;margin-top:2px;">19 Titulares · 11+ Banco</b></div>
-          <div><small class="yl-muted">Waivers & Trades</small><b style="display:block;margin-top:2px;">Waiver 2 Dias · Deadline Sem. 13</b></div>
-        </div>
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-size:11.5px;line-height:1.6;color:#334155;">
-          <strong>Destaques de Pontuação:</strong> Pass TD: <strong>4 pts</strong> · Pass Yds: <strong>0.05 pts</strong> (20 yds/pt) · Rush/Rec Yds: <strong>0.1 pts</strong> (10 yds/pt) · Receptions: <strong>1.0 PPR</strong> · TE First Down Bonus: <strong>+0.5 pts</strong> · Kicking: <strong>FGM por distância (2 a 6 pts)</strong> · Defesa Individual (IDP): Solo Tackle: <strong>1.0 pt</strong> · Ast Tackle: <strong>0.5 pt</strong> · Sacks: <strong>4.0 pts</strong> · Interceptions: <strong>6.0 pts</strong> · Forced Fumbles: <strong>4.0 pts</strong> · Fumble Recoveries: <strong>2.0 pts</strong> · Safeties: <strong>4.0 pts</strong> · Defensive TD: <strong>6.0 pts</strong>.
-        </div>
-      </div>
-    `;
   }
 
   // ==========================================
@@ -4756,29 +3913,42 @@ window.toggleSidebarGroup=function(key){
 
     const storedMsgs = getStoredChatMessages();
 
-    // Eventos do Sistema & 14 Transações Reais
-    const eventsHtml = REAL_WEEK6_TRANSACTIONS.map(tx => `
+    // Eventos do sistema derivados somente das transações persistidas no snapshot.
+    const officialTransactions = Array.isArray(window.YL_SHELL_SNAPSHOT?.transactions)
+      ? window.YL_SHELL_SNAPSHOT.transactions
+      : [];
+    const playerLabel = id => {
+      const player = typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(String(id)) : null;
+      return player?.name || `Jogador #${id}`;
+    };
+    const eventsHtml = officialTransactions.map(tx => {
+      const adds = Object.values(tx.adds || {}).map(playerLabel);
+      const drops = Object.values(tx.drops || {}).map(playerLabel);
+      const timestamp = tx.createdAt ? new Date(tx.createdAt).toLocaleString('pt-BR') : 'Data indisponível';
+      const rosterLabel = Array.isArray(tx.rosterIds) && tx.rosterIds.length ? `Roster ${tx.rosterIds.join(', ')}` : 'Roster não identificado';
+      return `
       <div class="yl-chat-event event-${esc(tx.type)}">
         <div class="yl-chat-event__head">
-          <span class="yl-chat-event__user">@${esc(tx.user)}</span>
-          <span class="yl-chat-event__time">${esc(tx.time)}</span>
+          <span class="yl-chat-event__user">${esc(rosterLabel)}</span>
+          <span class="yl-chat-event__time">${esc(timestamp)}</span>
         </div>
         <div class="yl-chat-event__body">
-          <span class="yl-chat-event__badge badge-${esc(tx.type)}">${esc(tx.badge)}</span>
-          Adicionou <strong>${esc(tx.add)}</strong>${tx.drop ? `, liberou <em>${esc(tx.drop)}</em>` : ''}.
+          <span class="yl-chat-event__badge badge-${esc(tx.type)}">${esc(tx.status || tx.type || 'TRANSAÇÃO')}</span>
+          ${adds.length ? `Adicionou <strong>${esc(adds.join(', '))}</strong>` : 'Adição não informada'}${drops.length ? `, liberou <em>${esc(drops.join(', '))}</em>` : ''}.
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     const systemCard = `
       <div class="yl-chat-event event-system">
         <div class="yl-chat-event__head">
           <span class="yl-chat-event__user" style="color:#C3112B;"><span class="badge badge-crimson" style="font-size:9px;margin-right:4px;">COMISSÁRIO</span> SISTEMA OFICIAL</span>
-          <span class="yl-chat-event__time">Semana 6</span>
+          <span class="yl-chat-event__time">${esc(window.YL_SHELL_SNAPSHOT?.state?.week ? `Semana ${window.YL_SHELL_SNAPSHOT.state.week}` : 'Semana não informada')}</span>
         </div>
         <div class="yl-chat-event__body">
           <span class="yl-chat-event__badge badge-system">WEEKLY REPORT</span>
-          Duelo validado: <strong>Gengar My Balls</strong> (4-1) vs <strong>Curitiba Red Fox</strong> (2-3). 19 atletas confirmados para cada lado!
+          ${officialTransactions.length ? `${officialTransactions.length} transações oficiais recebidas do snapshot Sleeper.` : 'Nenhuma transação oficial foi recebida para a liga ativa.'}
         </div>
       </div>
     `;
@@ -4800,7 +3970,7 @@ window.toggleSidebarGroup=function(key){
     feed.innerHTML = systemCard + eventsHtml + userMsgsHtml;
 
     // Atualiza contador no topo
-    const totalCount = REAL_WEEK6_TRANSACTIONS.length + storedMsgs.length;
+    const totalCount = officialTransactions.length + storedMsgs.length;
     const countBadge = document.getElementById("chat-count-pill");
     if (countBadge) countBadge.textContent = String(totalCount);
 
@@ -4811,8 +3981,9 @@ window.toggleSidebarGroup=function(key){
   }
 
   async function hydrateLeagueChat() {
-    const base = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
-    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
+    const base = (window.YL_API_BASE || "/api").replace(/\/api\/?$/, "");
+    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || null;
+    if (!leagueId) return;
     try {
       const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages?limit=100`, { headers: { Accept: 'application/json' } });
       if (!response.ok) return;
@@ -4855,8 +4026,12 @@ window.toggleSidebarGroup=function(key){
       isMe: true
     };
 
-    const base = window.YL_API_BASE || (window.location.port === '3001' ? window.location.origin : 'http://localhost:3001');
-    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
+    const base = (window.YL_API_BASE || "/api").replace(/\/api\/?$/, "");
+    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || null;
+    if (!leagueId) {
+      showToast('Selecione e sincronize uma liga antes de enviar mensagens.');
+      return;
+    }
     try {
       const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message: text, author: draft.author, initials: draft.initials }) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -4972,7 +4147,7 @@ window.toggleSidebarGroup=function(key){
     try {
       const savedCollapsed = localStorage.getItem("yl_chat_collapsed");
       const shell = document.querySelector(".yl-main-shell");
-      if (savedCollapsed === "1" && shell) {
+      if (savedCollapsed !== "0" && shell) {
         shell.classList.add("chat-collapsed");
       }
     } catch (e) {}
@@ -4990,46 +4165,17 @@ window.toggleSidebarGroup=function(key){
 // 12. MULTI-LEAGUE & TEAM SWITCHER MODAL
 // ==========================================
 (function() {
-  const FARACO_LEAGUES = [
-    {
-      id: "1389356417462317056",
-      name: "RedZone8 ",
-      teamName: "The Real Slim Brady",
-      format: "HALF_PPR · 6 Times · 11 Titulares",
-      keyPlayers: "Josh Allen (QB), Jonathan Taylor (RB), Zay Flowers (WR), George Pickens (WR), Trey McBride (TE)",
-      status: "Principal (2026)"
-    },
-    {
-      id: "1369770282776006656",
-      name: "Neilo Pistola League",
-      teamName: "Gengar My Balls",
-      format: "PPR com IDP · 16 Times · 19 Titulares",
-      keyPlayers: "Brock Purdy (QB), George Kittle (TE), Drake London (WR), Defensores IDP",
-      status: "Secundária (IDP)"
-    },
-    {
-      id: "1389389170710949888",
-      name: "Calvary Fantasy League ",
-      teamName: "The Real Slim Brady",
-      format: "HALF_PPR · 10 Titulares",
-      keyPlayers: "Trevor Lawrence (QB), Kenneth Walker (RB), Trey Benson (RB)",
-      status: "Ativa (2026)"
-    },
-    {
-      id: "1389358834799108096",
-      name: "La B",
-      teamName: "The Real Slim Brady",
-      format: "PPR · 16 Titulares",
-      keyPlayers: "Patrick Mahomes (QB), Puka Nacua (WR)",
-      status: "Ativa (2026)"
-    }
-  ];
+  const getAvailableLeagues = () => {
+    const fromApi = window.YL_AVAILABLE_LEAGUES || (typeof onboardingData !== 'undefined' ? onboardingData.userLeagues : []);
+    return Array.isArray(fromApi) ? fromApi : [];
+  };
 
   window.openLeagueSwitcherModal = function() {
     const modal = document.getElementById("league-switcher-modal");
     const content = document.getElementById("league-switcher-modal-content");
     if (!modal || !content) return;
-    const currentId = localStorage.getItem("yl_active_league_id") || "1389356417462317056";
+    const currentId = localStorage.getItem("yl_active_league_id") || null;
+    const availableLeagues = getAvailableLeagues();
 
     content.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
@@ -5042,20 +4188,20 @@ window.toggleSidebarGroup=function(key){
       </div>
 
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-        ${FARACO_LEAGUES.map(lg => {
+        ${availableLeagues.length ? availableLeagues.map(lg => {
           const isActive = lg.id === currentId;
           return `
             <div style="border:2px solid ${isActive ? '#C3112B' : 'var(--border-color)'};background:${isActive ? 'rgba(195,17,43,0.04)' : '#FFFFFF'};border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s ease;" onclick="switchLeague('${lg.id}')">
               <div style="flex:1;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <strong style="font-size:15px;color:var(--yl-navy);">${lg.name}</strong>
-                  ${isActive ? '<span class="badge badge-crimson" style="font-size:10px;">LIGA ATIVA</span>' : `<span class="badge badge-navy" style="font-size:10px;">${lg.status}</span>`}
+                  <strong style="font-size:15px;color:var(--yl-navy);">${lg.name || `Liga #${lg.id || lg.league_id}`}</strong>
+                  ${isActive ? '<span class="badge badge-crimson" style="font-size:10px;">LIGA ATIVA</span>' : `<span class="badge badge-navy" style="font-size:10px;">${lg.status || "DISPONÍVEL"}</span>`}
                 </div>
                 <div style="font-size:13px;font-weight:600;color:#0F172A;margin-bottom:2px;">
-                  Seu time: <span style="color:#C3112B;">${lg.teamName}</span>
+                  Liga Sleeper: <span style="color:#C3112B;">#${lg.id || lg.league_id}</span>
                 </div>
-                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${lg.format}</div>
-                <div style="font-size:11px;color:var(--text-body);"><strong>Destaques:</strong> ${lg.keyPlayers}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${lg.season || "temporada não informada"} · ${lg.total_rosters || "—"} rosters</div>
+                <div style="font-size:11px;color:var(--text-body);"><strong>Fonte:</strong> API Sleeper / sincronização oficial</div>
               </div>
               <div>
                 <button type="button" class="btn-yl ${isActive ? 'btn-primary' : 'btn-outline'}" style="white-space:nowrap;padding:7px 14px;font-size:12px;" onclick="event.stopPropagation();switchLeague('${lg.id}')">
@@ -5064,7 +4210,7 @@ window.toggleSidebarGroup=function(key){
               </div>
             </div>
           `;
-        }).join('')}
+        }).join('') : '<div class="yl-empty-state">Nenhuma liga Sleeper sincronizada para esta conta.</div>'}
       </div>
 
       <div style="border-top:1px solid var(--border-color);padding-top:14px;display:flex;justify-content:space-between;align-items:center;">

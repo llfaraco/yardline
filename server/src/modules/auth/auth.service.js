@@ -9,8 +9,9 @@ function hashPassword(password) {
 }
 
 function verifyPassword(password, storedHash) {
+  if (typeof storedHash !== 'string') return false;
   const [salt, key] = storedHash.split(':');
-  if (!salt || !key) return false;
+  if (!/^[a-f0-9]{32}$/i.test(salt || '') || !/^[a-f0-9]{128}$/i.test(key || '')) return false;
   const keyBuffer = Buffer.from(key, 'hex');
   const derivedKey = crypto.scryptSync(password, salt, 64);
   return crypto.timingSafeEqual(keyBuffer, derivedKey);
@@ -19,8 +20,18 @@ function verifyPassword(password, storedHash) {
 // Map em memória para sessões ativas (para produção: Redis ou tabela sessions)
 const activeSessions = new Map(); // token -> { userId, expiresAt }
 
+function validateCredentials(email, password) {
+  if (typeof email !== 'string' || !email.trim() || email.length > 254
+    || typeof password !== 'string' || !password.length || Buffer.byteLength(password) > 1024) {
+    throw new Error('E-mail ou senha inválidos.');
+  }
+}
+
 export const authService = {
   register({ email, password, displayName, timezone = 'America/Sao_Paulo' }) {
+    validateCredentials(email, password);
+    if (typeof displayName !== 'string' || !displayName.trim() || displayName.length > 120
+      || typeof timezone !== 'string' || timezone.length > 100) throw new Error('Nome ou fuso horário inválidos.');
     const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase().trim());
     if (existing) {
       throw new Error('Já existe uma conta cadastrada com este endereço de e-mail.');
@@ -47,6 +58,7 @@ export const authService = {
   },
 
   login({ email, password }) {
+    validateCredentials(email, password);
     const user = db.prepare('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL').get(email.toLowerCase().trim());
     if (!user || !verifyPassword(password, user.password_hash)) {
       throw new Error('Credenciais inválidas. Verifique seu e-mail e senha.');

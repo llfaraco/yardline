@@ -41,47 +41,10 @@ let ROSTER_SLOTS_DEF = [
   { key: "DB3", label: "DB", allowed: ["DB", "CB", "S", "FS", "SS"], required: true }
 ];
 
-// Estado Inicial do Elenco Real do Usuário (Time: Gengar My Balls · ID da Liga: 1369770282776006656)
-let userLineup = {
-  "QB": "8183",    // Brock Purdy (QB, SF)
-  "RB1": "7588",   // Javonte Williams (RB, DAL)
-  "WR1": "8112",   // Drake London (WR, ATL)
-  "WR2": "9997",   // Zay Flowers (WR, BAL)
-  "WR3": "11646",  // Jalen Coker (WR, CAR)
-  "TE": "4217",    // George Kittle (TE, SF)
-  "FLEX1": "12474", // Woody Marks (RB, HOU)
-  "FLEX2": "11576", // Braelon Allen (RB, NYJ)
-  "IDP": "6791",   // C.J. Henderson (CB, ATL)
-  "K": "6083",     // Matt Gay (K, LV)
-  "DL1": "5991",   // Maxx Crosby (DE, LV)
-  "DL2": "10892",  // Will Anderson (DL, HOU)
-  "DL3": "13457",  // Gabe Jacas (DE, NE)
-  "LB1": "6860",   // Akeem Davis-Gaither (LB, IND)
-  "LB2": "12140",  // Omar Speights (LB, LAR)
-  "LB3": "13381",  // Jaishawn Barham (LB, DAL)
-  "DB1": "11685",  // Kamari Lassiter (DB, HOU)
-  "DB2": "11739",  // Evan Williams (DB, GB)
-  "DB3": "12605"   // Jacob Parrish (DB, TB)
-};
-
-let userBenchList = [
-  "11610", // Malik Washington (WR, MIA)
-  "11667", // Dallas Turner (LB, MIN)
-  "12504", // Kaleb Johnson (RB, GB)
-  "12505", // Jalen Royals (WR, KC)
-  "12646", // Barrett Carter (LB, CIN)
-  "13413", // Cyrus Allen (WR, KC)
-  "4224",  // Chuck Clark (DB, DET)
-  "5846",  // DK Metcalf (WR, PIT)
-  "5947",  // Jakobi Meyers (WR, JAX)
-  "6868",  // DJ Wonnum (DE, DET)
-  "7523",  // Trevor Lawrence (QB, JAX)
-  "8210"   // Chig Okonkwo (TE, WAS)
-];
-
-let userReserveList = [
-  "11470"  // Drake Thomas (LB, SEA) - Reserva/IR
-];
+// O lineup só nasce após hidratação de um roster oficial do snapshot.
+let userLineup = {};
+let userBenchList = [];
+let userReserveList = [];
 
 // Carregar persistência local se disponível
 try {
@@ -504,9 +467,9 @@ function simulateOptimalLineupProjection(playerIdsPool) {
 }
 
 // Estado do Trade Analyzer
-let tradeUserPicks = ["7588"]; // Default Javonte Williams (Gengar My Balls)
-let tradeTargetRosterId = 1; // Default Curitiba Red Fox (@neyllon - Roster 1)
-let tradeTargetPicks = ["7569"]; // Default Nico Collins (Curitiba Red Fox)
+let tradeUserPicks = [];
+let tradeTargetRosterId = null;
+let tradeTargetPicks = [];
 
 function handleTradeTargetTeamChange(rosterId) {
   tradeTargetRosterId = parseInt(rosterId, 10);
@@ -550,10 +513,13 @@ function copyFormattedTradeProposal() {
   }).join('\n  • ');
 
   const oppTeamObj = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS : []).find(t => t.rosterId === tradeTargetRosterId);
-  const oppName = oppTeamObj?.name || `Time ${tradeTargetRosterId}`;
+  const myTeamObj = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS : []).find(t => t.rosterId === userRealRoster?.roster_id);
+  const myTeamLabel = myTeamObj?.name || "Meu time";
+  const myOwnerLabel = myTeamObj?.owner || "";
+  const oppName = oppTeamObj?.name || `Roster #${tradeTargetRosterId}`;
 
   const text = `*[YARDLINE ANALYTICS] PROPOSTA DE TROCA OFICIAL*\n\n` +
-    `*De:* Gengar My Balls (@Faraco)\n` +
+    `*De:* ${myTeamLabel} (${myOwnerLabel})\n` +
     `*Para:* ${oppName} (${oppTeamObj?.owner || ''})\n` +
     `*Formato de Pontuação:* ${activeScoringFormat.replace('_', ' ')}\n\n` +
     `*Meu Time Envia:*\n  • ${userP || 'Nenhum atleta selecionado'}\n\n` +
@@ -573,9 +539,13 @@ function renderTradeView() {
   const container = document.getElementById("view-trade");
   if (!container) return;
 
-  // 1. Obter atletas reais de "Gengar My Balls" (Meu time)
+  // 1. Obter atletas reais do time selecionado
+  if (!window.YL_SHELL_SNAPSHOT?.league || !userRealRoster) {
+    container.innerHTML = '<div class="yl-card"><strong>Trade Analyzer indisponível</strong><p class="yl-muted">Sincronize uma liga oficial e um roster selecionado para analisar trocas.</p></div>';
+    return;
+  }
   let myRosterIds = [];
-  const myRosterId = userRealRoster?.roster_id || 2;
+  const myRosterId = userRealRoster.roster_id;
   const userRosterObj = activeSleeperRosters.find(r => r.roster_id === myRosterId);
   if (userRosterObj && Array.isArray(userRosterObj.players)) {
     myRosterIds = userRosterObj.players.map(String);
@@ -591,22 +561,17 @@ function renderTradeView() {
   // 2. Identificar os 11+ outros times reais da liga
   const otherTeams = (typeof LEAGUE_12_TEAMS !== "undefined" && LEAGUE_12_TEAMS.length > 0)
     ? LEAGUE_12_TEAMS.filter(t => !t.isMyTeam && t.rosterId !== myRosterId)
-    : activeSleeperRosters.filter(r => r.roster_id !== myRosterId).map(r => ({
-        rosterId: r.roster_id,
-        name: `Time ${r.roster_id}`,
-        owner: `@Rival${r.roster_id}`,
-        record: "0-0"
-      }));
+    : [];
 
   if (!tradeTargetRosterId || tradeTargetRosterId === myRosterId) {
     tradeTargetRosterId = otherTeams[0]?.rosterId || 1;
   }
 
-  const selectedOppTeam = otherTeams.find(t => t.rosterId === tradeTargetRosterId) || otherTeams[0] || {
-    rosterId: tradeTargetRosterId,
-    name: "Adversário",
-    owner: "@rival"
-  };
+  const selectedOppTeam = otherTeams.find(t => t.rosterId === tradeTargetRosterId) || otherTeams[0];
+  if (!selectedOppTeam) {
+    container.innerHTML = '<div class="yl-card"><strong>Adversários indisponíveis</strong><p class="yl-muted">O snapshot oficial não trouxe outro roster para comparação.</p></div>';
+    return;
+  }
 
   // 3. Obter atletas reais do adversário selecionado
   const oppRosterObj = activeSleeperRosters.find(r => r.roster_id === tradeTargetRosterId);
@@ -747,7 +712,7 @@ function renderTradeView() {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div>
             <span class="badge badge-navy">SEU TIME ENVIA</span>
-            <div style="font-size:14px;font-weight:600;color:var(--yl-navy);margin-top:4px;">Gengar My Balls (@Faraco)</div>
+            <div style="font-size:14px;font-weight:600;color:var(--yl-navy);margin-top:4px;">${myTeamLabel} (${myOwnerLabel})</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:18px;font-weight:600;color:var(--yl-navy);">${userTotalVal} <span style="font-size:11px;color:var(--text-muted);">pts valor</span></div>
@@ -774,7 +739,7 @@ function renderTradeView() {
         <div style="display:flex;flex-direction:column;gap:8px;">
           ${userSelectedPlayers.length === 0 ? `
             <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12.5px;background:#F8FAFC;border:1px dashed var(--border-box);border-radius:8px;">
-              Selecione acima os atletas de <strong>Gengar My Balls</strong> que deseja ceder nesta negociação.
+              Selecione acima os atletas de <strong>${myTeamLabel}</strong> que deseja ceder nesta negociação.
             </div>
           ` : userSelectedPlayers.map(p => {
             const proj = getEffectiveProjection(p);
@@ -943,13 +908,13 @@ function simulateWaiverAddition(claimedPlayerId) {
 
 // ==========================================
 //  CONEXÃO DIRETA COM A LIGA REAL DO SLEEPER
-// League ID: 1369770282776006656 · Time: Gengar My Balls (@Faraco)
+// League ID: 1369770282776006656 · Time: ${myTeamLabel} (${myOwnerLabel})
 // ==========================================
-const REAL_SLEEPER_LEAGUE_ID = "1369770282776006656";
-// Identidade informada para a liga configurada no Yardline; não é aplicada a outras ligas.
-const REAL_SLEEPER_USERNAME = "Faraco";
+let REAL_SLEEPER_LEAGUE_ID = localStorage.getItem("yl_active_league_id") || localStorage.getItem("yl_active_league") || null;
+// Identidade e liga são preenchidas somente após o onboarding/snapshot oficial.
+let REAL_SLEEPER_USERNAME = localStorage.getItem("yl_sleeper_username") || null;
 let activeNflState = null;
-let activeLeagueWeek = 6;
+let activeLeagueWeek = null;
 let activeSleeperLeagueData = null;
 let activeSleeperRosters = [];
 let activeSleeperUsers = [];
@@ -1086,248 +1051,6 @@ function indexSleeperPlayersCatalog(catalog) {
 
 async function syncRealSleeperLeagueLiveLegacy() {
   throw new Error('Pipeline Sleeper direto desativado: use syncRealSleeperLeagueLive / backend shell.');
-  showToast("Conectando aos endpoints da Liga #1369770282776006656...");
-  try {
-    // 1. GET endpoints reais: state/nfl, league, users, rosters
-    const [stateRes, leagueRes, usersRes, rostersRes] = await Promise.all([
-      fetch("https://api.sleeper.app/v1/state/nfl"),
-      fetch(`https://api.sleeper.app/v1/league/${REAL_SLEEPER_LEAGUE_ID}`),
-      fetch(`https://api.sleeper.app/v1/league/${REAL_SLEEPER_LEAGUE_ID}/users`),
-      fetch(`https://api.sleeper.app/v1/league/${REAL_SLEEPER_LEAGUE_ID}/rosters`)
-    ]);
-
-    if (!leagueRes.ok || !usersRes.ok || !rostersRes.ok) {
-      throw new Error("Falha ao comunicar com os endpoints da liga Sleeper");
-    }
-
-    if (stateRes.ok) {
-      activeNflState = await stateRes.json();
-      activeLeagueWeek = activeNflState.week || 6;
-    }
-
-    activeSleeperLeagueData = await leagueRes.json();
-    activeSleeperUsers = await usersRes.json();
-    activeSleeperRosters = await rostersRes.json();
-
-    // Buscar matchups da semana atual dinamicamente
-    let currentWeekMatchups = [];
-    try {
-      const matchupsRes = await fetch(`https://api.sleeper.app/v1/league/${REAL_SLEEPER_LEAGUE_ID}/matchups/${activeLeagueWeek}`);
-      if (matchupsRes.ok) {
-        currentWeekMatchups = await matchupsRes.json();
-      }
-    } catch(e) {
-      console.warn("Notice: falha ao buscar matchups da semana:", e);
-    }
-
-    // 2. GET https://api.sleeper.app/v1/players/nfl (salvo em cache no IndexedDB com TTL de 24h)
-    let sleeperCatalog = await getSleeperPlayersFromIDB();
-    if (!sleeperCatalog || Object.keys(sleeperCatalog).length === 0) {
-      showToast("Baixando catálogo oficial da NFL do Sleeper (cache no IndexedDB)...");
-      try {
-        const playersRes = await fetch("https://api.sleeper.app/v1/players/nfl");
-        if (playersRes.ok) {
-          sleeperCatalog = await playersRes.json();
-          await saveSleeperPlayersToIDB(sleeperCatalog);
-          showToast("Catálogo Sleeper (~35MB) salvo no IndexedDB (YardlinePlayersCacheDB) com sucesso!");
-        }
-      } catch (err) {
-        console.warn("Notice: erro ao baixar players/nfl completo:", err);
-      }
-    }
-    if (sleeperCatalog) {
-      indexSleeperPlayersCatalog(sleeperCatalog);
-    }
-
-    // 3. Localizar o roster do meu time "Gengar My Balls" cruzando o owner_id em /users com /rosters
-    let userOwnerId = null;
-    let myUser = null;
-    for (const u of activeSleeperUsers) {
-      const tName = (u.metadata?.team_name || "").toLowerCase();
-      const dName = (u.display_name || "").toLowerCase();
-      if (tName.includes("gengar") || tName.includes("balls") || dName.includes("gengar") || dName.includes("faraco")) {
-        userOwnerId = u.user_id;
-        myUser = u;
-        break;
-      }
-    }
-    if (!userOwnerId && activeSleeperUsers.length > 0) {
-      userOwnerId = activeSleeperUsers[0].user_id;
-      myUser = activeSleeperUsers[0];
-    }
-
-    userRealRoster = activeSleeperRosters.find(r => r.owner_id === userOwnerId);
-
-    // 4. Preencher titulares reais (starters) e reservas reais (players menos starters e reserve) com catálogo oficial
-    if (userRealRoster && Array.isArray(userRealRoster.starters)) {
-      if (Array.isArray(activeSleeperLeagueData?.roster_positions)) {
-        const starterPositions = activeSleeperLeagueData.roster_positions.filter(p => p !== "BN");
-        const posCounters = {};
-        ROSTER_SLOTS_DEF = starterPositions.map((posName, idx) => {
-          posCounters[posName] = (posCounters[posName] || 0) + 1;
-          const num = posCounters[posName];
-          let key = posName + (num > 1 ? num : (["RB", "WR", "DL", "LB", "DB"].includes(posName) ? "1" : ""));
-          let label = posName;
-          let allowed = [posName];
-
-          if (posName === "FLEX") {
-            key = "FLEX" + (num > 1 ? num : "");
-            allowed = ["RB", "WR", "TE"];
-          } else if (posName === "IDP_FLEX") {
-            key = "IDP" + (num > 1 ? num : "");
-            label = "IDP";
-            allowed = ["DL", "LB", "DB", "DE", "DT", "CB", "S"];
-          } else if (posName === "DL") {
-            allowed = ["DL", "DE", "DT"];
-          } else if (posName === "LB") {
-            allowed = ["LB", "ILB", "OLB"];
-          } else if (posName === "DB") {
-            allowed = ["DB", "CB", "S", "FS", "SS"];
-          }
-
-          return { key, label, allowed, required: true, slotIndex: idx };
-        });
-      }
-
-      userLineup = {};
-      ROSTER_SLOTS_DEF.forEach((slot, idx) => {
-        const pid = userRealRoster.starters[idx];
-        if (pid) {
-          userLineup[slot.key] = String(pid);
-          resolveNFLPlayer(String(pid));
-        }
-      });
-
-      const starterSet = new Set((userRealRoster.starters || []).map(String));
-      const reserveSet = new Set((userRealRoster.reserve || []).map(String));
-
-      // Reservas reais = players MENOS starters e reserve
-      if (Array.isArray(userRealRoster.players)) {
-        userBenchList = userRealRoster.players
-          .map(String)
-          .filter(pid => !starterSet.has(pid) && !reserveSet.has(pid));
-        userBenchList.forEach(pid => resolveNFLPlayer(pid));
-      }
-
-      userReserveList = Array.from(reserveSet);
-      userReserveList.forEach(pid => resolveNFLPlayer(pid));
-
-      // Atualizar saldo de FAAB se disponível
-      if (userRealRoster.settings && typeof userFaab !== "undefined") {
-        const used = userRealRoster.settings.waiver_budget_used || 0;
-        userFaab = Math.max(0, 100 - used);
-      }
-
-      saveLineupState();
-    }
-
-    // 5. Atualizar a lista de todos os times da liga com os nomes reais retornados de /users
-    const userMap = {};
-    activeSleeperUsers.forEach(u => { userMap[u.user_id] = u; });
-
-    LEAGUE_12_TEAMS = activeSleeperRosters.map(r => {
-      const u = userMap[r.owner_id] || {};
-      const name = u.metadata?.team_name || u.display_name || ("Time #" + r.roster_id);
-      const owner = u.display_name ? ("@" + u.display_name) : "Manager";
-      const wins = r.settings?.wins || 0;
-      const losses = r.settings?.losses || 0;
-      const ties = r.settings?.ties || 0;
-      const fpts = (r.settings?.fpts || 0) + ((r.settings?.fpts_decimal || 0) / 100);
-      const fptsAgainst = (r.settings?.fpts_against || 0) + ((r.settings?.fpts_against_decimal || 0) / 100);
-      const isMine = r.roster_id === userRealRoster?.roster_id;
-
-      let teamProj = 0;
-      if (Array.isArray(r.starters)) {
-        r.starters.forEach(pid => {
-          if (pid) {
-            const p = resolveNFLPlayer(String(pid));
-            if (p) teamProj += getEffectiveProjection(p);
-          }
-        });
-      }
-      if (teamProj === 0) teamProj = fpts / Math.max(1, wins + losses);
-
-      return {
-        rosterId: r.roster_id,
-        name: name,
-        owner: owner,
-        record: ties > 0 ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`,
-        wins: wins,
-        losses: losses,
-        ties: ties,
-        fpts: fpts.toFixed(1),
-        fptsAgainst: fptsAgainst.toFixed(1),
-        projTotal: parseFloat(teamProj.toFixed(1)),
-        isMyTeam: isMine
-      };
-    });
-
-    // Ordenar classificação por vitórias e pontos
-    LEAGUE_12_TEAMS.sort((a, b) => b.wins - a.wins || parseFloat(b.fpts) - parseFloat(a.fpts));
-
-    if (userRealRoster) {
-      selectedActiveRosterId = userRealRoster.roster_id;
-    }
-
-    // 6. Mapear Duelo Real da Semana Atual
-    if (Array.isArray(currentWeekMatchups) && userRealRoster) {
-      const userMatch = currentWeekMatchups.find(m => m.roster_id === userRealRoster.roster_id);
-      if (userMatch) {
-        const oppMatch = currentWeekMatchups.find(m => m.matchup_id === userMatch.matchup_id && m.roster_id !== userMatch.roster_id);
-        if (oppMatch) {
-          const oppRoster = activeSleeperRosters.find(r => r.roster_id === oppMatch.roster_id);
-          const oppUser = activeSleeperUsers.find(u => u.user_id === oppRoster?.owner_id);
-          const oppName = oppUser?.metadata?.team_name || oppUser?.display_name || "Adversário da Liga";
-          const oppTeamObj = LEAGUE_12_TEAMS.find(t => t.rosterId === oppMatch.roster_id);
-          const myTeamObj = LEAGUE_12_TEAMS.find(t => t.rosterId === userRealRoster.roster_id);
-
-          let oppProj = 0;
-          if (Array.isArray(oppMatch.starters)) {
-            oppMatch.starters.forEach(pid => {
-              if (pid) {
-                const p = resolveNFLPlayer(String(pid));
-                if (p) oppProj += getEffectiveProjection(p);
-              }
-            });
-          }
-          if (oppProj === 0 && oppTeamObj) oppProj = oppTeamObj.projTotal;
-
-          activeRealMatchup = {
-            week: activeLeagueWeek,
-            matchupId: userMatch.matchup_id,
-            myTeam: myTeamObj?.name || "Gengar My Balls",
-            myRecord: myTeamObj?.record || "4-1",
-            myProj: calculateLineupTotalProjection(),
-            myScore: userMatch.points || 0,
-            oppTeam: oppName,
-            oppRecord: oppTeamObj?.record || "2-3",
-            oppProj: parseFloat(oppProj.toFixed ? oppProj.toFixed(1) : oppProj),
-            oppScore: oppMatch.points || 0,
-            oppOwner: oppUser?.display_name ? ("@" + oppUser.display_name) : "",
-            oppRosterId: oppMatch.roster_id
-          };
-          activeRealMatchupWeek6 = activeRealMatchup;
-        }
-      }
-    }
-
-    // 7. Derivar a aba de Waivers aplicando a diferença de conjuntos (SPEC.md)
-    deriveLeagueFreeAgents();
-
-    // Atualizar componentes da interface
-    renderPlaybookView();
-    renderLeagueView();
-    renderTradeView();
-    renderWaiversView();
-
-    const leagueTitle = activeSleeperLeagueData?.name || "Neilo Pistola League";
-    showToast(`Conectado à ${leagueTitle}! 'Gengar My Balls' e confronto da Semana ${activeLeagueWeek} sincronizados.`);
-    return true;
-  } catch (err) {
-    console.error("Sleeper live API sync notice:", err);
-    showToast("ℹ Base local de 'Gengar My Balls' ativa. Clique em 'Auditar' na aba Liga para recarregar.");
-    return false;
-  }
 }
 
 // Indexar todos os jogadores por Sleeper ID na base local YL_ALL_NFL_PLAYERS
@@ -1387,25 +1110,7 @@ function resetCustomProjections() {
 }
 
 // 12+ Times Oficiais da Liga Sleeper #1369770282776006656 (Neilo Pistola League)
-let LEAGUE_12_TEAMS = [
-  { rosterId: 13, name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0", wins: 5, losses: 0, ties: 0, fpts: "1153.3", fptsAgainst: "809.3", projTotal: 152.0, isMyTeam: false },
-  { rosterId: 2, name: "Gengar My Balls", owner: "@Faraco", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "1091.3", fptsAgainst: "857.7", projTotal: 148.6, isMyTeam: true },
-  { rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "973.1", fptsAgainst: "831.3", projTotal: 138.4, isMyTeam: false },
-  { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "940.3", fptsAgainst: "905.0", projTotal: 135.2, isMyTeam: false },
-  { rosterId: 9, name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "917.1", fptsAgainst: "847.1", projTotal: 133.0, isMyTeam: false },
-  { rosterId: 8, name: "Paranaguá Rat Crew", owner: "@cauexavier", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "893.4", fptsAgainst: "845.7", projTotal: 131.5, isMyTeam: false },
-  { rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2", wins: 3, losses: 2, ties: 0, fpts: "849.5", fptsAgainst: "770.5", projTotal: 128.0, isMyTeam: false },
-  { rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "977.0", fptsAgainst: "923.7", projTotal: 134.5, isMyTeam: false },
-  { rosterId: 6, name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "863.5", fptsAgainst: "881.4", projTotal: 127.8, isMyTeam: false },
-  { rosterId: 1, name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "848.7", fptsAgainst: "829.2", projTotal: 126.4, isMyTeam: false },
-  { rosterId: 7, name: "Guabi JackRabbits", owner: "@MarcoCoelho", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "825.7", fptsAgainst: "1002.3", projTotal: 124.0, isMyTeam: false },
-  { rosterId: 4, name: "Williams The Conqueror", owner: "@Abreu77", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "748.8", fptsAgainst: "884.8", projTotal: 119.5, isMyTeam: false },
-  { rosterId: 5, name: "Eli Pug", owner: "@ASantiagoS", record: "1-4", wins: 1, losses: 4, ties: 0, fpts: "775.9", fptsAgainst: "976.3", projTotal: 118.0, isMyTeam: false },
-  { rosterId: 3, name: "Parsons a Parsons", owner: "@NacuaMatata90", record: "1-4", wins: 1, losses: 4, ties: 0, fpts: "723.9", fptsAgainst: "854.4", projTotal: 115.0, isMyTeam: false },
-  { rosterId: 15, name: "Vagabundos Iluminados", owner: "@AugustoVelloso", record: "0-5", wins: 0, losses: 5, ties: 0, fpts: "857.4", fptsAgainst: "993.0", projTotal: 122.0, isMyTeam: false },
-  { rosterId: 14, name: "How I Metcalf Your Mother", owner: "@thalesmagni", record: "0-5", wins: 0, losses: 5, ties: 0, fpts: "746.8", fptsAgainst: "973.4", projTotal: 114.0, isMyTeam: false }
-];
-
+let LEAGUE_12_TEAMS = []; // preenchido somente por snapshot oficial Sleeper
 function selectTeamRoster(rId) {
   selectedActiveRosterId = parseInt(rId);
   renderPlaybookView();
@@ -1426,33 +1131,43 @@ function renderPlaybookView() {
   if (!container) return;
 
   const currentTeam = LEAGUE_12_TEAMS.find(t => t.rosterId === selectedActiveRosterId) || LEAGUE_12_TEAMS.find(t => t.isMyTeam) || LEAGUE_12_TEAMS[0];
-  const isViewingMyTeam = currentTeam.isMyTeam || (userRealRoster && currentTeam.rosterId === userRealRoster.roster_id);
-  const currentWeek = activeLeagueWeek || 6;
-  const matchupObj = activeRealMatchup || activeRealMatchupWeek6;
+  if (!currentTeam || !window.YL_SHELL_SNAPSHOT?.league || !userRealRoster) {
+    container.innerHTML = `<div class="yl-card" style="padding:24px;text-align:center;"><span class="badge badge-amber">PLAYBOOK INDISPONÍVEL</span><h2 style="margin:10px 0 6px;color:var(--yl-navy);font-size:20px;">Sincronize uma liga para carregar seu time</h2><p style="margin:0 auto 16px;max-width:620px;color:var(--text-muted);font-size:13px;line-height:1.5;">Titulares, reservas, histórico e diagnóstico só aparecem após a confirmação do owner e do roster no snapshot Sleeper.</p><button class="btn-yl btn-primary" onclick="openOnboardingModal(2)">Conectar Sleeper</button></div>`;
+    return;
+  }
+  const isViewingMyTeam = currentTeam.isMyTeam || currentTeam.rosterId === userRealRoster.roster_id;
+  const currentWeek = activeLeagueWeek ?? null;
+  const matchupObj = activeRealMatchup || null;
 
   // Duelo oficial da Semana atual
-  let oppTeamName = "Curitiba Red Fox";
-  let oppTeamRecord = "2-3";
-  let oppProj = "126.4";
+  let oppTeamName = "Adversário indisponível";
+  let oppTeamRecord = "—";
+  let oppProj = "—";
 
   if (matchupObj && isViewingMyTeam) {
-    oppTeamName = matchupObj.oppTeam;
-    oppTeamRecord = matchupObj.oppRecord;
-    oppProj = matchupObj.oppProj;
-  } else {
-    const opp = LEAGUE_12_TEAMS.find(t => t.rosterId !== currentTeam.rosterId) || LEAGUE_12_TEAMS[1];
-    oppTeamName = opp.name;
-    oppTeamRecord = opp.record;
-    oppProj = opp.projTotal;
+    const opponent = LEAGUE_12_TEAMS.find(t => Number(t.rosterId) === Number(matchupObj.oppRoster?.roster_id));
+    oppTeamName = opponent?.name || matchupObj.oppRoster?.teamName || "Adversário identificado sem nome";
+    oppTeamRecord = opponent?.record || "—";
+    oppProj = matchupObj.oppScore ?? "—";
   }
 
-  const totalProj = calculateLineupTotalProjection();
-  const maxPossibleProj = (parseFloat(totalProj) + 3.4).toFixed(1);
-  const efficiencyPercent = Math.min(100, Math.round((parseFloat(totalProj) / parseFloat(maxPossibleProj)) * 100));
+  let totalProj = "—";
+  const maxPossibleProj = null;
+  const efficiencyPercent = null;
+  const activeLeagueId = activeSleeperLeagueData?.league_id || window.YL_SHELL_SNAPSHOT?.league?.providerLeagueId || null;
+  const sleeperLeagueUrl = activeLeagueId ? `https://sleeper.com/leagues/${encodeURIComponent(activeLeagueId)}/team` : '#';
+  const injuryPlayers = [...(userRealRoster.players || [])].map(id => resolveNFLPlayer(id)).filter(player => player?.injuryStatus && !/healthy|active/i.test(player.injuryStatus));
+  const waiverCandidate = activeLeagueFreeAgents[0] || null;
 
   // Determinar titulares e reservas a exibir
-  let displayLineup = userLineup;
-  let displayBench = userBenchList;
+  let displayLineup = {};
+  ROSTER_SLOTS_DEF.forEach((slot, index) => {
+    const pid = userRealRoster.starters?.[index];
+    if (pid && String(pid) !== '0') displayLineup[slot.key] = String(pid);
+  });
+  let displayBench = (userRealRoster.players || [])
+    .filter(pid => !(userRealRoster.starters || []).map(String).includes(String(pid)))
+    .map(String);
 
   if (!isViewingMyTeam && activeSleeperRosters.length > 0) {
     const otherRoster = activeSleeperRosters.find(r => r.roster_id === currentTeam.rosterId);
@@ -1467,6 +1182,7 @@ function renderPlaybookView() {
         .map(String);
     }
   }
+  totalProj = calculateLineupProjection(displayLineup);
 
   container.innerHTML = `
     <!-- Top Selector Strip (16 Times da Liga Sleeper #1369770282776006656) -->
@@ -1476,8 +1192,8 @@ function renderPlaybookView() {
           <span class="badge badge-crimson">HEAD COACH COMMAND CENTER</span>
           <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
             <h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin:0;">${currentTeam.name}</h2>
-            <span class="badge badge-green">${currentTeam.record} · 2º Lugar</span>
-            <a href="https://sleeper.com/leagues/1369770282776006656/team" target="_blank" class="badge badge-blue" style="text-decoration:none;">Abrir no Sleeper ↗</a>
+            <span class="badge badge-green">${currentTeam.record || 'Campanha indisponível'}</span>
+            <a href="${sleeperLeagueUrl}" target="_blank" rel="noreferrer" class="badge badge-blue" style="text-decoration:none;">Abrir no Sleeper ↗</a>
           </div>
         </div>
 
@@ -1499,11 +1215,11 @@ function renderPlaybookView() {
       <!-- Duelo Real da Semana Atual -->
       <div style="margin-top:14px;border-top:1px solid var(--border-light);padding-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div style="font-size:13px;color:var(--yl-navy);" id="playbook-real-matchup-header">
-          Duelo da Semana ${currentWeek}: <strong>${currentTeam.name} (${totalProj} pts)</strong> vs <strong>${oppTeamName} (${oppProj} pts)</strong>
+          Duelo da Semana ${currentWeek ?? '—'}: <strong>${currentTeam.name} (${totalProj} pts)</strong> vs <strong>${oppTeamName} (${oppProj} pts)</strong>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:12px;color:var(--text-muted);">Probabilidade de Vitória:</span>
-          <span class="badge badge-green" style="font-size:12px;font-weight:500;">61% Favorito</span>
+          <span class="badge badge-amber" style="font-size:12px;font-weight:500;">Indisponível</span>
         </div>
       </div>
     </div>
@@ -1512,23 +1228,23 @@ function renderPlaybookView() {
     <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:20px;">
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid var(--yl-emerald);">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Eficiência da Escalação</div>
-        <div style="font-size:22px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${efficiencyPercent}%</div>
-        <div style="font-size:11.5px;color:var(--text-muted);">Atual: <strong>${totalProj}</strong> / Teto: <strong>${maxPossibleProj}</strong></div>
+        <div style="font-size:22px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">—</div>
+        <div style="font-size:11.5px;color:var(--text-muted);">Eficiência requer projeção oficial completa dos titulares.</div>
       </div>
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid #F59E0B;">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Alerta Médico</div>
-        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">Drake Thomas (QST)</div>
-        <div style="font-size:11.5px;color:#B45309;">Acompanhar relatório final. Dallas Turner pronto no banco.</div>
+        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${injuryPlayers.length ? `${injuryPlayers.length} atleta(s) com status` : 'Nenhum alerta oficial recebido'}</div>
+        <div style="font-size:11.5px;color:#B45309;">${injuryPlayers.length ? injuryPlayers.map(player => `${esc(player.name)}: ${esc(player.injuryStatus)}`).join(' · ') : 'O snapshot não trouxe um alerta médico verificável.'}</div>
       </div>
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid var(--yl-crimson);">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Waiver Recomendado</div>
-        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${activeLeagueFreeAgents[0]?.name || 'James Conner'} (${activeLeagueFreeAgents[0]?.pos || 'RB'})</div>
-        <div style="font-size:11.5px;color:var(--yl-crimson);">Livre no Waiver. Sugestão: 25% FAAB ($25).</div>
+        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${waiverCandidate ? `${esc(waiverCandidate.name)} (${esc(waiverCandidate.pos || '—')})` : 'Sem recomendação oficial'}</div>
+        <div style="font-size:11.5px;color:var(--yl-crimson);">${waiverCandidate ? 'Disponibilidade derivada do roster sincronizado; valor de FAAB não calculado.' : 'Nenhum agente oficial de waiver está disponível neste snapshot.'}</div>
       </div>
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid #3B82F6;">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Radar Trade Hub</div>
-        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">Comprar em Alta</div>
-        <div style="font-size:11.5px;color:#1D4ED8;">Alvo: Brock Purdy (+2.8 pts/sem acima da média da liga).</div>
+        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">Sem recomendação oficial</div>
+        <div style="font-size:11.5px;color:#1D4ED8;">O snapshot não contém um modelo de trade verificável.</div>
       </div>
     </div>
 
@@ -1641,7 +1357,7 @@ function renderPlaybookView() {
             <strong style="font-size:13.5px;color:var(--yl-navy);">Manager DNA & Ajuste de Projeções</strong>
           </div>
           <div style="font-size:12.5px;color:var(--text-body);line-height:1.5;margin-bottom:12px;">
-            Seu perfil como manager é <strong>Agressivo em Volume</strong>. Você pode editar manualmente qualquer projeção na tabela ao lado e o sistema recalculará o placar da rodada na hora.
+            O perfil do manager só será calculado após a ingestão de histórico oficial de transações. A edição manual de projeções permanece identificada como ajuste local.
           </div>
         </div>
 
@@ -1651,7 +1367,7 @@ function renderPlaybookView() {
             <strong style="font-size:13.5px;color:var(--yl-navy);">Raio-X do Rival (${oppTeamName})</strong>
           </div>
           <div style="font-size:12px;color:var(--text-body);line-height:1.6;">
-            O adversário projeta <strong>${oppProj} pontos</strong> (${oppTeamRecord}). Sua vantagem principal está no corpo de recebedores e linha defensiva (+18.4 pts sobre o adversário).
+            Adversário: <strong>${oppProj} pontos</strong> (${oppTeamRecord}). Comparação por posição e vantagem só serão exibidas quando houver dados oficiais completos dos dois rosters.
           </div>
         </div>
       </div>
@@ -1681,21 +1397,26 @@ async function triggerDetailedSleeperAudit() {
 
   showToast("Iniciando auditoria em 14 etapas da Liga Sleeper...");
 
+  const snapshot = window.YL_SHELL_SNAPSHOT || {};
+  const leagueId = window.REAL_SLEEPER_LEAGUE_ID || snapshot.league?.id || 'não selecionada';
+  const leagueName = snapshot.league?.name || 'liga ativa';
+  const week = snapshot.state?.week ?? '—';
+  const rosterCount = Array.isArray(snapshot.rosters) ? snapshot.rosters.length : 0;
   const steps = [
-    "1. Conectando a https://api.sleeper.app/v1/league/1369770282776006656...",
-    "2. Validando status da liga: Neilo Pistola League (Temporada 2026, in_season)...",
-    "3. Carregando catálogo oficial de atletas da NFL via IndexedDB (YardlinePlayersCacheDB, TTL 24h)...",
-    "4. Consultando /users: 16 proprietários e metadados de times decodificados...",
-    "5. Mapeando /rosters: 16 elencos, 518 atletas sob contrato identificados...",
-    "6. Cruzando owner_id do time 'Gengar My Balls' (@Faraco, Roster #2)...",
-    "7. Auditando titulares reais (Brock Purdy, Javonte Williams, Kittle, Crosby...)...",
-    "8. Auditando reservas reais (Trevor Lawrence, DK Metcalf, Dallas Turner...)...",
-    `9. Buscando confrontos da Semana ${activeLeagueWeek || 6} em /matchups/${activeLeagueWeek || 6}...`,
-    "10. Duelo identificado: Matchup #7 vs Curitiba Red Fox (@neyllon, Roster #1)...",
-    "11. Auditando saldo de FAAB da liga ($100 orçados, 0% consumidos)...",
-    "12. Derivando Waiver Wire: centenas de atletas livres da NFL identificados...",
-    "13. Calculando projeções táticas e probabilidades de vitória da rodada...",
-    "14. Auditoria concluída com sucesso! Todos os módulos Yardline sincronizados."
+    `1. Validando o contexto Sleeper selecionado: ${leagueId}.`,
+    `2. Confirmando metadados oficiais de ${leagueName}.`,
+    `3. Confirmando a semana oficial disponível: ${week}.`,
+    `4. Conferindo usuários e proprietários persistidos no snapshot.`,
+    `5. Conferindo ${rosterCount} elencos retornados pelo backend.`,
+    `6. Conferindo titulares e reservas sem fallback local.`,
+    `7. Conferindo confrontos oficiais da semana ${week}.`,
+    `8. Conferindo regras de pontuação persistidas na liga.`,
+    `9. Conferindo catálogo de atletas e IDs canônicos.`,
+    `10. Conferindo transações oficiais disponíveis.`,
+    `11. Conferindo status de proveniência e timestamp do snapshot.`,
+    `12. Atualizando as superfícies dependentes da liga ativa.`,
+    `13. Registrando indisponibilidades sem fabricar métricas.`,
+    `14. Auditoria concluída conforme o snapshot disponível.`
   ];
 
   if (logsContainer) logsContainer.innerHTML = "";
@@ -1728,130 +1449,14 @@ async function triggerDetailedSleeperAudit() {
 function renderLeagueView() {
   const container = document.getElementById("view-league");
   if (!container) return;
-
-  const leagueName = activeSleeperLeagueData?.name || "Neilo Pistola League";
-  const myTeam = LEAGUE_12_TEAMS.find(t => t.isMyTeam) || LEAGUE_12_TEAMS[0];
-  const currentWeek = activeLeagueWeek || 6;
-  const matchup = activeRealMatchup || activeRealMatchupWeek6 || {
-    week: currentWeek,
-    matchupId: 7,
-    myTeam: myTeam.name,
-    myRecord: myTeam.record,
-    myProj: calculateLineupTotalProjection(),
-    myScore: 0,
-    oppTeam: "Curitiba Red Fox",
-    oppRecord: "2-3",
-    oppProj: "126.4",
-    oppScore: 0
-  };
-
-  const myP = parseFloat(matchup.myProj) || 140;
-  const oppP = parseFloat(matchup.oppProj) || 120;
-  const myWinChance = Math.min(88, Math.max(25, Math.round((myP / (myP + oppP)) * 100)));
-  const oppWinChance = 100 - myWinChance;
-
-  container.innerHTML = `
-    <!-- Top Sync Status Card & 14-Step Audit Panel -->
-    <div class="yl-card" style="margin-bottom:18px;padding:16px 20px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <span class="badge badge-green" id="sleeper-audit-status-badge">CONECTADO: SLEEPER API v1</span>
-          <h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:4px;">${leagueName} (#${REAL_SLEEPER_LEAGUE_ID})</h2>
-          <div style="font-size:12px;color:var(--text-muted);">Sincronização oficial para a conta <strong>@Faraco</strong> · Time: <strong>Gengar My Balls</strong> (${myTeam.record})</div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <button class="btn-yl btn-primary" id="sleeper-audit-trigger-btn" onclick="triggerDetailedSleeperAudit()">
-            Auditar & Sincronizar (14 Etapas)
-          </button>
-          <button class="btn-yl btn-outline" onclick="openNavTab('social')">
-            Veredito WhatsApp
-          </button>
-        </div>
-      </div>
-
-      <!-- Live Audit Log Box -->
-      <div style="margin-top:14px;background:#F8FAFC;border:1px solid var(--border-light);border-radius:8px;padding:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--yl-navy);font-weight:500;margin-bottom:6px;">
-          <span>PROGRESSO DA SINCRONIZAÇÃO SLEEPER (14 ETAPAS OFICIAIS)</span>
-          <span id="sleeper-audit-status-text">STATUS: CONECTADO E AUDITADO</span>
-        </div>
-        <div style="width:100%;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin-bottom:8px;">
-          <div id="sleeper-audit-progress-bar" style="width:100%;height:100%;background:var(--yl-emerald);transition:width 0.2s;"></div>
-        </div>
-        <div id="sleeper-audit-live-logs" style="max-height:85px;overflow-y:auto;font-size:11.5px;line-height:1.5;">
-          <div style="color:#047857;font-family:monospace;"> Sincronização oficial concluída com sucesso. ${LEAGUE_12_TEAMS.length} elencos, catálogo IndexedDB (YardlinePlayersCacheDB) e Duelo da Semana ${currentWeek} carregados.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Matchup Real da Semana Atual -->
-    <div class="yl-card" style="margin-bottom:18px;padding:18px;border-left:4px solid var(--yl-crimson);">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-        <div>
-          <span class="badge badge-crimson">SEU DUELO DA SEMANA ${currentWeek} (SLEEPER LIVE)</span>
-          <h3 style="font-size:18px;font-weight:500;color:var(--yl-navy);margin-top:4px;">
-            ${matchup.myTeam} (${matchup.myRecord}) vs ${matchup.oppTeam} (${matchup.oppRecord})
-          </h3>
-          <div style="font-size:12px;color:var(--text-muted);">Matchup #${matchup.matchupId || 7} oficial da Liga Sleeper · Semana ${currentWeek} em andamento</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="mono" style="font-size:22px;font-weight:500;color:var(--yl-emerald);">${myWinChance}% vs ${oppWinChance}%</div>
-          <div style="font-size:12px;color:var(--text-muted);">Projeção: <strong>${matchup.myProj} pts</strong> vs <strong>${matchup.oppProj} pts</strong></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Placar Real: <strong>${matchup.myScore}</strong> x <strong>${matchup.oppScore}</strong></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tabela Oficial de Classificação da Liga (Standings) -->
-    <div class="yl-card" style="padding:0;overflow:hidden;">
-      <div class="yl-card-header" style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div class="yl-card-title">Classificação Oficial da Liga (${LEAGUE_12_TEAMS.length} Times)</div>
-          <div style="font-size:11.5px;color:var(--text-muted);">Liga Sleeper ID: ${REAL_SLEEPER_LEAGUE_ID} · Temporada 2026</div>
-        </div>
-        <span class="badge badge-navy">${LEAGUE_12_TEAMS.length} TIMES PARTICIPANTES</span>
-      </div>
-      <table class="yl-table">
-        <thead>
-          <tr>
-            <th style="width:50px;">Pos</th>
-            <th>Time</th>
-            <th>Manager</th>
-            <th style="text-align:center;">Campanha</th>
-            <th style="text-align:right;">Pontos Pró</th>
-            <th style="text-align:right;">Contra</th>
-            <th style="text-align:right;">Proj Total</th>
-            <th style="text-align:center;">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${LEAGUE_12_TEAMS.map((tm, idx) => {
-            const isMine = tm.isMyTeam;
-            const posBadge = idx < 6 ? 'badge-green' : (idx < 12 ? 'badge-blue' : 'badge-amber');
-            const statusLabel = idx === 0 ? '1º Lugar (Líder)' : (idx < 6 ? 'Zona Playoff' : (idx < 12 ? 'Meio de Tabela' : 'Repescagem'));
-
-            return `
-              <tr style="${isMine ? 'background:#F0FDF4;border-left:3px solid var(--yl-emerald);' : ''}">
-                <td style="font-weight:500;color:var(--yl-navy);"><span class="badge ${posBadge} mono">#${idx + 1}</span></td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <strong style="font-size:13.5px;color:var(--yl-navy);">${tm.name}</strong>
-                    ${isMine ? '<span class="badge badge-green" style="font-size:10px;">SEU TIME</span>' : ''}
-                  </div>
-                </td>
-                <td style="font-size:12px;color:var(--text-muted);font-family:monospace;">${tm.owner}</td>
-                <td style="text-align:center;font-weight:500;font-family:monospace;font-size:13px;color:var(--yl-navy);">${tm.record}</td>
-                <td style="text-align:right;font-family:monospace;font-size:12.5px;">${tm.fpts}</td>
-                <td style="text-align:right;font-family:monospace;font-size:12px;color:var(--text-muted);">${tm.fptsAgainst}</td>
-                <td style="text-align:right;font-family:monospace;font-size:12.5px;font-weight:500;color:var(--yl-navy);">${tm.projTotal}</td>
-                <td style="text-align:center;"><span class="badge ${posBadge}" style="font-size:11px;">${statusLabel}</span></td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const snapshot = window.YL_SHELL_SNAPSHOT;
+  if (!snapshot?.league || !Array.isArray(snapshot.rosters)) {
+    container.innerHTML = '<div class="yl-card"><strong>Liga indisponível</strong><p class="yl-muted">Sincronize uma liga oficial do Sleeper para carregar confrontos e classificação.</p></div>';
+    return;
+  }
+  const week = snapshot.state?.week ?? '—';
+  const name = snapshot.league.name || 'Liga sem nome';
+  container.innerHTML = `<div class="yl-card"><div class="yl-card-header"><div class="yl-card-title">${name}</div><span class="badge badge-green">SNAPSHOT OFICIAL</span></div><p class="yl-muted">Semana ${week} · ${snapshot.rosters.length} elencos sincronizados. O módulo detalhado será renderizado pelo contrato canônico da interface.</p></div>`;
 }
 
 // ==========================================
@@ -2035,8 +1640,8 @@ function renderAllViews() {
   renderAiModeView();
   renderSocialView();
   renderPlansView();
-  // A carga inicial só hidrata o snapshot persistido via GET. A sincronização
-  // mutável POST fica reservada ao botão explícito do usuário.
+  // A carga inicial mostra o snapshot salvo; league-auto-refresh atualiza a fonte
+  // periodicamente, sem esperar pelo botão manual.
   const initialLoad = typeof window.hydrateSleeperLeagueShell === 'function'
     ? window.hydrateSleeperLeagueShell()
     : window.syncRealSleeperLeagueLive();
@@ -2098,19 +1703,23 @@ if (typeof window !== 'undefined' && typeof window.renderTradeView === 'function
 
 /* YARDLINE P0.1 — o browser consome apenas o backend Yardline */
 if (typeof window !== 'undefined') {
-  let syncInFlight = null, inFlightLeagueId = null;
-  window.syncRealSleeperLeagueLive = function(customLeagueId){
+  let syncInFlight = null, inFlightLeagueId = null, inFlightHydration = false;
+  window.syncRealSleeperLeagueLive = function(customLeagueId, options = {}){
     if (syncInFlight) {
-      if (customLeagueId && customLeagueId !== inFlightLeagueId) return syncInFlight.catch(() => {}).then(() => window.syncRealSleeperLeagueLive(customLeagueId));
+      if (inFlightHydration || (customLeagueId && customLeagueId !== inFlightLeagueId)) return syncInFlight.catch(() => {}).then(() => window.syncRealSleeperLeagueLive(customLeagueId, options));
       return syncInFlight;
     }
     inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
-    syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: false }).finally(() => { syncInFlight = null; });
+    if (!inFlightLeagueId) return Promise.reject(new Error('Nenhuma liga Sleeper selecionada.'));
+    inFlightHydration = false;
+    syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: false, ...options }).finally(() => { syncInFlight = null; });
     return syncInFlight;
   };
   window.hydrateSleeperLeagueShell = function(customLeagueId){
     if (syncInFlight) return syncInFlight;
     inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
+    if (!inFlightLeagueId) return Promise.reject(new Error('Nenhuma liga Sleeper selecionada.'));
+    inFlightHydration = true;
     syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: true }).finally(() => { syncInFlight = null; });
     return syncInFlight;
   };
@@ -2119,7 +1728,7 @@ if (typeof window !== 'undefined') {
     if (typeof window.syncRealSleeperLeagueLive !== 'function') return Promise.reject(new Error('Sincronização Sleeper indisponível.'));
     return window.syncRealSleeperLeagueLive();
   };
-  async function syncShell(id, { skipRemoteSync = false } = {}){
+  async function syncShell(id, { skipRemoteSync = false, quiet = false, automatic = false } = {}){
     localStorage.setItem('yl_active_league_id', id);
     const apiBase = window.YL_API_BASE || `${window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`}/api`;
     const request = async (path, options = {}, timeoutMs = 15000) => {
@@ -2131,10 +1740,10 @@ if (typeof window !== 'undefined') {
         return body;
       } finally { clearTimeout(timer); }
     };
-    if (!skipRemoteSync) showToast(`Sincronizando liga #${id} pelo backend...`);
+    if (!skipRemoteSync && !quiet) showToast(`Sincronizando liga #${id} pelo backend...`);
     try {
       if (!skipRemoteSync) {
-        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id }) }, 90000);
+        await request('/integrations/sleeper/sync-league', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leagueId: id, coreOnly: true, automatic }) }, 90000);
       }
       const snapshot = await request(`/leagues/${id}/shell`, {}, 90000);
       const nextPlayerCards = snapshot.playerCards || {};
@@ -2143,6 +1752,27 @@ if (typeof window !== 'undefined') {
         window.YL_CATALOG_STATUS = { status: 'stale', fallback: 'previous_snapshot' };
         throw new Error('Sincronização Sleeper retornou catálogo vazio; snapshot anterior preservado.');
       }
+      const shellUserLabel = document.getElementById('topbar-user-pill')?.textContent || '';
+      const shellUser = shellUserLabel.match(/@([A-Za-z0-9_]+)/)?.[1] || null;
+      const configuredOwner = String(id) === REAL_SLEEPER_LEAGUE_ID ? REAL_SLEEPER_USERNAME : null;
+      const wanted = configuredOwner
+        || (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
+        || localStorage.getItem('yl_sleeper_username') || shellUser || null;
+      let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
+      if (!ownerId && wanted) {
+        try {
+          const user = await request(`/integrations/sleeper/user/${encodeURIComponent(String(wanted).replace(/^@/, ''))}`);
+          ownerId = user?.user_id || null;
+          if (ownerId) {
+            window.YL_SLEEPER_USER_ID = String(ownerId);
+            localStorage.setItem('yl_sleeper_user_id', String(ownerId));
+          }
+        } catch (identityError) {
+          console.warn('[Yardline sync] identidade Sleeper indisponível:', identityError.message);
+        }
+      }
+      const requestedLeague = localStorage.getItem('yl_active_league_id');
+      if (requestedLeague && String(requestedLeague) !== String(id)) return null;
       window.YL_CATALOG_STATUS = { status: snapshot.dataStatus === 'stale' ? 'stale' : 'available', fallback: null };
       window.YL_CANONICAL = { players: nextPlayerCards, fetchedAt: snapshot.syncedAt || null };
       window.YL_PLAYER_CARDS = nextPlayerCards;
@@ -2166,25 +1796,6 @@ if (typeof window !== 'undefined') {
       if (weekLabel) weekLabel.textContent = `Semana ${activeLeagueWeek ?? '—'}`;
       activeSleeperRosters = (snapshot.rosters || []).map(r => ({ ...r, roster_id: r.rosterId, owner_id: r.ownerId,
         ownerName: r.ownerName, players: r.players, starters: r.starters, reserve: r.reserve, taxi: r.taxi, settings: r.settings }));
-      const shellUserLabel = document.getElementById('topbar-user-pill')?.textContent || '';
-      const shellUser = shellUserLabel.match(/@([A-Za-z0-9_]+)/)?.[1] || null;
-      const configuredOwner = String(id) === REAL_SLEEPER_LEAGUE_ID ? REAL_SLEEPER_USERNAME : null;
-      const wanted = configuredOwner
-        || (typeof activeSleeperUsername !== 'undefined' ? activeSleeperUsername : null)
-        || localStorage.getItem('yl_sleeper_username') || shellUser || null;
-      let ownerId = window.YL_SLEEPER_USER_ID || localStorage.getItem('yl_sleeper_user_id') || null;
-      if (!ownerId && wanted) {
-        try {
-          const user = await request(`/integrations/sleeper/user/${encodeURIComponent(String(wanted).replace(/^@/, ''))}`);
-          ownerId = user?.user_id || null;
-          if (ownerId) {
-            window.YL_SLEEPER_USER_ID = String(ownerId);
-            localStorage.setItem('yl_sleeper_user_id', String(ownerId));
-          }
-        } catch (identityError) {
-          console.warn('[Yardline sync] identidade Sleeper indisponível:', identityError.message);
-        }
-      }
       userRealRoster = window.YardlinePlayerCard.selectUserRoster(activeSleeperRosters, {
         ownerId });
       // The normalized shell intentionally keeps roster identity private, while
@@ -2228,7 +1839,7 @@ if (typeof window !== 'undefined') {
       const leagueName = snapshot.league?.name || 'Liga Sleeper';
       const userPill = document.getElementById('topbar-user-pill');
       const managerName = userRealRoster?.ownerName || userRealRoster?.owner || wanted || shellUser;
-      if (userPill && userRealRoster && managerName) userPill.textContent = `@${String(managerName).replace(/^@/, '')} (${myTeamName}) ALL-PRO`;
+      if (userPill && userRealRoster && managerName) userPill.textContent = `@${String(managerName).replace(/^@/, '')} (${myTeamName})`;
       const topTeam = document.getElementById('topbar-team-label');
       if (topTeam) topTeam.textContent = `(${myTeamName})`;
       const sbCopy = document.getElementById('sidebar-league-copy');
@@ -2258,12 +1869,12 @@ if (typeof window !== 'undefined') {
       } : null;
       activeRealMatchupWeek6 = activeRealMatchup;
       window.activeRealMatchup = activeRealMatchup;
-      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); renderPlayersView(); if (typeof renderHomeView === 'function') renderHomeView(); if (typeof renderTradeView === 'function') renderTradeView(); showToast(`Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
-    } catch (e) { console.error('[Yardline sync]', e); showToast(`${e.message || 'Não foi possível atualizar os dados.'}`); throw e; }
+      deriveLeagueFreeAgents(); renderTeamsView(); renderRankingsView(); renderWaiversView(); renderPlaybookView(); renderLeagueView(); renderPlayersView(); if (typeof renderHomeView === 'function') renderHomeView(); if (typeof renderTradeView === 'function') renderTradeView(); if (!quiet) showToast(`Liga sincronizada: ${snapshot.rosters?.length || 0} times · Semana ${activeLeagueWeek}`); return snapshot;
+    } catch (e) { console.error('[Yardline sync]', e); if (!quiet) showToast(`${e.message || 'Não foi possível atualizar os dados.'}`); throw e; }
   }
 }
 
-// One automatic sync is started by renderAllViews; no duplicate timer.
+// The refresh loop is owned by league-auto-refresh.js; manual calls share the in-flight request.
 
 
 /* Card resolver and null handling live in the shared DTO, not final global overrides.
@@ -2274,6 +1885,8 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
 (function(){
   const API=window.YL_API_BASE || `${window.location.port === '3001' ? window.location.origin : `http://${window.location.hostname || '127.0.0.1'}:3001`}/api`;
   let dossierRequest = 0;
+  let selectedDossierTab = 'gamelogs';
+  const careers = new Map();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const num=v=>v===null||v===undefined||v===''||Number.isNaN(Number(v))?'—':Number(v).toFixed(1);
   const get=async(url)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{signal:c.signal,cache:'no-store'});if(!r.ok)throw Error(`HTTP ${r.status}`);return await r.json();}finally{clearTimeout(t);}};
@@ -2289,7 +1902,8 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
   }
   async function seasonRows(id, season) {
     const leagueId = window.YL_SHELL_SNAPSHOT?.league?.providerLeagueId;
-    const data = await get(`${API}/players/${encodeURIComponent(id)}/history?season=${encodeURIComponent(season)}${leagueId ? `&leagueId=${encodeURIComponent(leagueId)}` : ''}`);
+    const data = await get(`${API}/players/${encodeURIComponent(id)}/career?season=${encodeURIComponent(season)}${leagueId ? `&leagueId=${encodeURIComponent(leagueId)}` : ''}`);
+    careers.set(String(id), data);
     return data.rows || data.history || [];
   }
   async function newsFor(p) {
@@ -2322,18 +1936,24 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
   }
   function profile(id) { return resolveNFLPlayer(String(id)); }
   window.YL_SWITCH_DOSSIER_TAB = function(tabName) {
+    selectedDossierTab = tabName;
     const tabs = ['gamelogs', 'sentiment', 'seasonstats', 'outlook', 'news', 'depth', 'leagues', 'fullprofile'];
     tabs.forEach(t => {
       const sec = document.getElementById('tab-sec-' + t);
       const btn = document.getElementById('tab-btn-' + t);
       if (sec) sec.style.display = (t === tabName ? 'block' : 'none');
-      if (btn) btn.classList.toggle('active', t === tabName);
+      if (btn) { btn.classList.toggle('active', t === tabName); btn.setAttribute('aria-selected', String(t === tabName)); }
     });
   };
 
   function render(p,season,rows,news,error) {
-    const raw = rawOf(p.id), depth = depthFor(p), color = teamColors[p.team] || '#C00000', dto = p;
+    const raw = rawOf(p.id), depth = depthFor(p), color = teamColors[p.team] || '#002244', dto = p;
     const m = p.metrics || {}, pc = rosterPerc(p.id), projDisplay = num(m.projectedPoints);
+    const career = careers.get(String(p.id));
+    const seasonSummary = career?.seasons?.find(item => Number(item.season) === Number(season));
+    const seasonOptions = career?.seasons?.map(item => Number(item.season)) || [Number(season)];
+    const careerStatus = career?.syncing ? `Carregando carreira: ${career.resolvedSeasons || 0}/${career.seasons?.length || 0} temporadas consultadas` : career?.status === 'partial' ? 'Histórico parcial · algumas temporadas não responderam' : 'Histórico de temporada regular';
+    const scoringLabel = career?.scoringLabel || 'Pontuação conforme o contexto disponível';
     const member = p.rosterContext.find(r => r.rosterId === selectedActiveRosterId);
     const isMyPlayer = Boolean(member && userRealRoster);
     const ownerTag = isMyPlayer ? 'Seu elenco' : p.rosterContext.length ? 'Rosterizado nesta liga' : window.YL_SHELL_SNAPSHOT?.rosters?.length ? 'Não rosterizado nesta liga' : 'Disponibilidade não validada';
@@ -2343,8 +1963,8 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
     const officialPoints = validRows.map(row => window.YardlinePlayerCard.numberOrNull(row.fpts)).filter(value => value !== null);
     const observedTotal = officialPoints.length ? Number(officialPoints.reduce((sum, value) => sum + value, 0).toFixed(2)) : null;
     const observedPpg = officialPoints.length ? Number((observedTotal / officialPoints.length).toFixed(2)) : null;
-    const observedPointsPerGame = m.pointsPerGame ?? observedPpg;
-    const observedTotalPoints = m.totalPoints ?? observedTotal;
+    const observedPointsPerGame = (Number(season) === Number(p.context.season) ? m.pointsPerGame : seasonSummary?.pointsPerGame) ?? observedPpg;
+    const observedTotalPoints = (Number(season) === Number(p.context.season) ? m.totalPoints : seasonSummary?.totalPoints) ?? observedTotal;
     const officialHistoryNote = officialPoints.length && m.pointsPerGame == null ? ` · ${officialPoints.length} semana(s) oficial(is) reconciliada(s) do matchup` : '';
     const sumStat = key => {
       const values = rows.map(row => window.YardlinePlayerCard.numberOrNull(row.stats?.[key])).filter(value => value !== null);
@@ -2397,7 +2017,8 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
         <div class="yl-coach-body">Projeção disponível: <strong>${projDisplay}</strong> ${esc(p.context.projectionFormat || '')}. Consenso, risco e teto não foram recebidos de uma fonte verificada para esta rodada.</div>
       </div>`;
     const expertNoteHtml = `<div class="yl-expert-card"><div class="yl-expert-avatar">YL</div><div class="yl-expert-content"><div class="yl-expert-head"><strong>Notas de especialistas</strong><span>Fonte externa não carregada</span></div><p class="yl-expert-text">Nenhuma opinião de especialista será atribuída sem fonte verificável.</p></div></div>`;
-    const seasonStatsHtml = `<div class="sleeper-table-wrap" style="margin-top:10px;"><table class="sleeper-log"><thead><tr class="super-header"><th colspan="4">RESUMO OBSERVADO</th><th colspan="5">PASSING</th><th colspan="2">RUSHING</th></tr><tr><th>TEMPORADA</th><th>TIME</th><th>FPTS LIGA</th><th>SEMANAS OBS.</th><th>ATT</th><th>CMP</th><th>YDS</th><th>TD</th><th>INT</th><th>ATT</th><th>YDS</th></tr></thead><tbody><tr><td>${esc(season)}</td><td>${esc(p.team || '—')}</td><td class="sleeper-fpts">${num(seasonPoints)}</td><td>${validRows.length || '—'}</td>${['pass_att','pass_cmp','pass_yd','pass_td','pass_int','rush_att','rush_yd'].map(key => `<td>${num(sumStat(key))}</td>`).join('')}</tr></tbody></table><p class="sleeper-empty">Totais parciais das semanas efetivamente persistidas; ausência não equivale a zero.</p></div>`;
+    const careerRows = career?.seasons || [{ season: String(season), teams: [], totalPoints: seasonPoints, observedWeeks: rows.length, pointsPerGame: observedPpg, status: rows.length ? 'cached' : 'pending' }];
+    const seasonStatsHtml = `<div class="yl-career-intro"><h3>A carreira, temporada por temporada</h3><p>${esc(scoringLabel)}. Totais das semanas recebidas; períodos sem dados não viram zero.</p></div><div class="sleeper-table-wrap"><table class="sleeper-log yl-career-table"><thead><tr><th>ANO</th><th>TIME(S)</th><th>PONTUADAS / OBS.</th><th>PONTOS</th><th>MÉDIA</th><th>COBERTURA</th></tr></thead><tbody>${careerRows.filter(item => item.scoredWeeks > 0).map(item => `<tr><td><button type="button" class="yl-career-year" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${Number(item.season)});window.YL_SWITCH_DOSSIER_TAB('gamelogs')">${esc(item.season)}</button></td><td>${esc(item.teams?.join(' / ') || '—')}</td><td>${item.scoredWeeks ?? '—'} / ${item.observedWeeks || '—'}</td><td class="sleeper-fpts">${num(item.totalPoints)}</td><td>${num(item.pointsPerGame)}</td><td>${esc(({available:'Recebido',empty:'Sem registros',failed:'Falha na consulta',pending:'Aguardando',cached:'Em cache'})[item.status] || 'Parcial')}${item.pointsCoverage === 'partial' && item.scoredWeeks ? ' · pontos parciais' : ''}</td></tr>`).join('')}</tbody></table></div><p class="sleeper-empty">${esc(careerStatus)}${career?.rangeSource === 'catalog_experience_estimate' ? ' · Intervalo estimado pela experiência do cadastro; pode haver anos sem jogos.' : career?.rangeSource === 'persisted_only' ? ' · Ano de estreia indisponível; exibindo temporadas consultadas e persistidas.' : ''}. A pontuação histórica usa as regras atuais da liga selecionada, não configurações antigas que não foram carregadas.</p>`;
     const outlookHtml = `<div class="yl-coach-ai-card"><div class="yl-coach-ai-header"><strong>OUTLOOK DA RODADA</strong><span class="badge badge-navy">DADOS VERIFICADOS</span></div><div class="yl-coach-body"><p>Projeção oficial persistida: <strong>${projDisplay}</strong> ${esc(p.context.projectionFormat || 'formato não informado')}.</p><p>Contexto: temporada ${esc(season)} · semana ${esc(p.context.week ?? '—')} · ${esc(p.context.seasonType || '—')} · scoring ${esc(p.context.scoringFormat || '—')}.</p><p>Não há consenso externo, teto ou risco calculado sem fonte verificável; nenhum valor é inventado.</p></div></div>`;
     const leagueRows = p.rosterContext.length ? p.rosterContext.map(r => `<tr><td>${esc(r.rosterId ?? '—')}</td><td>${r.starter ? 'Titular' : r.reserve ? 'Reserva' : r.taxi ? 'Taxi' : 'Banco'}</td><td>${r.ownerId ? esc(r.ownerId) : 'Não identificado'}</td></tr>`).join('') : '<tr><td colspan="3" class="sleeper-empty">Atleta não consta dos rosters persistidos desta liga.</td></tr>';
     const leaguesHtml = `<div class="sleeper-table-wrap"><table class="sleeper-log"><thead><tr><th>ROSTER</th><th>STATUS</th><th>OWNER ID</th></tr></thead><tbody>${leagueRows}</tbody></table><p class="sleeper-empty">Disponibilidade e ownership são derivados somente do roster oficial sincronizado.</p></div>`;
@@ -2437,11 +2058,11 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
             </div>
             <h1>${esc(p.name)}</h1>
             <div class="sleeper-bio">
-              <span><b>AGE</b>${esc(p.age??'—')}</span><i></i>
-              <span><b>HEIGHT</b>${esc(formatHeight(p.height))}</span><i></i>
-              <span><b>WEIGHT</b>${esc(formatWeight(p.weight))}</span><i></i>
+              <span><b>IDADE</b>${esc(p.age??'—')}</span><i></i>
+              <span><b>ALTURA</b>${esc(formatHeight(p.height))}</span><i></i>
+              <span><b>PESO</b>${esc(formatWeight(p.weight))}</span><i></i>
               <span><b>EXP</b>${esc(p.exp??'—')}</span>
-              <span class="college"><b>COLLEGE</b>${esc(p.college??'—')}</span>
+              <span class="college"><b>UNIVERSIDADE</b>${esc(p.college??'—')}</span>
             </div>
 
             <!-- FANTASYPROS STAT BOXES ROW -->
@@ -2455,8 +2076,8 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
                 <strong style="color:#38bdf8;">${projDisplay}</strong>
               </div>
               <div class="fp-stat-box">
-                <small>YL INDEX</small>
-                <strong style="color:#f59e0b;">${num(m.ylIndex)}</strong>
+                <small>SEMANAS OBS.</small>
+                <strong>${rows.length || '—'}</strong>
               </div>
               <div class="fp-stat-box">
                 <small>TOTAL OBSERVADO*</small>
@@ -2486,7 +2107,7 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
         <div class="sleeper-dossier-nav">
           <button class="sleeper-tab-btn active" id="tab-btn-gamelogs" onclick="window.YL_SWITCH_DOSSIER_TAB('gamelogs')">Game Logs</button>
           <button class="sleeper-tab-btn" id="tab-btn-sentiment" onclick="window.YL_SWITCH_DOSSIER_TAB('sentiment')">Consensus Sentiment (Coach AI)</button>
-          <button class="sleeper-tab-btn" id="tab-btn-seasonstats" onclick="window.YL_SWITCH_DOSSIER_TAB('seasonstats')">Season Stats</button>
+          <button class="sleeper-tab-btn" id="tab-btn-seasonstats" onclick="window.YL_SWITCH_DOSSIER_TAB('seasonstats')">Season Stats · Carreira</button>
           <button class="sleeper-tab-btn" id="tab-btn-outlook" onclick="window.YL_SWITCH_DOSSIER_TAB('outlook')">Outlook</button>
           <button class="sleeper-tab-btn" id="tab-btn-news" onclick="window.YL_SWITCH_DOSSIER_TAB('news')">Latest News & Analysis</button>
           <button class="sleeper-tab-btn" id="tab-btn-depth" onclick="window.YL_SWITCH_DOSSIER_TAB('depth')">Depth Chart</button>
@@ -2503,10 +2124,10 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
               <div class="sleeper-section-title">
                 <b>GAME LOGS / PROJECTIONS</b>
                 <div class="sleeper-years">
-                  ${[0,1,2].map(offset => Number(p.context.season || season) - offset).map(y=>`<button type="button" onclick="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',${y})" class="${y===season?'active':''}">${y}</button>`).join('')}
+                  <label for="yl-dossier-season">Temporada</label><select id="yl-dossier-season" onchange="window.YL_LOAD_PLAYER_SEASON('${esc(p.id)}',Number(this.value))">${seasonOptions.map(y => `<option value="${y}" ${y === Number(season) ? 'selected' : ''}>${y}</option>`).join('')}</select>
                 </div>
               </div>
-              <p class="sleeper-empty">${esc(window.YardlinePlayerCard.provenance(p) + officialHistoryNote)}</p>
+              <p class="sleeper-empty yl-history-status" role="status">${esc(careerStatus)} · ${esc(scoringLabel)}</p>
               ${error?`<p class="sleeper-empty" role="status">${esc(error)}</p>`:''}
               <div class="sleeper-table-wrap">
                 <table class="sleeper-log">
@@ -2600,39 +2221,82 @@ if (typeof window !== 'undefined' && window.YL_FIX2_TEAMS) window.renderTeamsVie
               ${depth.length?depth.map((x,i)=>`<div class="sleeper-depth-row ${String(x.id)===String(p.id)?'active':''}"><b>${esc(x.order)}</b><span>${esc(x.name)}</span></div>`).join(''):'<p class="sleeper-empty">Sem depth chart no catálogo Sleeper.</p>'}
             </section>
             <section class="sleeper-depth">
-              <h3>FICHA TÉCNICA DTO</h3>
+              <h3>FICHA DO ATLETA</h3>
               <p class="sleeper-empty" style="padding:6px 0">Status: ${injuryText} · Posição: ${esc(p.pos)} · Time: ${esc(p.team)}<br>ID Sleeper: ${esc(dto?.sleeperId||p.sleeperId||p.id)} · ID ESPN: ${esc(p.espnId||dto?.espnId||raw.espn_id||'—')}<br>Sincronizado: ${esc(window.YL_SHELL_SNAPSHOT?.syncedAt || 'Não informado')}</p>
             </section>
           </aside>
         </div>
       </div>
     `;
+    // Remove unavailable sections rather than advertising empty tools or fields.
+    const content = document.getElementById('player-modal-content');
+    if (content?.querySelectorAll) {
+      const available = {gamelogs: rows.length > 0 || Boolean(error), seasonstats: Boolean(career?.seasons?.some(x => x.observedWeeks > 0)), news: news.length > 0, depth: depth.length > 0, leagues: p.rosterContext.length > 0, fullprofile: true, outlook: m.projectedPoints !== null, sentiment: false};
+      for (const [tab, present] of Object.entries(available)) {
+        if (!present) { content.querySelector('#tab-btn-' + tab)?.remove(); content.querySelector('#tab-sec-' + tab)?.remove(); }
+      }
+      for (const box of content.querySelectorAll('.fp-stat-box')) if (/^[—\s%]*$/.test(box.querySelector('strong')?.textContent || '')) box.remove();
+      for (const section of content.querySelectorAll('.sleeper-dossier__side > section')) {
+        const heading = section.querySelector('h3')?.textContent || '';
+        if (/COACH AI/.test(heading) || /LATEST NEWS/.test(heading) && !news.length || /DEPTH CHART/.test(heading) && !depth.length) section.remove();
+      }
+      const bio = content.querySelector('.sleeper-bio');
+      if (bio) bio.innerHTML = [[p.age, 'IDADE'], [p.height && formatHeight(p.height), 'ALTURA'], [p.weight && formatWeight(p.weight), 'PESO'], [p.exp, 'EXP'], [p.college, 'UNIVERSIDADE']].filter(([v]) => v !== null && v !== undefined && v !== '' && v !== '—').map(([v,label]) => '<span><b>' + label + '</b>' + esc(v) + '</span>').join('');
+      const profile = content.querySelector('#tab-sec-fullprofile .sleeper-table-wrap');
+      if (profile) profile.innerHTML = '<table class="sleeper-log"><tbody>' + [['Nome',p.name],['Posição',p.position],['Time',p.team],['Status',p.status],['Lesão',p.injuryStatus],['Universidade',p.college],['Sleeper ID',p.id],['ESPN ID',p.espnId]].filter(([,v]) => v !== null && v !== undefined && v !== '').map(([label,v]) => '<tr><th>' + label + '</th><td>' + esc(v) + '</td></tr>').join('') + '</tbody></table>';
+      const logs = content.querySelector('#tab-sec-gamelogs .sleeper-table-wrap');
+      if (logs && rows.length) logs.innerHTML = rows.map(row => {
+        const fields = [['Pontos',row.fpts],['Projeção',row.proj],['Adversário',row.opp],['Snap %',row.snap],['Tentativas',row.att],['Completos',row.cmp],['Jardas',row.yd],['TD',row.td],['Interceptações',row.int]];
+        const values = fields.filter(([,v]) => v !== null && v !== undefined && v !== '' && v !== '—');
+        return values.length ? '<article style="padding:16px;border-bottom:1px solid var(--border)"><strong>Semana ' + esc(row.week) + '</strong><div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">' + values.map(([label,v]) => '<span><small>' + label + '</small> <b>' + esc(v) + '</b></span>').join('') + '</div></article>' : '';
+      }).join('');
+      const athlete = [...content.querySelectorAll('.sleeper-dossier__side > section')].find(section => /FICHA DO ATLETA/.test(section.querySelector('h3')?.textContent || ''));
+      if (athlete) athlete.innerHTML = '<h3>FICHA DO ATLETA</h3><p>' + [p.position,p.team,p.injuryStatus].filter(Boolean).map(esc).join(' · ') + '</p>';
+      const injury = content.querySelector('.sleeper-dossier__bar > span');
+      if (injury && !p.injuryStatus && !p.taxi) injury.remove();
+      window.YardlineDossierPresentation?.render(content,p,season,rows,career,depth,news);
+      const first = content.querySelector('.sleeper-tab-btn');
+      if (!content.querySelector('#tab-btn-' + selectedDossierTab) && first) selectedDossierTab = first.id.replace('tab-btn-', '');
+      window.YL_SWITCH_DOSSIER_TAB(selectedDossierTab);
+    }
+
   }
-  window.YL_LOAD_PLAYER_SEASON = async function(id,season) {
+  async function loadDossier(p, season, request) {
+    const news = await newsFor(p);
+    try {
+      for (let poll = 0; poll < 80; poll++) {
+        const rows = await seasonRows(p.id, season);
+        if (request !== dossierRequest || !document.getElementById('player-modal')?.classList.contains('open')) return;
+        const scroll = document.querySelector?.('.sleeper-dossier__content')?.scrollTop || 0;
+        render(p, season, rows, news, '');
+        window.YL_SWITCH_DOSSIER_TAB(selectedDossierTab);
+        const pane = document.querySelector?.('.sleeper-dossier__content');
+        if (pane) pane.scrollTop = scroll;
+        if (!careers.get(String(p.id))?.syncing) return;
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+    } catch {
+      if (request === dossierRequest) render(p, season, careers.get(String(p.id))?.rows || [], news, 'Não foi possível atualizar o histórico. Feche e reabra o card para tentar novamente.');
+    }
+  }
+  window.YL_LOAD_PLAYER_SEASON = async function(id, season) {
     const p = profile(id), modal = document.getElementById('player-modal-content');
     if (!p || !modal) return;
     const request = ++dossierRequest;
-    const logs = modal.querySelector?.('.sleeper-dossier__logs');
-    if (logs) logs.innerHTML = '<p class="sleeper-empty">Carregando histórico persistido…</p>';
-    let rows = [], error = '';
-    try { rows = await seasonRows(p.id,season); } catch { error = 'Não foi possível carregar este histórico agora.'; }
-    const news = await newsFor(p);
-    if (request === dossierRequest) render(p,season,rows,news,error);
+    render(p, season, [], [], 'Carregando temporada…');
+    window.YL_SWITCH_DOSSIER_TAB(selectedDossierTab);
+    await loadDossier(p, season, request);
   };
   window.openPlayerDossierModal = async function(id) {
     const p = profile(id), modal = document.getElementById('player-modal'), content = document.getElementById('player-modal-content');
     if (!modal || !content) return;
     const request = ++dossierRequest;
+    selectedDossierTab = 'gamelogs';
     openModal('player-modal');
-    if (!p) { content.innerHTML = '<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Jogador ainda não foi carregado no catálogo oficial.</p></div>'; return; }
+    if (!p) { content.innerHTML = '<div class="sleeper-dossier"><p class="sleeper-empty" style="padding:40px">Jogador ainda não foi carregado no catálogo.</p></div>'; return; }
     const season = Number(p.context.season || activeSleeperLeagueData?.season || new Date().getUTCFullYear());
-    render(p,season,[],[],'Carregando histórico persistido…');
-    try {
-      const [rows,news] = await Promise.all([seasonRows(p.id,season),newsFor(p)]);
-      if (request === dossierRequest) render(p,season,rows,news,'');
-    } catch {
-      if (request === dossierRequest) render(p,season,[],[],'A consulta ao histórico falhou; o resumo acima mantém o DTO do shell.');
-    }
+    render(p, season, [], [], 'Carregando histórico da carreira…');
+    await loadDossier(p, season, request);
   };
 
 })();

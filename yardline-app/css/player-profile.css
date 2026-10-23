@@ -1,0 +1,90 @@
+/* Yardline profile: compact identity, clear hierarchy, aligned statistics. */
+#player-modal { padding:24px; }
+#player-modal .yl-modal-card { max-width:1200px; width:min(1200px,100%); padding:0; background:transparent; }
+.yl-player-profile.sleeper-dossier { width:100%; max-height:92dvh; display:flex; flex-direction:column; overflow:hidden; background:#fff; color:#21344a; border:1px solid #d7dfe8; border-radius:14px; font-family:inherit; }
+.yl-player-profile .sleeper-close { top:16px; right:16px; z-index:6; width:36px; height:36px; min-height:36px; background:#ffffff18; border:1px solid #ffffff40; color:#fff; font-size:24px; line-height:1; }
+.yl-profile-hero { position:relative; display:grid; grid-template-columns:160px minmax(0,1fr); align-items:center; gap:24px; min-height:208px; padding:28px 64px 20px 32px; background:#002244; color:#fff; flex-shrink:0; isolation:isolate; overflow:hidden; }
+.yl-profile-watermark { position:absolute; z-index:-1; right:64px; top:-45px; width:290px; height:290px; opacity:.11; object-fit:contain; pointer-events:none; }
+.yl-profile-portrait { width:160px; height:160px; display:grid; place-items:end center; background:linear-gradient(145deg,#ffffff18,#ffffff04); border:1px solid #ffffff22; border-radius:12px; overflow:hidden; }
+.yl-profile-portrait img { display:block; width:160px; height:156px; object-fit:contain; object-position:center bottom; }
+.yl-profile-identity { min-width:0; }
+.yl-profile-eyebrow { color:#c2d0df; font-size:12px; font-weight:650; letter-spacing:.6px; margin:0 0 8px; }
+.yl-profile-identity h1 { font-size:clamp(26px,3.1vw,38px); line-height:1.12; letter-spacing:-.8px; font-weight:700; color:#fff; margin:0 0 10px; overflow-wrap:anywhere; }
+.yl-profile-ownership { display:inline-block; color:#e0e8f0; background:#ffffff10; border:1px solid #ffffff24; font-size:11px; padding:4px 9px; border-radius:4px; margin-bottom:16px; }
+.yl-player-profile .sleeper-bio { display:flex; flex-wrap:wrap; align-items:start; gap:12px 24px; }
+.yl-player-profile .sleeper-bio span { display:flex; flex-direction:column; gap:5px; font-size:13px; font-weight:550; color:#fff; line-height:1.4; }
+.yl-player-profile .sleeper-bio span b { margin:0; font-size:10px; font-weight:550; color:#b3c2d3; letter-spacing:.5px; }
+.yl-player-profile .sleeper-bio .college { min-width:0; }
+.yl-player-profile .sleeper-bio:empty { display:none; }
+.yl-profile-metrics.fp-stat-boxes { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); margin:0; padding:0; gap:0; background:#f4f7fa; border-bottom:1px solid #dce3ec; flex-shrink:0; }
+.yl-profile-metric { padding:18px 24px; border-right:1px solid #dce3ec; }
+.yl-profile-metric:last-child { border:0; }
+.yl-profile-metric span { display:block; font-size:11px; font-weight:600; color:#52677e; margin-bottom:7px; }
+.yl-profile-metric strong { display:block; font-size:27px; line-height:1.1; font-weight:700; color:#002244; font-variant-numeric:tabular-nums; letter-spacing:-.6px; }
+.yl-profile-metric small { display:block; color:#697b8e; font-size:10px; margin-top:5px; }
+.yl-profile-context { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; padding:10px 24px; font-size:11px; color:#52677e; background:#fff; border-bottom:1px solid #e2e8ef; flex-shrink:0; }
+.yl-profile-context small { font-size:11px; }
+.yl-player-profile .sleeper-dossier-nav { display:flex; gap:20px; padding:0 24px; background:#fff; border-bottom:1px solid #dce3ec; flex-shrink:0; overflow-x:auto; }
+.yl-player-profile .sleeper-tab-btn { white-space:nowrap; padding:15px 0 12px; min-height:46px; font-size:12px; font-weight:600; color:#64768a; border:0; border-bottom:3px solid transparent; background:none; }
+.yl-player-profile .sleeper-tab-btn.active { color:#002244; border-bottom-color:#c60c30; }
+.yl-player-profile .yl-profile-content { display:grid; grid-template-columns:minmax(0,1fr) 230px; max-height:none; min-height:0; overflow:auto; flex:1 1 auto; background:#fff; }
+.yl-player-profile .sleeper-dossier__logs { min-width:0; padding:24px; }
+.yl-profile-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+.yl-profile-toolbar h2,.yl-profile-section-heading h2,.yl-profile-content main>section>h2 { font-size:17px; line-height:1.4; color:#002244; font-weight:650; margin:0; }
+.yl-profile-toolbar p,.yl-profile-section-heading p,.yl-profile-note { font-size:12px; color:#6c7d90; line-height:1.6; margin:5px 0 0; }
+.yl-profile-toolbar label { display:flex; align-items:center; gap:9px; font-size:11px; color:#52677e; }
+.yl-profile-toolbar select { border:1px solid #ccd6e1; background:#fff; border-radius:6px; padding:8px 12px; font:inherit; color:#002244; min-height:36px; }
+.yl-profile-table-scroll { max-width:100%; overflow-x:auto; border:1px solid #dce3ec; border-radius:8px; }
+.yl-profile-table { width:100%; border-collapse:collapse; font-size:12px; color:#33485e; font-variant-numeric:tabular-nums; }
+.yl-profile-table caption { text-align:left; font-size:11px; color:#6c7d90; padding:11px 14px; background:#fff; }
+.yl-profile-table th,.yl-profile-table td { padding:12px 12px; text-align:right; white-space:nowrap; border-bottom:1px solid #e7edf3; line-height:1.5; }
+.yl-profile-table thead th { background:#f0f4f8; color:#52677e; font-size:10px; font-weight:650; }
+.yl-profile-table .yl-stat-groups th { background:#e9eff5; color:#24415f; text-align:center; }
+.yl-profile-table tbody th { font-weight:600; color:#002244; }
+.yl-profile-table th:first-child,.yl-profile-table td:first-child { text-align:left; }
+.yl-profile-table tbody tr:nth-child(even):not([hidden]) { background:#fafbfd; }
+.yl-profile-table tbody tr:hover:not([hidden]) { background:#f0f5fa; }
+.yl-profile-table .yl-points-col { font-weight:700; color:#002244; background:#eaf1f8; }
+.yl-profile-table abbr { cursor:help; text-decoration:none; }
+.yl-profile-table tr[hidden] { display:none; }
+.yl-record-toggle,.yl-profile-link { border:0; background:none; color:#174c7d; font-size:11px; font-weight:600; padding:4px 0; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.yl-record-details { display:flex; flex-wrap:wrap; gap:20px; padding:8px; text-align:left; white-space:normal; }
+.yl-record-details section { flex:1 1 190px; }
+.yl-record-details h4 { font-size:12px; color:#002244; margin:0 0 10px; }
+.yl-record-details dl,.yl-stat-summary dl,.yl-profile-facts { margin:0; }
+.yl-record-details dl>div,.yl-stat-summary dl>div,.yl-profile-facts>div { display:flex; justify-content:space-between; gap:20px; padding:8px 0; border-bottom:1px solid #e7edf3; font-size:12px; }
+.yl-record-details dt,.yl-stat-summary dt,.yl-profile-facts dt { color:#64768a; }
+.yl-record-details dd,.yl-stat-summary dd,.yl-profile-facts dd { margin:0; color:#002244; font-weight:600; text-align:right; }
+.yl-player-profile .sleeper-dossier__side { background:#f8fafc; border-left:1px solid #e2e8ef; padding:24px 20px; }
+.yl-player-profile .sleeper-dossier__side section { margin:0 0 28px; }
+.yl-player-profile .sleeper-dossier__side h3 { color:#002244; font-size:12px; font-weight:650; letter-spacing:0; margin:0 0 13px; }
+.yl-player-profile .sleeper-dossier__side p { font-size:12px; line-height:1.7; color:#64768a; margin:8px 0; }
+.yl-player-profile .sleeper-dossier__side small { font-size:11px; line-height:1.6; color:#7b8b9e; }
+.yl-profile-depth { list-style:none; padding:0; margin:0; }
+.yl-profile-depth li { display:flex; align-items:center; gap:10px; font-size:12px; padding:10px 0; border-bottom:1px solid #e1e8ef; color:#64768a; }
+.yl-profile-depth li span { color:#8a99a9; width:20px; }
+.yl-profile-depth li strong { font-weight:500; }
+.yl-profile-depth li.is-selected strong { color:#002244; font-weight:700; }
+.yl-profile-section-heading { margin-bottom:16px; }
+.yl-profile-subtitle { margin:28px 0 6px; color:#002244; font-size:16px; }
+.yl-stat-summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:16px; }
+.yl-stat-summary { border:1px solid #dce3ec; border-radius:8px; padding:16px; }
+.yl-stat-summary h3 { font-size:13px; color:#002244; margin:0 0 8px; }
+.yl-stat-summary dd small { display:block; font-size:10px; font-weight:400; color:#7b8b9e; }
+.yl-season-team { display:block; font-size:10px; color:#7b8b9e; margin-top:3px; }
+.yl-profile-loading { font-size:12px; padding:12px 16px; background:#f2f6fa; border-left:3px solid #c60c30; color:#52677e; margin:0 0 16px; }
+.yl-profile-news { border-bottom:1px solid #dce3ec; padding:16px 0; }
+.yl-profile-news h3 { font-size:15px; color:#002244; }
+.yl-profile-news p { font-size:13px; color:#52677e; line-height:1.7; }
+.yl-profile-news a { font-size:12px; color:#174c7d; }
+.yl-player-profile button:focus-visible,.yl-player-profile select:focus-visible { outline:3px solid #c60c30; outline-offset:3px; }
+@media(max-width:900px){ .yl-player-profile .yl-profile-content { grid-template-columns:minmax(0,1fr); } .yl-player-profile .sleeper-dossier__side { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:24px; border-left:0; border-top:1px solid #e2e8ef; } }
+@media(max-width:600px){ #player-modal { padding:8px; } .yl-player-profile.sleeper-dossier { max-height:94dvh; border-radius:10px; } .yl-profile-hero { grid-template-columns:80px minmax(0,1fr); gap:14px; padding:48px 16px 20px; min-height:0; } .yl-profile-portrait { width:80px; height:100px; } .yl-profile-portrait img { width:85px; height:100px; } .yl-profile-identity h1 { font-size:26px; } .yl-profile-ownership { margin-bottom:12px; } .yl-player-profile .sleeper-bio { gap:10px 16px; } .yl-player-profile .sleeper-bio span { font-size:11px; } .yl-profile-metrics.fp-stat-boxes { grid-template-columns:repeat(2,minmax(0,1fr)); } .yl-profile-metric { padding:13px 16px; } .yl-profile-metric strong { font-size:24px; } .yl-profile-metric small { font-size:10px; } .yl-profile-context { padding:10px 16px; } .yl-player-profile .sleeper-dossier-nav { padding:0 16px; gap:20px; } .yl-player-profile .sleeper-dossier__logs { padding:20px 14px; } .yl-profile-table th,.yl-profile-table td { padding:10px; } .yl-profile-table-scroll { -webkit-overflow-scrolling:touch; } .yl-profile-toolbar { align-items:flex-start; } .yl-profile-toolbar select { min-height:44px; } }
+
+/* Team identity belongs to the athlete; the surrounding app stays Yardline. */
+.yl-profile-hero { grid-template-columns:220px minmax(0,1fr); min-height:218px; padding:24px 64px 0 22px; background:linear-gradient(110deg,var(--yl-team-primary,#002244),color-mix(in srgb,var(--yl-team-primary,#002244),#000 38%)); border-bottom:4px solid var(--yl-team-accent,#c60c30); }
+.yl-profile-identity { padding-bottom:24px; }
+.yl-profile-portrait { width:220px; height:210px; align-self:end; background:none; border:0; border-radius:0; overflow:visible; }
+.yl-profile-portrait img { width:235px; height:215px; object-fit:contain; filter:drop-shadow(0 10px 14px #0003); }
+.yl-profile-watermark { right:50px; width:330px; height:330px; opacity:.15; }
+@media(max-width:600px){ .yl-profile-hero { grid-template-columns:100px minmax(0,1fr); min-height:200px; padding:42px 18px 0 8px; gap:10px; } .yl-profile-portrait { width:105px; height:160px; } .yl-profile-portrait img { width:125px; height:170px; } .yl-profile-identity { padding-bottom:20px; } .yl-profile-identity h1 { font-size:25px; } .yl-profile-watermark { right:-40px; width:250px; height:250px; } }

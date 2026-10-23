@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { db } from '../../db/database.js';
 import { sleeperConnector } from './sleeper.connector.js';
 import { scorePlayerStats, normalizeScoringSettings } from '../engines/scoring.engine.js';
-import { normalizeSleeperPlayer, loadPersistedCatalog, numberOrNull } from '../players/player-card.service.js';
+import { normalizeSleeperPlayer, loadPersistedCatalog, numberOrNull, pointsFromStats } from '../players/player-card.service.js';
 export { normalizeSleeperPlayer };
 
 // Cache em memória para catálogo de jogadores da NFL (TTL 24 horas)
@@ -332,6 +332,7 @@ export function persistPlayerStats({ leagueId, season, week, stats, projections,
     VALUES (?, ?, ?, ?, ?, ?, 'sleeper', 'sleeper-api', ?)
     ON CONFLICT(id) DO UPDATE SET projection=excluded.projection, created_at=excluded.created_at
   `);
+  const rawProjectionStatement = db.prepare('INSERT INTO player_projection_stats (player_id,season,week,stats_json,captured_at) VALUES (?,?,?,?,?) ON CONFLICT(player_id,season,week) DO UPDATE SET stats_json=excluded.stats_json,captured_at=excluded.captured_at');
   const checkPlayerStatement = db.prepare('SELECT id FROM players WHERE id = ?');
   const insertMissingPlayerStatement = db.prepare(`INSERT INTO players (id, canonical_name, position, status, created_at, updated_at) VALUES (?, ?, 'NFL', 'Unknown', ?, ?)`);
   const deleteProjectionStatement = db.prepare("DELETE FROM projections WHERE player_id=? AND season=? AND week=? AND source='sleeper'");
@@ -345,6 +346,7 @@ export function persistPlayerStats({ leagueId, season, week, stats, projections,
         statsStatement.run(`stat_${season}_${week}_${pid}`, pid, String(season), Number(week), JSON.stringify(playerStats), capturedAt);
       }
       if (projectionsStatus !== 'failed') {
+        if (Object.hasOwn(projections || {}, pid)) rawProjectionStatement.run(pid,String(season),Number(week),JSON.stringify(playerProjection),capturedAt);
         deleteProjectionStatement.run(pid, String(season), Number(week));
         for (const [key, format] of [['pts_ppr', 'PPR'], ['pts_half_ppr', 'HALF_PPR'], ['pts_std', 'STANDARD']]) {
           const projection = numberOrNull(playerProjection[key]);
@@ -539,6 +541,12 @@ export const sleeperSyncService = {
     if (fresh) return cachedPlayersCatalog;
 
     if (hasPersisted) {
+      const persistedAt = Date.parse(db.prepare('SELECT MAX(updated_at) AS fetched_at FROM players WHERE catalog_json IS NOT NULL').get()?.fetched_at || '');
+      if (Number.isFinite(persistedAt) && now - persistedAt < PLAYERS_CACHE_TTL_MS) {
+        cachedPlayersCatalog = persisted;
+        cachedPlayersTimestamp = persistedAt;
+        return cachedPlayersCatalog;
+      }
       cachedPlayersCatalog ||= Object.fromEntries(Object.entries(persisted).map(([id, player]) => [id, { ...player, dataStatus: 'stale' }]));
       cachedPlayersTimestamp = now;
       if (!playersRefreshInFlight) {
@@ -741,7 +749,7 @@ export const sleeperSyncService = {
   },
 
   // Sincronização completa e idempotente de uma liga específica.
-  async syncLeagueDetails(leagueId, currentWeek = null) {
+  async syncLeagueDetails(leagueId, currentWeek = null, { coreOnly = false } = {}) {
     const runId = 'sync_' + crypto.randomUUID();
     const startedAt = new Date().toISOString();
     let recordsRead = 0;
@@ -774,13 +782,31 @@ export const sleeperSyncService = {
         league = db.prepare('SELECT * FROM leagues WHERE id = ?').get(league.id);
       }
 
-      const [users, rosters, matchups, transactions, tradedPicks, drafts, statsResult, projectionsResult] = await Promise.all([
-        this.getLeagueUsers(normLeague.id),
-        this.getLeagueRosters(normLeague.id),
-        this.getLeagueMatchups(normLeague.id, week),
-        this.getLeagueTransactions(normLeague.id, week).catch(() => []),
-        sleeperConnector.getLeagueTradedPicks(normLeague.id).catch(() => []),
-        sleeperConnector.getLeagueDrafts(normLeague.id).catch(() => []),
+      // Persist core league ownership and rosters before optional analytics/drafts.
+      const [users, rosters, matchups] = await Promise.all([
+        this.getLeagueUsers(normLeague.id), this.getLeagueRosters(normLeague.id), this.getLeagueMatchups(normLeague.id, week)
+      ]);
+      if (!Array.isArray(users) || !Array.isArray(rosters) || !Array.isArray(matchups)) throw new Error('Resposta de liga incompleta.');
+      const userMap = Object.fromEntries((users || []).map(user => [user.user_id, user]));
+      for (const r of rosters || []) {
+        const u = userMap[r.owner_id] || {};
+        const memberId = `mem_${league.id}_${r.roster_id}`;
+        const memberValues = [r.owner_id || '', r.roster_id, u.display_name || `Manager ${r.roster_id}`, u.metadata?.team_name || u.display_name || `Time #${r.roster_id}`, u.avatar || null, now];
+        db.prepare(`INSERT INTO league_memberships (id, league_id, provider_user_id, roster_id, display_name, team_name, avatar, is_commissioner, is_current_user, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?) ON CONFLICT(id) DO UPDATE SET provider_user_id=excluded.provider_user_id, display_name=excluded.display_name, team_name=excluded.team_name, avatar=excluded.avatar, updated_at=excluded.updated_at`)
+          .run(memberId, league.id, ...memberValues, now);
+        const rosterDbId = `rst_${league.id}_${r.roster_id}`;
+        db.prepare(`INSERT INTO rosters (id, league_id, provider_roster_id, owner_membership_id, players_json, starters_json, reserve_json, taxi_json, settings_json, captured_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET owner_membership_id=excluded.owner_membership_id, players_json=excluded.players_json, starters_json=excluded.starters_json, reserve_json=excluded.reserve_json, taxi_json=excluded.taxi_json, settings_json=excluded.settings_json, captured_at=excluded.captured_at`)
+          .run(rosterDbId, league.id, r.roster_id, memberId, JSON.stringify(r.players || []), JSON.stringify(r.starters || []), JSON.stringify(r.reserve || []), Array.isArray(r.taxi) ? JSON.stringify(r.taxi) : null, JSON.stringify(r.settings || {}), now);
+        recordsWritten += 2;
+      }
+
+
+      const [transactions, tradedPicks, drafts, statsResult, projectionsResult] = await Promise.all([
+        coreOnly ? [] : this.getLeagueTransactions(normLeague.id, week).catch(() => []),
+        coreOnly ? [] : sleeperConnector.getLeagueTradedPicks(normLeague.id).catch(() => []),
+        coreOnly ? [] : sleeperConnector.getLeagueDrafts(normLeague.id).catch(() => []),
         fetchMetric(() => sleeperConnector.getNflStats(normLeague.season, week)),
         fetchMetric(() => sleeperConnector.getNflProjections(normLeague.season, week))
       ]);
@@ -790,7 +816,8 @@ export const sleeperSyncService = {
       recordsRead += (users?.length || 0) + (rosters?.length || 0) + (matchups?.length || 0) + (transactions?.length || 0) + (tradedPicks?.length || 0) + (drafts?.length || 0) + Object.keys(stats).length + Object.keys(projections).length;
 
       const catalog = await this.getNflPlayers();
-      persistCatalog(catalog, now);
+      // getNflPlayers persists a newly fetched catalogue itself. Rewriting the
+      // entire catalogue here both blocks SQLite and resets its freshness TTL.
       for (const roster of rosters || []) {
         for (const playerId of roster.players || []) {
           if (!db.prepare('SELECT id FROM players WHERE id = ?').get(String(playerId))) {
@@ -801,8 +828,8 @@ export const sleeperSyncService = {
       }
       persistPlayerStats({ leagueId: league.id, season: normLeague.season, week, stats, projections, capturedAt: now,
         statsStatus: metricStatus.stats, projectionsStatus: metricStatus.projections });
-      persistTransactions({ leagueId: league.id, season: normLeague.season, week, transactions, capturedAt: now });
-      persistTradedPicks({ leagueId: league.id, season: normLeague.season, picks: tradedPicks, capturedAt: now });
+      if (!coreOnly) persistTransactions({ leagueId: league.id, season: normLeague.season, week, transactions, capturedAt: now });
+      if (!coreOnly) persistTradedPicks({ leagueId: league.id, season: normLeague.season, picks: tradedPicks, capturedAt: now });
       if (Array.isArray(drafts) && drafts.length > 0) {
         recordsWritten += persistDrafts({ leagueId: league.id, season: normLeague.season, drafts, capturedAt: now });
         for (const draft of drafts) {
@@ -820,21 +847,6 @@ export const sleeperSyncService = {
       persistPayload({ leagueId: league.id, resource: 'league', resourceKey: normLeague.id, payload: rawLeague, capturedAt: now });
       persistPayload({ leagueId: league.id, resource: 'state', resourceKey: `${normLeague.season}:${week}`, payload: state, capturedAt: now });
 
-      const userMap = Object.fromEntries((users || []).map(user => [user.user_id, user]));
-      for (const r of rosters || []) {
-        const u = userMap[r.owner_id] || {};
-        const memberId = `mem_${league.id}_${r.roster_id}`;
-        const memberValues = [r.owner_id || '', r.roster_id, u.display_name || `Manager ${r.roster_id}`, u.metadata?.team_name || u.display_name || `Time #${r.roster_id}`, u.avatar || null, now];
-        db.prepare(`INSERT INTO league_memberships (id, league_id, provider_user_id, roster_id, display_name, team_name, avatar, is_commissioner, is_current_user, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?) ON CONFLICT(id) DO UPDATE SET provider_user_id=excluded.provider_user_id, display_name=excluded.display_name, team_name=excluded.team_name, avatar=excluded.avatar, updated_at=excluded.updated_at`)
-          .run(memberId, league.id, ...memberValues, now);
-        const rosterDbId = `rst_${league.id}_${r.roster_id}`;
-        db.prepare(`INSERT INTO rosters (id, league_id, provider_roster_id, owner_membership_id, players_json, starters_json, reserve_json, taxi_json, settings_json, captured_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET owner_membership_id=excluded.owner_membership_id, players_json=excluded.players_json, starters_json=excluded.starters_json, reserve_json=excluded.reserve_json, taxi_json=excluded.taxi_json, settings_json=excluded.settings_json, captured_at=excluded.captured_at`)
-          .run(rosterDbId, league.id, r.roster_id, memberId, JSON.stringify(r.players || []), JSON.stringify(r.starters || []), JSON.stringify(r.reserve || []), Array.isArray(r.taxi) ? JSON.stringify(r.taxi) : null, JSON.stringify(r.settings || {}), now);
-        recordsWritten += 2;
-      }
-
       const grouped = {};
       for (const item of matchups || []) {
         if (item.matchup_id == null) continue;
@@ -843,6 +855,7 @@ export const sleeperSyncService = {
       const scoringSettings = normalizeScoringSettings(normLeague.scoringSettings);
       const matchupInsert = db.prepare(`INSERT INTO matchup_players (id, matchup_id, roster_id, player_id, slot, is_starter, points, projected_points, scoring_breakdown_json, captured_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET slot=excluded.slot, is_starter=excluded.is_starter, points=excluded.points, projected_points=excluded.projected_points, scoring_breakdown_json=excluded.scoring_breakdown_json, captured_at=excluded.captured_at`);
+      const persistMatchupsTx = db.transaction(() => {
       for (const [providerMatchupId, pair] of Object.entries(grouped)) {
         const a = pair[0];
         const b = pair[1] || null;
@@ -850,7 +863,7 @@ export const sleeperSyncService = {
         const status = Number(state?.week) === week ? 'live' : ((a?.points || b?.points) ? 'finished' : 'scheduled');
         db.prepare(`INSERT INTO matchups (id, league_id, season, week, provider_matchup_id, roster_a_id, roster_b_id, status, score_a, score_b, custom_points_json, captured_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET status=excluded.status, score_a=excluded.score_a, score_b=excluded.score_b, custom_points_json=excluded.custom_points_json, captured_at=excluded.captured_at`)
-          .run(matchupDbId, league.id, normLeague.season, week, Number(providerMatchupId), a?.roster_id || 0, b?.roster_id || null, status, Number(a?.points || 0), Number(b?.points || 0), JSON.stringify({ a: a?.custom_points ?? null, b: b?.custom_points ?? null }), now);
+          .run(matchupDbId, league.id, normLeague.season, week, Number(providerMatchupId), a?.roster_id || 0, b?.roster_id || null, status, numberOrNull(a?.custom_points) ?? numberOrNull(a?.points), numberOrNull(b?.custom_points) ?? numberOrNull(b?.points), JSON.stringify({ a: a?.custom_points ?? null, b: b?.custom_points ?? null }), now);
         db.prepare('DELETE FROM matchup_players WHERE matchup_id = ?').run(matchupDbId);
         for (const item of pair) {
           const starters = new Set((item.starters || []).map(String));
@@ -858,15 +871,18 @@ export const sleeperSyncService = {
           (item.players || []).forEach((playerId, index) => {
             const pid = String(playerId);
             const scored = scorePlayerStats(stats?.[pid] || {}, scoringSettings);
-            const official = starters.has(pid) ? numberOrNull(starterPoints[(item.starters || []).indexOf(pid)]) ?? scored.points : scored.points;
-            const projected = ['pts_ppr', 'pts_half_ppr', 'pts_std'].map(key => numberOrNull(projections?.[pid]?.[key])).find(value => value !== null) ?? null;
-            matchupInsert.run(`${matchupDbId}_${item.roster_id}_${pid}`, matchupDbId, Number(item.roster_id), pid, starters.has(pid) ? `STARTER_${(item.starters || []).indexOf(pid) + 1}` : 'BN', starters.has(pid) ? 1 : 0, official === null ? null : Number(official.toFixed(2)), projected, JSON.stringify({ official, recalculated: scored }), now);
+            const derived = pointsFromStats(stats?.[pid], scoringSettings).points;
+            const official = numberOrNull(item.players_points?.[pid]) ?? (starters.has(pid) ? numberOrNull(starterPoints[(item.starters || []).map(String).indexOf(pid)]) : null) ?? derived;
+            const projected = pointsFromStats(projections?.[pid], scoringSettings).points;
+            matchupInsert.run(`${matchupDbId}_${item.roster_id}_${pid}`, matchupDbId, Number(item.roster_id), pid, starters.has(pid) ? `STARTER_${(item.starters || []).indexOf(pid) + 1}` : 'BN', starters.has(pid) ? 1 : 0, official === null ? null : Number(official.toFixed(2)), projected, JSON.stringify({ official, recalculated: scored, projectionFormat: projected !== null ? 'LEAGUE' : null }), now);
             recordsWritten++;
           });
         }
         recordsWritten++;
       }
 
+      });
+      persistMatchupsTx();
       db.prepare('UPDATE leagues SET last_synced_at = ?, updated_at = ? WHERE id = ?').run(now, now, league.id);
       db.prepare(`INSERT INTO sync_runs (id, league_id, provider, resource, status, started_at, finished_at, records_read, records_written, metric_status_json) VALUES (?, ?, 'sleeper', 'league_full', 'SUCCESS', ?, ?, ?, ?, ?)`)
         .run(runId, league.id, startedAt, now, recordsRead, recordsWritten, JSON.stringify(metricStatus));

@@ -18,12 +18,15 @@ export class BasePaymentProvider {
 
 // Provedor YARDLINE Direct (Mock/Sandbox oficial pronto para conectar a Asaas / Stripe / MercadoPago)
 export class YardlinePaymentProvider extends BasePaymentProvider {
-  constructor(secretKey = process.env.PAYMENT_WEBHOOK_SECRET || 'yl_sandbox_secret_key_2026') {
+  constructor(secretKey = process.env.PAYMENT_WEBHOOK_SECRET) {
     super();
     this.secretKey = secretKey;
   }
 
   async createCheckout(plan, user, method = 'PIX') {
+    if (process.env.PAYMENT_SANDBOX !== 'true' || process.env.NODE_ENV === 'production') {
+      throw new Error('Pagamentos indisponíveis: provedor real ainda não configurado.');
+    }
     const paymentId = 'pay_' + crypto.randomUUID();
     const isPix = method.toUpperCase() === 'PIX';
 
@@ -32,6 +35,8 @@ export class YardlinePaymentProvider extends BasePaymentProvider {
     const pixCopyPaste = isPix ? `${pixQrCode}C9B2` : null;
 
     return {
+      simulation: true,
+      dataStatus: 'simulation',
       providerPaymentId: paymentId,
       amountCents: plan.price_cents,
       currency: plan.currency || 'BRL',
@@ -47,14 +52,13 @@ export class YardlinePaymentProvider extends BasePaymentProvider {
   }
 
   async verifyWebhook(rawPayload, signature) {
-    if (!signature) return false;
+    if (!this.secretKey || typeof signature !== 'string' || !/^[a-f0-9]{64}$/i.test(signature)) return false;
     const computedSignature = crypto
       .createHmac('sha256', this.secretKey)
       .update(typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload))
       .digest('hex');
     
-    // Suportar verificação em sandbox ou HMAC estrito
-    return signature === computedSignature || signature === 'sandbox_test_signature';
+    return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(computedSignature, 'hex'));
   }
 }
 
