@@ -9,10 +9,10 @@ test('backend coalesces parallel refreshes, reuses short automatic cache, and ma
  const a=refresh('league',7,{coreOnly:true,automatic:true});
  const b=refresh('league',7,{coreOnly:true,automatic:true});
  assert.equal(a,b);await Promise.resolve();assert.equal(calls,1);
- resolve({week:7});await a;
+ resolve({success:true,status:'SUCCESS',week:7});await a;
  assert.equal((await refresh('league',7,{coreOnly:true,automatic:true})).reused,true);
- const manual=refresh('league',7,{coreOnly:true});await Promise.resolve();assert.equal(calls,2);resolve({week:7});await manual;
- now=31000;const fresh=refresh('league',7,{coreOnly:true,automatic:true});await Promise.resolve();assert.equal(calls,3);resolve({week:7});await fresh;
+ const manual=refresh('league',7,{coreOnly:true});await Promise.resolve();assert.equal(calls,2);resolve({success:true,status:'SUCCESS',week:7});await manual;
+ now=31000;const fresh=refresh('league',7,{coreOnly:true,automatic:true});await Promise.resolve();assert.equal(calls,3);resolve({success:true,status:'SUCCESS',week:7});await fresh;
 });
 test('failed refresh is evicted so a recovered provider can be retried',async()=>{
  let calls=0;const refresh=createLeagueRefresh(async()=>{if(++calls===1)throw Error('upstream offline');return {ok:true};});

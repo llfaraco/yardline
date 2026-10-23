@@ -188,7 +188,7 @@ export async function runLocalSmoke(config, { fetchImpl = fetch, appURL = proces
   const health = await request('qa.api', 'GET backend health', '/api/health', data => ['ONLINE', 'ok', 'HEALTHY'].includes(data.status));
   const html = await request('qa.web', 'GET frontend shell real', '/index.html', text => typeof text === 'string' && text.includes('player-modal'), app);
   if (allowLocalSync && health) {
-    await request('qa.sync', 'Sleeper sync no backend LOCAL autorizado', '/api/integrations/sleeper/sync-league', data => data.success === true && !data.error && data.status !== 'failed' && data.preserved !== true, api, 'POST', { leagueId: config.leagueId });
+    await request('qa.sync', 'Sleeper sync no backend LOCAL autorizado', '/api/integrations/sleeper/sync-league', data => data.status === 'SUCCESS' && data.success === true && !data.error && data.preserved !== true, api, 'POST', { leagueId: config.leagueId });
   } else results.push(result('qa.sync', 'Sleeper sync local', 'NOT_VERIFIABLE', allowLocalSync ? 'Backend indisponível para sync' : 'Sync local mutável desabilitada: MONITOR_ALLOW_LOCAL_SYNC=1 autoriza apenas loopback. Proteção snapshot testada por npm test.', { reason: 'Não executar mutação silenciosa', allowLocalSync }));
   const search = await request('qa.search', 'Busca real Josh Allen', '/api/players/search?q=Josh%20Allen&limit=5', data => Array.isArray(data.players) && data.players.some(p => p.name === 'Josh Allen'));
   await request('qa.filter', 'Filtro IDP real (não passa com array vazio)', '/api/players/search?position=IDP&limit=5', data => data.players?.length > 0 && data.players.every(p => ['DL', 'LB', 'DB', 'DE', 'DT', 'CB', 'S'].includes(p.position || p.pos)));

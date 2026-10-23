@@ -180,16 +180,29 @@ app.get('/api/integrations/sleeper/user/:userId/leagues/:season', async (req, re
 
 const refreshLeague = createLeagueRefresh((id,week,options)=>sleeperSyncService.syncLeagueDetails(id,week,options));
 
+function sendSleeperSyncResult(res, result) {
+  const success = result.status === 'SUCCESS' && result.success === true;
+  return res.status(success ? 200 : result.status === 'PARTIAL' ? 503 : 500).json({ ...result, success });
+}
+
+function latestSleeperSyncRun(league, week) {
+  // Unscoped historical runs remain audit-only: their season/week cannot be inferred.
+  return db.prepare(`SELECT status, error_message, metric_status_json FROM sync_runs WHERE league_id=?
+    AND json_extract(metric_status_json, '$.context.season')=?
+    AND json_extract(metric_status_json, '$.context.week')=?
+    ORDER BY finished_at DESC, rowid DESC LIMIT 1`).get(league.id, String(league.season), week);
+}
+
 // Sincronizar Liga Escolhida
 app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
   try {
     const { leagueId, week = null, coreOnly = false, automatic = false } = req.body;
-    if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
-    if (automatic === true && coreOnly !== true) return res.status(400).json({error:'Atualização automática requer coreOnly.'});
+    if (!leagueId) return res.status(400).json({ success: false, status: 'ERROR', error: 'leagueId é obrigatório.' });
+    if (automatic === true && coreOnly !== true) return res.status(400).json({success:false,status:'ERROR',error:'Atualização automática requer coreOnly.'});
     const result = await refreshLeague(leagueId, week == null ? null : parseInt(week, 10), { coreOnly: coreOnly === true, automatic: automatic === true });
-    res.json({ success: true, ...result });
+    sendSleeperSyncResult(res, result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendSleeperSyncResult(res, { ...err.syncResult, success: false, status: 'ERROR', error: err.message });
   }
 });
 
@@ -411,12 +424,12 @@ app.post('/api/integrations/sleeper/connect', requireAuth, async (req, res) => {
 app.post('/api/integrations/sleeper/sync', requireAuth, async (req, res) => {
   try {
     const { leagueId, week = null } = req.body;
-    if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
+    if (!leagueId) return res.status(400).json({ success: false, status: 'ERROR', error: 'leagueId é obrigatório.' });
 
     const result = await sleeperSyncService.syncLeagueDetails(leagueId, week == null ? null : parseInt(week, 10));
-    res.json({ success: true, ...result });
+    sendSleeperSyncResult(res, result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendSleeperSyncResult(res, { ...err.syncResult, success: false, status: 'ERROR', error: err.message });
   }
 });
 
@@ -460,8 +473,9 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
   const settings = parse(league.settings_json, {});
   const week = Number(req.query.week ?? state?.week ?? settings.leg);
   if (!Number.isInteger(week) || week < 1 || week > 22) return res.status(400).json({ error: 'Semana válida (1–22) é obrigatória; não há default implícito.' });
-  const latestRun = db.prepare("SELECT status, error_message, metric_status_json FROM sync_runs WHERE league_id=? ORDER BY finished_at DESC LIMIT 1").get(league.id);
-  const dataStatus = latestRun?.status === 'ERROR' ? 'stale' : league.last_synced_at ? 'synced' : 'not_synced';
+  const latestRun = latestSleeperSyncRun(league, week);
+  const incomplete = ['ERROR', 'PARTIAL'].includes(latestRun?.status);
+  const dataStatus = incomplete ? 'stale' : league.last_synced_at ? 'synced' : 'not_synced';
   const rosters = db.prepare(`SELECT r.*, m.provider_user_id AS owner_id, m.display_name, m.team_name, m.avatar FROM rosters r LEFT JOIN league_memberships m ON r.owner_membership_id=m.id WHERE r.league_id=? ORDER BY r.provider_roster_id`).all(league.id);
   const rawMatchups = db.prepare('SELECT * FROM matchups WHERE league_id = ? AND season = ? AND week = ? ORDER BY provider_matchup_id').all(league.id, String(league.season), week);
   const matchups = rawMatchups.map(matchup => ({
@@ -500,10 +514,10 @@ app.get('/api/leagues/:leagueId/shell', (req, res) => {
     state: { ...(state || {}), week }, rosters: shellRosters, standings, matchups,
     transactions, tradedPicks, playerData,
     provenance: createDataStatusDTO({ status: dataStatus === 'stale' ? DATA_STATUS.STALE : league.last_synced_at ? DATA_STATUS.OFFICIAL : DATA_STATUS.UNAVAILABLE,
-      source: 'sleeper_sync', syncedAt: league.last_synced_at, staleReason: latestRun?.status === 'ERROR' ? latestRun.error_message : null })
+      source: 'sleeper_sync', syncedAt: league.last_synced_at, staleReason: incomplete ? latestRun.error_message : null })
   });
   // DTO normalization must not erase unknown ownership/taxi or local metric diagnostics.
-  Object.assign(shellDto, { dataStatus, syncError: latestRun?.status === 'ERROR' ? latestRun.error_message : null,
+  Object.assign(shellDto, { dataStatus, syncStatus: latestRun?.status || null, syncError: incomplete ? latestRun.error_message : null,
     syncedAt: league.last_synced_at, playerCards, cardContext });
   shellDto.league.seasonType = league.season_type;
   shellDto.rosters = shellDto.rosters.map((roster, index) => ({ ...roster, ownerName: shellRosters[index].ownerName, taxi: shellRosters[index].taxi }));
@@ -641,6 +655,11 @@ app.get('/api/leagues/:leagueId/matchups/current', async (req, res) => {
     const { sleeperUserId, week } = req.query;
     if (!sleeperUserId || !week) {
       return res.status(400).json({ error: 'sleeperUserId e week são obrigatórios; não há fallback de contexto.' });
+    }
+    const league = db.prepare('SELECT * FROM leagues WHERE id=? OR provider_league_id=?').get(req.params.leagueId, req.params.leagueId);
+    const syncRun = league && latestSleeperSyncRun(league, parseInt(week, 10));
+    if (syncRun && ['PARTIAL', 'ERROR'].includes(syncRun.status)) {
+      return sendSleeperSyncResult(res, { success: false, status: syncRun.status, error: syncRun.error_message });
     }
     const matchup = await sleeperSyncService.buildFantasyMatchup({
       leagueId: req.params.leagueId,

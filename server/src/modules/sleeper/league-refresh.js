@@ -6,7 +6,8 @@ export function createLeagueRefresh(run, {now=Date.now, ttlMs=30000}={}) {
     const cached=recent.get(key);
     if(automatic && coreOnly && cached && now()-cached.at<ttlMs)return Promise.resolve({...cached.value,reused:true});
     const pending=Promise.resolve().then(()=>run(leagueId,week,{coreOnly})).then(value=>{
-      recent.set(key,{value,at:now()});
+      if(value.status==='SUCCESS' && value.success===true)recent.set(key,{value,at:now()});
+      else recent.delete(key);
       for(const [k,v] of recent)if(now()-v.at>=ttlMs)recent.delete(k);
       return value;
     }).finally(()=>running.delete(key));
