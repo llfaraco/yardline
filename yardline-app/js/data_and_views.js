@@ -3021,6 +3021,7 @@ async function executeSleeperUserLookup(advance = true) {
     }
 
     onboardingData.userLeagues = Array.isArray(leagues) ? leagues : [];
+    window.YL_AVAILABLE_LEAGUES = onboardingData.userLeagues;
     if (onboardingData.userLeagues.length > 0) {
       onboardingData.selectedLeagueId = onboardingData.userLeagues[0].id;
       onboardingData.selectedLeagueName = `${onboardingData.userLeagues[0].name} (#${onboardingData.userLeagues[0].id})`;
@@ -4280,46 +4281,17 @@ window.toggleSidebarGroup=function(key){
 // 12. MULTI-LEAGUE & TEAM SWITCHER MODAL
 // ==========================================
 (function() {
-  const FARACO_LEAGUES = [
-    {
-      id: "1389356417462317056",
-      name: "RedZone8 ",
-      teamName: "The Real Slim Brady",
-      format: "HALF_PPR · 6 Times · 11 Titulares",
-      keyPlayers: "Josh Allen (QB), Jonathan Taylor (RB), Zay Flowers (WR), George Pickens (WR), Trey McBride (TE)",
-      status: "Principal (2026)"
-    },
-    {
-      id: "1369770282776006656",
-      name: "Neilo Pistola League",
-      teamName: "Gengar My Balls",
-      format: "PPR com IDP · 16 Times · 19 Titulares",
-      keyPlayers: "Brock Purdy (QB), George Kittle (TE), Drake London (WR), Defensores IDP",
-      status: "Secundária (IDP)"
-    },
-    {
-      id: "1389389170710949888",
-      name: "Calvary Fantasy League ",
-      teamName: "The Real Slim Brady",
-      format: "HALF_PPR · 10 Titulares",
-      keyPlayers: "Trevor Lawrence (QB), Kenneth Walker (RB), Trey Benson (RB)",
-      status: "Ativa (2026)"
-    },
-    {
-      id: "1389358834799108096",
-      name: "La B",
-      teamName: "The Real Slim Brady",
-      format: "PPR · 16 Titulares",
-      keyPlayers: "Patrick Mahomes (QB), Puka Nacua (WR)",
-      status: "Ativa (2026)"
-    }
-  ];
+  const getAvailableLeagues = () => {
+    const fromApi = window.YL_AVAILABLE_LEAGUES || (typeof onboardingData !== 'undefined' ? onboardingData.userLeagues : []);
+    return Array.isArray(fromApi) ? fromApi : [];
+  };
 
   window.openLeagueSwitcherModal = function() {
     const modal = document.getElementById("league-switcher-modal");
     const content = document.getElementById("league-switcher-modal-content");
     if (!modal || !content) return;
-    const currentId = localStorage.getItem("yl_active_league_id") || "1389356417462317056";
+    const currentId = localStorage.getItem("yl_active_league_id") || null;
+    const availableLeagues = getAvailableLeagues();
 
     content.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;">
@@ -4332,20 +4304,20 @@ window.toggleSidebarGroup=function(key){
       </div>
 
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-        ${FARACO_LEAGUES.map(lg => {
+        ${availableLeagues.length ? availableLeagues.map(lg => {
           const isActive = lg.id === currentId;
           return `
             <div style="border:2px solid ${isActive ? '#C3112B' : 'var(--border-color)'};background:${isActive ? 'rgba(195,17,43,0.04)' : '#FFFFFF'};border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s ease;" onclick="switchLeague('${lg.id}')">
               <div style="flex:1;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <strong style="font-size:15px;color:var(--yl-navy);">${lg.name}</strong>
-                  ${isActive ? '<span class="badge badge-crimson" style="font-size:10px;">LIGA ATIVA</span>' : `<span class="badge badge-navy" style="font-size:10px;">${lg.status}</span>`}
+                  <strong style="font-size:15px;color:var(--yl-navy);">${lg.name || `Liga #${lg.id || lg.league_id}`}</strong>
+                  ${isActive ? '<span class="badge badge-crimson" style="font-size:10px;">LIGA ATIVA</span>' : `<span class="badge badge-navy" style="font-size:10px;">${lg.status || "DISPONÍVEL"}</span>`}
                 </div>
                 <div style="font-size:13px;font-weight:600;color:#0F172A;margin-bottom:2px;">
-                  Seu time: <span style="color:#C3112B;">${lg.teamName}</span>
+                  Liga Sleeper: <span style="color:#C3112B;">#${lg.id || lg.league_id}</span>
                 </div>
-                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${lg.format}</div>
-                <div style="font-size:11px;color:var(--text-body);"><strong>Destaques:</strong> ${lg.keyPlayers}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${lg.season || "temporada não informada"} · ${lg.total_rosters || "—"} rosters</div>
+                <div style="font-size:11px;color:var(--text-body);"><strong>Fonte:</strong> API Sleeper / sincronização oficial</div>
               </div>
               <div>
                 <button type="button" class="btn-yl ${isActive ? 'btn-primary' : 'btn-outline'}" style="white-space:nowrap;padding:7px 14px;font-size:12px;" onclick="event.stopPropagation();switchLeague('${lg.id}')">
@@ -4354,7 +4326,7 @@ window.toggleSidebarGroup=function(key){
               </div>
             </div>
           `;
-        }).join('')}
+        }).join('') : '<div class="yl-empty-state">Nenhuma liga Sleeper sincronizada para esta conta.</div>'}
       </div>
 
       <div style="border-top:1px solid var(--border-color);padding-top:14px;display:flex;justify-content:space-between;align-items:center;">
