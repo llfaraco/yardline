@@ -1946,7 +1946,7 @@ function renderWaiversView() {
   const container = document.getElementById("view-waivers");
   if (!container) return;
 
-  const freeAgents = ["4361050", "4429059", "4429205", "4241478", "4431611"].map(id => YL_PLAYER_DOSSIERS[id] || YL_ALL_NFL_PLAYERS[id]).filter(Boolean);
+  const freeAgents = (window.activeLeagueFreeAgents || []).filter(Boolean);
 
   container.innerHTML = `
     <div class="yl-card" style="margin-bottom:18px;padding:16px 20px;">
@@ -2481,15 +2481,18 @@ _Analisado pela YARDLINE · Camada de Inteligência NFL Brasil_`;
 // ==========================================
 // START/SIT ASSISTANT & COMPARADOR DE JOGADORES (FANTASYPROS PARITY)
 // ==========================================
-let currentStartSitA = "3918298"; // Josh Allen default
-let currentStartSitB = "4431452"; // Drake Maye default
+let currentStartSitA = null;
+let currentStartSitB = null;
 
 function openStartSitModal(playerAId, playerBId) {
   if (playerAId) currentStartSitA = String(playerAId);
   if (playerBId) currentStartSitB = String(playerBId);
-  if (currentStartSitA === currentStartSitB) {
-    currentStartSitB = (currentStartSitA === "3918298") ? "4431452" : "3918298";
+  if (!currentStartSitA || !currentStartSitB) {
+    const ids = (window.YL_SHELL_SNAPSHOT?.rosters || []).flatMap(r => r.players || []).map(String).filter(Boolean);
+    currentStartSitA = currentStartSitA || ids[0] || null;
+    currentStartSitB = currentStartSitB || ids.find(id => id !== currentStartSitA) || null;
   }
+  if (currentStartSitA === currentStartSitB) currentStartSitB = null;
 
   renderStartSitContent();
   openModal("start-sit-modal");
@@ -2505,12 +2508,12 @@ function renderStartSitContent() {
   const content = document.getElementById("start-sit-modal-content");
   if (!content) return;
 
-  const pA = YL_ALL_NFL_PLAYERS[currentStartSitA] || (typeof YL_PLAYER_DOSSIERS !== 'undefined' && YL_PLAYER_DOSSIERS[currentStartSitA]) || {
-    id: currentStartSitA, name: "Jogador A", pos: "QB", team: "NFL", photo: "", proj: 18.0, avgPpr: 18.0, ylIndex: 88.0
-  };
-  const pB = YL_ALL_NFL_PLAYERS[currentStartSitB] || (typeof YL_PLAYER_DOSSIERS !== 'undefined' && YL_PLAYER_DOSSIERS[currentStartSitB]) || {
-    id: currentStartSitB, name: "Jogador B", pos: "QB", team: "NFL", photo: "", proj: 15.0, avgPpr: 15.0, ylIndex: 84.0
-  };
+  const pA = currentStartSitA && typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(currentStartSitA) : null;
+  const pB = currentStartSitB && typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(currentStartSitB) : null;
+  if (!pA || !pB) {
+    content.innerHTML = `<div class="yl-card"><strong>Comparador Start/Sit indisponível</strong><p class="yl-muted">Selecione dois jogadores presentes no roster oficial sincronizado para comparar. Projeções e índices não são estimados localmente.</p><button class="btn-yl btn-outline" onclick="closeModal('start-sit-modal')">Fechar</button></div>`;
+    return;
+  }
 
   const projA = Number(pA.proj || pA.projPts || 0);
   const projB = Number(pB.proj || pB.projPts || 0);
@@ -2532,7 +2535,7 @@ function renderStartSitContent() {
   const winnerConf = Math.max(confidenceA, confidenceB);
   const winnerDelta = Math.abs(deltaProj);
 
-  const playerList = Object.values(YL_ALL_NFL_PLAYERS).filter(p => Boolean(p.name));
+  const playerList = Object.values(window.YL_CANONICAL?.players || {}).filter(p => Boolean(p.name));
 
   content.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border-light);padding-bottom:12px;">
@@ -3170,17 +3173,11 @@ function triggerDetailedSleeperAudit() {
 let currentWaiverClaim = null;
 
 function openSmartWaiverClaimModal(playerId) {
-  const p = (typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(playerId) : null) ||
-            YL_ALL_NFL_PLAYERS[playerId] ||
-            window.YL_CANONICAL?.players?.[playerId] || {
-              id: playerId,
-              name: playerId,
-              pos: "ATH",
-              team: "FA",
-              photo: "https://a.espncdn.com/i/headshots/nfl/players/full/4430737.png",
-              proj: 10.0,
-              ylIndex: 75.0
-            };
+  const p = typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(playerId) : null;
+  if (!p) {
+    showToast("Atleta indisponível no catálogo oficial sincronizado.");
+    return;
+  }
 
   let candidateDrops = [];
   const myRoster = window.activeRealMatchup?.myRoster || window.myRoster;
@@ -3193,13 +3190,15 @@ function openSmartWaiverClaimModal(playerId) {
   if (poolIds.length > 0) {
     candidateDrops = poolIds.map(id => {
       return (typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(id) : null) ||
-             YL_ALL_NFL_PLAYERS[id] ||
-             window.YL_CANONICAL?.players?.[id] ||
-             { id: String(id), name: String(id), pos: 'ATH', team: 'NFL', proj: 5.0 };
+             window.YL_CANONICAL?.players?.[id];
     }).sort((a, b) => (Number(a.proj) || 0) - (Number(b.proj) || 0));
   }
 
-  const suggestedDrop = candidateDrops[0] || (YL_ALL_NFL_PLAYERS["godwin"] || { id: "godwin", name: "Chris Godwin", pos: "WR", team: "TB", proj: 9.4 });
+  const suggestedDrop = candidateDrops[0] || null;
+  if (!suggestedDrop) {
+    showToast("Nenhum jogador de banco oficial disponível para sugerir drop.");
+    return;
+  }
   const playerProj = Number(p.proj) || 11.5;
   const suggestedFaab = Math.min(50, Math.max(5, Math.round(playerProj * 1.8)));
 
