@@ -1387,25 +1387,7 @@ function resetCustomProjections() {
 }
 
 // 12+ Times Oficiais da Liga Sleeper #1369770282776006656 (Neilo Pistola League)
-let LEAGUE_12_TEAMS = [
-  { rosterId: 13, name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0", wins: 5, losses: 0, ties: 0, fpts: "1153.3", fptsAgainst: "809.3", projTotal: 152.0, isMyTeam: false },
-  { rosterId: 2, name: "Gengar My Balls", owner: "@Faraco", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "1091.3", fptsAgainst: "857.7", projTotal: 148.6, isMyTeam: true },
-  { rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "973.1", fptsAgainst: "831.3", projTotal: 138.4, isMyTeam: false },
-  { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "940.3", fptsAgainst: "905.0", projTotal: 135.2, isMyTeam: false },
-  { rosterId: 9, name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "917.1", fptsAgainst: "847.1", projTotal: 133.0, isMyTeam: false },
-  { rosterId: 8, name: "Paranaguá Rat Crew", owner: "@cauexavier", record: "4-1", wins: 4, losses: 1, ties: 0, fpts: "893.4", fptsAgainst: "845.7", projTotal: 131.5, isMyTeam: false },
-  { rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2", wins: 3, losses: 2, ties: 0, fpts: "849.5", fptsAgainst: "770.5", projTotal: 128.0, isMyTeam: false },
-  { rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "977.0", fptsAgainst: "923.7", projTotal: 134.5, isMyTeam: false },
-  { rosterId: 6, name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "863.5", fptsAgainst: "881.4", projTotal: 127.8, isMyTeam: false },
-  { rosterId: 1, name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "848.7", fptsAgainst: "829.2", projTotal: 126.4, isMyTeam: false },
-  { rosterId: 7, name: "Guabi JackRabbits", owner: "@MarcoCoelho", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "825.7", fptsAgainst: "1002.3", projTotal: 124.0, isMyTeam: false },
-  { rosterId: 4, name: "Williams The Conqueror", owner: "@Abreu77", record: "2-3", wins: 2, losses: 3, ties: 0, fpts: "748.8", fptsAgainst: "884.8", projTotal: 119.5, isMyTeam: false },
-  { rosterId: 5, name: "Eli Pug", owner: "@ASantiagoS", record: "1-4", wins: 1, losses: 4, ties: 0, fpts: "775.9", fptsAgainst: "976.3", projTotal: 118.0, isMyTeam: false },
-  { rosterId: 3, name: "Parsons a Parsons", owner: "@NacuaMatata90", record: "1-4", wins: 1, losses: 4, ties: 0, fpts: "723.9", fptsAgainst: "854.4", projTotal: 115.0, isMyTeam: false },
-  { rosterId: 15, name: "Vagabundos Iluminados", owner: "@AugustoVelloso", record: "0-5", wins: 0, losses: 5, ties: 0, fpts: "857.4", fptsAgainst: "993.0", projTotal: 122.0, isMyTeam: false },
-  { rosterId: 14, name: "How I Metcalf Your Mother", owner: "@thalesmagni", record: "0-5", wins: 0, losses: 5, ties: 0, fpts: "746.8", fptsAgainst: "973.4", projTotal: 114.0, isMyTeam: false }
-];
-
+let LEAGUE_12_TEAMS = []; // preenchido somente por snapshot oficial Sleeper
 function selectTeamRoster(rId) {
   selectedActiveRosterId = parseInt(rId);
   renderPlaybookView();
@@ -1426,33 +1408,43 @@ function renderPlaybookView() {
   if (!container) return;
 
   const currentTeam = LEAGUE_12_TEAMS.find(t => t.rosterId === selectedActiveRosterId) || LEAGUE_12_TEAMS.find(t => t.isMyTeam) || LEAGUE_12_TEAMS[0];
-  const isViewingMyTeam = currentTeam.isMyTeam || (userRealRoster && currentTeam.rosterId === userRealRoster.roster_id);
-  const currentWeek = activeLeagueWeek || 6;
-  const matchupObj = activeRealMatchup || activeRealMatchupWeek6;
+  if (!currentTeam || !window.YL_SHELL_SNAPSHOT?.league || !userRealRoster) {
+    container.innerHTML = `<div class="yl-card" style="padding:24px;text-align:center;"><span class="badge badge-amber">PLAYBOOK INDISPONÍVEL</span><h2 style="margin:10px 0 6px;color:var(--yl-navy);font-size:20px;">Sincronize uma liga para carregar seu time</h2><p style="margin:0 auto 16px;max-width:620px;color:var(--text-muted);font-size:13px;line-height:1.5;">Titulares, reservas, histórico e diagnóstico só aparecem após a confirmação do owner e do roster no snapshot Sleeper.</p><button class="btn-yl btn-primary" onclick="openOnboardingModal(2)">Conectar Sleeper</button></div>`;
+    return;
+  }
+  const isViewingMyTeam = currentTeam.isMyTeam || currentTeam.rosterId === userRealRoster.roster_id;
+  const currentWeek = activeLeagueWeek ?? null;
+  const matchupObj = activeRealMatchup || null;
 
   // Duelo oficial da Semana atual
-  let oppTeamName = "Curitiba Red Fox";
-  let oppTeamRecord = "2-3";
-  let oppProj = "126.4";
+  let oppTeamName = "Adversário indisponível";
+  let oppTeamRecord = "—";
+  let oppProj = "—";
 
   if (matchupObj && isViewingMyTeam) {
-    oppTeamName = matchupObj.oppTeam;
-    oppTeamRecord = matchupObj.oppRecord;
-    oppProj = matchupObj.oppProj;
-  } else {
-    const opp = LEAGUE_12_TEAMS.find(t => t.rosterId !== currentTeam.rosterId) || LEAGUE_12_TEAMS[1];
-    oppTeamName = opp.name;
-    oppTeamRecord = opp.record;
-    oppProj = opp.projTotal;
+    const opponent = LEAGUE_12_TEAMS.find(t => Number(t.rosterId) === Number(matchupObj.oppRoster?.roster_id));
+    oppTeamName = opponent?.name || matchupObj.oppRoster?.teamName || "Adversário identificado sem nome";
+    oppTeamRecord = opponent?.record || "—";
+    oppProj = matchupObj.oppScore ?? "—";
   }
 
-  const totalProj = calculateLineupTotalProjection();
-  const maxPossibleProj = (parseFloat(totalProj) + 3.4).toFixed(1);
-  const efficiencyPercent = Math.min(100, Math.round((parseFloat(totalProj) / parseFloat(maxPossibleProj)) * 100));
+  let totalProj = "—";
+  const maxPossibleProj = null;
+  const efficiencyPercent = null;
+  const activeLeagueId = activeSleeperLeagueData?.league_id || window.YL_SHELL_SNAPSHOT?.league?.providerLeagueId || null;
+  const sleeperLeagueUrl = activeLeagueId ? `https://sleeper.com/leagues/${encodeURIComponent(activeLeagueId)}/team` : '#';
+  const injuryPlayers = [...(userRealRoster.players || [])].map(id => resolveNFLPlayer(id)).filter(player => player?.injuryStatus && !/healthy|active/i.test(player.injuryStatus));
+  const waiverCandidate = activeLeagueFreeAgents[0] || null;
 
   // Determinar titulares e reservas a exibir
-  let displayLineup = userLineup;
-  let displayBench = userBenchList;
+  let displayLineup = {};
+  ROSTER_SLOTS_DEF.forEach((slot, index) => {
+    const pid = userRealRoster.starters?.[index];
+    if (pid && String(pid) !== '0') displayLineup[slot.key] = String(pid);
+  });
+  let displayBench = (userRealRoster.players || [])
+    .filter(pid => !(userRealRoster.starters || []).map(String).includes(String(pid)))
+    .map(String);
 
   if (!isViewingMyTeam && activeSleeperRosters.length > 0) {
     const otherRoster = activeSleeperRosters.find(r => r.roster_id === currentTeam.rosterId);
@@ -1467,6 +1459,7 @@ function renderPlaybookView() {
         .map(String);
     }
   }
+  totalProj = calculateLineupProjection(displayLineup);
 
   container.innerHTML = `
     <!-- Top Selector Strip (16 Times da Liga Sleeper #1369770282776006656) -->
@@ -1476,8 +1469,8 @@ function renderPlaybookView() {
           <span class="badge badge-crimson">HEAD COACH COMMAND CENTER</span>
           <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
             <h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin:0;">${currentTeam.name}</h2>
-            <span class="badge badge-green">${currentTeam.record} · 2º Lugar</span>
-            <a href="https://sleeper.com/leagues/1369770282776006656/team" target="_blank" class="badge badge-blue" style="text-decoration:none;">Abrir no Sleeper ↗</a>
+            <span class="badge badge-green">${currentTeam.record || 'Campanha indisponível'}</span>
+            <a href="${sleeperLeagueUrl}" target="_blank" rel="noreferrer" class="badge badge-blue" style="text-decoration:none;">Abrir no Sleeper ↗</a>
           </div>
         </div>
 
@@ -1499,11 +1492,11 @@ function renderPlaybookView() {
       <!-- Duelo Real da Semana Atual -->
       <div style="margin-top:14px;border-top:1px solid var(--border-light);padding-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div style="font-size:13px;color:var(--yl-navy);" id="playbook-real-matchup-header">
-          Duelo da Semana ${currentWeek}: <strong>${currentTeam.name} (${totalProj} pts)</strong> vs <strong>${oppTeamName} (${oppProj} pts)</strong>
+          Duelo da Semana ${currentWeek ?? '—'}: <strong>${currentTeam.name} (${totalProj} pts)</strong> vs <strong>${oppTeamName} (${oppProj} pts)</strong>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:12px;color:var(--text-muted);">Probabilidade de Vitória:</span>
-          <span class="badge badge-green" style="font-size:12px;font-weight:500;">61% Favorito</span>
+          <span class="badge badge-amber" style="font-size:12px;font-weight:500;">Indisponível</span>
         </div>
       </div>
     </div>
@@ -1512,23 +1505,23 @@ function renderPlaybookView() {
     <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;margin-bottom:20px;">
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid var(--yl-emerald);">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Eficiência da Escalação</div>
-        <div style="font-size:22px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${efficiencyPercent}%</div>
-        <div style="font-size:11.5px;color:var(--text-muted);">Atual: <strong>${totalProj}</strong> / Teto: <strong>${maxPossibleProj}</strong></div>
+        <div style="font-size:22px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">—</div>
+        <div style="font-size:11.5px;color:var(--text-muted);">Eficiência requer projeção oficial completa dos titulares.</div>
       </div>
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid #F59E0B;">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Alerta Médico</div>
-        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">Drake Thomas (QST)</div>
-        <div style="font-size:11.5px;color:#B45309;">Acompanhar relatório final. Dallas Turner pronto no banco.</div>
+        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${injuryPlayers.length ? `${injuryPlayers.length} atleta(s) com status` : 'Nenhum alerta oficial recebido'}</div>
+        <div style="font-size:11.5px;color:#B45309;">${injuryPlayers.length ? injuryPlayers.map(player => `${esc(player.name)}: ${esc(player.injuryStatus)}`).join(' · ') : 'O snapshot não trouxe um alerta médico verificável.'}</div>
       </div>
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid var(--yl-crimson);">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Waiver Recomendado</div>
-        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${activeLeagueFreeAgents[0]?.name || 'James Conner'} (${activeLeagueFreeAgents[0]?.pos || 'RB'})</div>
-        <div style="font-size:11.5px;color:var(--yl-crimson);">Livre no Waiver. Sugestão: 25% FAAB ($25).</div>
+        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">${waiverCandidate ? `${esc(waiverCandidate.name)} (${esc(waiverCandidate.pos || '—')})` : 'Sem recomendação oficial'}</div>
+        <div style="font-size:11.5px;color:var(--yl-crimson);">${waiverCandidate ? 'Disponibilidade derivada do roster sincronizado; valor de FAAB não calculado.' : 'Nenhum agente oficial de waiver está disponível neste snapshot.'}</div>
       </div>
       <div class="yl-card" style="padding:14px;background:#FFF;border-left:4px solid #3B82F6;">
         <div style="font-size:11.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;">Radar Trade Hub</div>
-        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">Comprar em Alta</div>
-        <div style="font-size:11.5px;color:#1D4ED8;">Alvo: Brock Purdy (+2.8 pts/sem acima da média da liga).</div>
+        <div style="font-size:13.5px;font-weight:500;color:var(--yl-navy);margin:4px 0 2px;">Sem recomendação oficial</div>
+        <div style="font-size:11.5px;color:#1D4ED8;">O snapshot não contém um modelo de trade verificável.</div>
       </div>
     </div>
 
@@ -1641,7 +1634,7 @@ function renderPlaybookView() {
             <strong style="font-size:13.5px;color:var(--yl-navy);">Manager DNA & Ajuste de Projeções</strong>
           </div>
           <div style="font-size:12.5px;color:var(--text-body);line-height:1.5;margin-bottom:12px;">
-            Seu perfil como manager é <strong>Agressivo em Volume</strong>. Você pode editar manualmente qualquer projeção na tabela ao lado e o sistema recalculará o placar da rodada na hora.
+            O perfil do manager só será calculado após a ingestão de histórico oficial de transações. A edição manual de projeções permanece identificada como ajuste local.
           </div>
         </div>
 
@@ -1651,7 +1644,7 @@ function renderPlaybookView() {
             <strong style="font-size:13.5px;color:var(--yl-navy);">Raio-X do Rival (${oppTeamName})</strong>
           </div>
           <div style="font-size:12px;color:var(--text-body);line-height:1.6;">
-            O adversário projeta <strong>${oppProj} pontos</strong> (${oppTeamRecord}). Sua vantagem principal está no corpo de recebedores e linha defensiva (+18.4 pts sobre o adversário).
+            Adversário: <strong>${oppProj} pontos</strong> (${oppTeamRecord}). Comparação por posição e vantagem só serão exibidas quando houver dados oficiais completos dos dois rosters.
           </div>
         </div>
       </div>
