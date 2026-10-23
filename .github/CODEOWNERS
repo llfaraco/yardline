@@ -1,0 +1,9 @@
+# Manus/owner must review all changes before merge.
+* @llfaraco
+
+# Frozen design requires explicit owner review.
+/yardline-app/css/ @llfaraco
+/yardline-app/index.html @llfaraco
+/yardline-app/assets/ @llfaraco
+/yardline-app/js/visual-shell.js @llfaraco
+/yardline-app/js/player-dossier-presentation.js @llfaraco
