@@ -2231,11 +2231,15 @@ function renderManagerDnaView() {
   const container = document.getElementById("view-manager-dna");
   if (!container) return;
 
-  const myTeam = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS.find(t => t.isMyTeam) : null) || { name: "Gengar My Balls", owner: "@Faraco", record: "4-1" };
   const allTeams = (typeof LEAGUE_12_TEAMS !== "undefined" && LEAGUE_12_TEAMS.length > 0) ? LEAGUE_12_TEAMS : [];
+  if (!allTeams.length) {
+    container.innerHTML = '<div class="yl-card"><strong>Manager DNA indisponível</strong><p class="yl-muted">Sincronize os rosters oficiais da liga para calcular histórico, transações e comportamento de managers.</p></div>';
+    return;
+  }
+  const myTeam = allTeams.find(t => t.isMyTeam);
   const opponents = allTeams.filter(t => !t.isMyTeam);
-  const totalTeamsCount = allTeams.length || 16;
-  const leagueName = (typeof activeSleeperLeagueData !== "undefined" && activeSleeperLeagueData?.name) ? activeSleeperLeagueData.name : "Neilo Pistola League";
+  const totalTeamsCount = allTeams.length;
+  const leagueName = (typeof activeSleeperLeagueData !== "undefined" && activeSleeperLeagueData?.name) ? activeSleeperLeagueData.name : "Liga sincronizada";
 
   container.innerHTML = `
     <!-- Manager Profile Header Card -->
@@ -2396,86 +2400,20 @@ function renderManagerDnaView() {
 function renderAiModeView() {
   const container = document.getElementById("view-aimode");
   if (!container) return;
-
-  container.innerHTML = `
-    <div class="yl-card" style="padding:22px;min-height:480px;display:flex;flex-direction:column;justify-content:space-between;">
-      <div>
-        <span class="badge badge-crimson">MODO IA TÁTICO & ANALÍTICO</span>
-        <h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px;">Copiloto Neural YARDLINE</h2>
-        <p style="font-size:13px;color:var(--text-body);margin-top:4px;">
-          Conectado ao seu elenco do Gengar My Balls e aos confrontos da Semana 6.
-        </p>
-
-        <div style="display:flex;gap:8px;margin:16px 0;flex-wrap:wrap;">
-          <button class="btn-yl btn-outline" onclick="showToast('Diagnóstico: Manter Emeka Egbuka no FLEX titular (+5.4 pts projetados).')">
-            Escalar Egbuka ou Godwin?
-          </button>
-          <button class="btn-yl btn-outline" onclick="showToast('Waiver #1: Isaiah Likely (81% rotas) com lance de $25 FAAB.')">
-            Qual o Waiver Prioritário?
-          </button>
-          <button class="btn-yl btn-outline" onclick="showToast('Raio-X: 61% de probabilidade de vitória contra o Chiarello Squad.')">
-            Raio-X do Confronto
-          </button>
-        </div>
-
-        <div style="background:var(--bg-subtle);border:1px solid var(--border-box);border-radius:8px;padding:16px;font-size:13px;color:var(--text-body);line-height:1.6;">
-          <strong>Diagnóstico da Rodada:</strong> Sua trinca de wide receivers (Amon-Ra St. Brown, Puka Nacua e Nico Collins) lidera a liga em pontos esperados na Semana 6. Recomendamos manter a formação atual e submeter lance por Isaiah Likely nos waivers.
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <input type="text" placeholder="Pergunte qualquer coisa sobre sua liga ou jogadores..." style="flex:1;padding:10px 14px;border:1px solid var(--border-strong);border-radius:6px;font-size:13px;outline:none;">
-        <button class="btn-yl btn-primary" onclick="showToast('Consulta enviada ao motor analítico!')">Perguntar</button>
-      </div>
-    </div>
-  `;
+  const matchup = window.activeRealMatchup || window.YL_SHELL_SNAPSHOT?.matchups?.find(Boolean);
+  container.innerHTML = matchup
+    ? `<div class="yl-card" style="padding:22px"><span class="badge badge-navy">MODO IA TÁTICO</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Análise baseada no confronto oficial</h2><p class="yl-muted">O modo IA usará somente jogadores, placares e projeções recebidos no snapshot oficial. Recomendações externas ainda não foram carregadas.</p></div>`
+    : '<div class="yl-card" style="padding:22px"><span class="badge badge-amber">INDISPONÍVEL</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Modo IA aguardando confronto</h2><p class="yl-muted">Sincronize uma liga Sleeper com matchup oficial antes de exibir diagnósticos, probabilidades ou recomendações.</p></div>';
 }
 
 // 10. SOCIAL WHATSAPP
 function renderSocialView() {
   const container = document.getElementById("view-social");
   if (!container) return;
-
-  container.innerHTML = `
-    <div class="yl-card" style="padding:22px;">
-      <span class="badge badge-green">COMUNIDADE & WHATSAPP</span>
-      <h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px;">Veredito da Rodada Formatado</h2>
-      <p style="font-size:13px;color:var(--text-body);margin:6px 0 16px;">
-        Copie o veredito oficial do duelo da Semana 6 para enviar diretamente no WhatsApp da sua liga:
-      </p>
-
-      <div style="background:#0F172A;color:#FFF;border-radius:8px;padding:16px;font-family:monospace;font-size:13px;line-height:1.6;margin-bottom:16px;">
-*[VEREDITO YARDLINE — SEMANA 6 (Neilo Pistola League)]*<br><br>
-*Gengar My Balls (4-1)* [61% PROB · 148.6 pts]<br>
-*vs Chiarello Squad (4-1)* [39% PROB · 136.4 pts]<br><br>
-*Destaque:* Amon-Ra St. Brown (36.7% TPRR) vs Ja'Marr Chase (193 yds Sem 5).<br>
-*Veredito da IA:* Vantagem para o Gengar My Balls no Monday Night Football com Josh Allen vs Atlanta.<br><br>
-_Analisado pela YARDLINE · Camada de Inteligência NFL Brasil_
-      </div>
-
-      <button class="btn-yl btn-green" style="padding:10px 16px;font-size:13.5px;" onclick="copyWhatsAppVerdict()">
-        Copiar Texto Formatado para WhatsApp
-      </button>
-    </div>
-  `;
-}
-
-function copyWhatsAppVerdict() {
-  const text = `*[VEREDITO YARDLINE — SEMANA 6 (Neilo Pistola League)]*
-
-*Gengar My Balls (4-1)* [61% PROB · 148.6 pts]
-*vs Chiarello Squad (4-1)* [39% PROB · 136.4 pts]
-
-*Destaque:* Amon-Ra St. Brown (36.7% TPRR) vs Ja'Marr Chase (193 yds Sem 5).
-*Veredito da IA:* Vantagem para o Gengar My Balls no Monday Night Football com Josh Allen vs Atlanta.
-
-_Analisado pela YARDLINE · Camada de Inteligência NFL Brasil_`;
-
-  navigator.clipboard.writeText(text).then(() => {
-    showToast("Veredito copiado com sucesso! Cole no WhatsApp da liga.");
-  }).catch(() => {
-    showToast("Texto gerado para WhatsApp!");
-  });
+  const matchup = window.activeRealMatchup || window.YL_SHELL_SNAPSHOT?.matchups?.find(Boolean);
+  container.innerHTML = matchup
+    ? '<div class="yl-card" style="padding:22px"><span class="badge badge-navy">COMPARTILHAMENTO</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Veredito oficial indisponível</h2><p class="yl-muted">O texto compartilhável será habilitado quando placares e participantes do matchup tiverem sido persistidos pelo Sleeper.</p></div>'
+    : '<div class="yl-card" style="padding:22px"><span class="badge badge-amber">INDISPONÍVEL</span><h2 style="font-size:20px;font-weight:500;color:var(--yl-navy);margin-top:6px">Sem duelo oficial para compartilhar</h2><p class="yl-muted">Sincronize o matchup da liga antes de gerar qualquer texto de WhatsApp.</p></div>';
 }
 
 // ==========================================
