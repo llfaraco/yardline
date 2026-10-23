@@ -239,7 +239,7 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   t.mock.method(sleeperConnector, 'getLeagueTradedPicks', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueDrafts', async () => [{ draft_id: 'fixture-draft', season: '2025', type: 'snake', status: 'complete' }]);
   t.mock.method(sleeperConnector, 'getDraftPicks', async () => [{ player_id: '4984', picked_by: 'fixture-owner', roster_id: 1, round: 1, pick_no: 1 }]);
-  t.mock.method(sleeperSyncService, 'getNflPlayers', async () => Object.fromEntries(Object.entries(fixture.players).map(([id, raw]) => [id, contract.normalizeSleeperPlayer(id, raw)])));
+  t.mock.method(sleeperSyncService, 'getNflPlayers', async () => ({ catalog: Object.fromEntries(Object.entries(fixture.players).map(([id, raw]) => [id, contract.normalizeSleeperPlayer(id, raw)])), capturedAt: null }));
   t.mock.method(sleeperConnector, 'getNflStats', async () => fixture.emptyStats);
   t.mock.method(sleeperConnector, 'getNflProjections', async () => fixture.emptyProjections);
   await sleeperSyncService.syncLeagueDetails('fixture-league', 1);
@@ -275,6 +275,31 @@ test('empty catalog response preserves the valid persisted catalog', async t => 
   assert.ok(Object.keys(result).length >= Object.keys(fixture.players).length);
   assert.equal(result['4984'].id, '4984');
   assert.equal(service.loadPersistedCatalog(db)['4984'].id, '4984');
+});
+
+test('unchanged frontend sync and automatic loop reject backend PARTIAL without a success toast', async () => {
+  const { sandbox, context } = frontend({}, { syncedAt: capturedAt });
+  const previous = sandbox.YL_SHELL_SNAPSHOT;
+  const toasts = []; let requests = 0;
+  sandbox.showToast = message => toasts.push(message);
+  sandbox.fetch = async () => {
+    requests++;
+    return { ok: false, status: 503, json: async () => ({ success: false, status: 'PARTIAL', error: 'Explicit fixture incomplete sync' }) };
+  };
+  await assert.rejects(sandbox.syncRealSleeperLeagueLive('fixture-partial'), /incomplete sync/);
+  assert.equal(requests, 1, 'must not load/publish a shell after partial sync');
+  assert.equal(sandbox.YL_SHELL_SNAPSHOT, previous);
+  assert.ok(toasts.every(message => !message.startsWith('Liga sincronizada:')));
+  sandbox.YL_DISABLE_AUTO_REFRESH = true;
+  vm.runInContext(fs.readFileSync(new URL('../../yardline-app/js/league-auto-refresh.js', import.meta.url), 'utf8'), context);
+  const statuses = [];
+  const controller = sandbox.YardlineAutoRefresh.create({
+    refresh: () => sandbox.syncRealSleeperLeagueLive('fixture-partial', { quiet: true, automatic: true }),
+    status: value => statuses.push(value.status), schedule: () => 1, cancel() {}
+  });
+  controller.start(); await controller.tick(); controller.stop();
+  assert.equal(statuses.at(-1), 'stale');
+  assert.ok(!statuses.includes('synced'));
 });
 
 test('renderPlaybookView tolerates a partial DOM without querySelectorAll', () => {

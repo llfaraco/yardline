@@ -2640,6 +2640,7 @@ function renderPlansView() {
 // ONBOARDING INTELIGENTE EM 4 PASSOS (BACKEND YARDLINE)
 // ==========================================
 let currentOnboardingStep = 1;
+let onboardingDiagnosticRequest = 0;
 let onboardingData = {
   profile: "competitive",
   sleeperUsername: localStorage.getItem("yl_sleeper_username") || "",
@@ -2647,7 +2648,10 @@ let onboardingData = {
   userLeagues: [],
   selectedLeagueId: localStorage.getItem("yl_active_league") || localStorage.getItem("yl_active_league_id") || null,
   selectedLeagueName: "Nenhuma liga selecionada",
-  diagnosticMatchup: null
+  diagnosticMatchup: null,
+  diagnosticStatus: 'idle',
+  diagnosticError: null,
+  diagnosticContext: null
 };
 
 function openOnboardingModal(step = 1) {
@@ -2665,6 +2669,11 @@ function setOnboardingProfile(type) {
 }
 
 function setOnboardingLeague(leagueId, leagueName) {
+  onboardingDiagnosticRequest++;
+  onboardingData.diagnosticMatchup = null;
+  onboardingData.diagnosticStatus = 'idle';
+  onboardingData.diagnosticError = null;
+  onboardingData.diagnosticContext = null;
   onboardingData.selectedLeagueId = String(leagueId);
   onboardingData.selectedLeagueName = leagueName;
   renderOnboardingStep();
@@ -2934,34 +2943,77 @@ function proceedToStep3() {
 }
 
 async function generateFirstDiagnostic() {
+  const requestId = ++onboardingDiagnosticRequest;
+  onboardingData.diagnosticMatchup = null;
+  onboardingData.diagnosticContext = null;
+  onboardingData.diagnosticStatus = 'SYNCING';
+  onboardingData.diagnosticError = null;
+  const context = {
+    leagueId: String(onboardingData.selectedLeagueId || ''),
+    username: onboardingData.sleeperUsername,
+    week: typeof activeLeagueWeek === 'undefined' ? null : Number(activeLeagueWeek)
+  };
+  const failure = (message, status = 'ERROR') => Object.assign(new Error(message), { onboardingMessage: message, onboardingStatus: status });
+  const readResponse = async (response, label) => {
+    let body;
+    try { body = await response.json(); }
+    catch { throw failure(`${label} indisponível: resposta inválida (HTTP ${response.status}).`); }
+    if (body?.status === 'PARTIAL') throw failure('Sincronização incompleta (PARTIAL). Tente novamente.', 'PARTIAL');
+    if (!response.ok || body?.status === 'ERROR' || body?.success === false) {
+      throw failure(`${label} indisponível (HTTP ${response.status}). Tente novamente.`);
+    }
+    return body;
+  };
   showToast(`Sincronizando ${onboardingData.selectedLeagueName} e calculando matchup...`);
   try {
-    try {
-      const diagnosticWeek = Number.isInteger(Number(activeLeagueWeek)) ? Number(activeLeagueWeek) : null;
-      if (!onboardingData.selectedLeagueId || !diagnosticWeek || !onboardingData.sleeperUsername) {
-        showToast('Liga, usuário ou semana oficial indisponível; diagnóstico não será fabricado.');
-        currentOnboardingStep = 4;
-        renderOnboardingStep();
-        return;
-      }
-      await fetch(`${YL_API_BASE}/integrations/sleeper/sync-league`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leagueId: onboardingData.selectedLeagueId, week: diagnosticWeek })
-      });
-      const matchRes = await fetch(`${YL_API_BASE}/leagues/${onboardingData.selectedLeagueId}/matchups/current?sleeperUserId=${encodeURIComponent(onboardingData.sleeperUsername)}&week=${diagnosticWeek}`);
-      if (matchRes.ok) {
-        onboardingData.diagnosticMatchup = await matchRes.json();
-      }
-    } catch(e) {}
+    if (!context.leagueId || !context.username || !Number.isInteger(context.week) || context.week < 1) {
+      throw failure('Liga, usuário ou semana oficial indisponível; diagnóstico não será fabricado.');
+    }
+    const syncResponse = await fetch(`${YL_API_BASE}/integrations/sleeper/sync-league`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leagueId: context.leagueId, week: context.week })
+    });
+    const syncResult = await readResponse(syncResponse, 'Sincronização');
+    if (syncResult?.status !== 'SUCCESS' || syncResult.success !== true) {
+      throw failure('Sincronização não concluída. Diagnóstico indisponível.');
+    }
+    if (String(syncResult.providerLeagueId) !== context.leagueId || Number(syncResult.week) !== context.week) {
+      throw failure('Sincronização indisponível para esta liga e semana.');
+    }
+    if (requestId !== onboardingDiagnosticRequest) return;
+    const matchRes = await fetch(`${YL_API_BASE}/leagues/${context.leagueId}/matchups/current?sleeperUserId=${encodeURIComponent(context.username)}&week=${context.week}`);
+    const diagnostic = await readResponse(matchRes, 'Diagnóstico');
+    if (requestId !== onboardingDiagnosticRequest) return;
+    if (String(onboardingData.selectedLeagueId) !== context.leagueId || onboardingData.sleeperUsername !== context.username || Number(activeLeagueWeek) !== context.week) {
+      throw failure('Contexto da liga alterado. Gere um novo diagnóstico.');
+    }
+    if (diagnostic?.status !== 'READY' || String(diagnostic.league?.id) !== context.leagueId || Number(diagnostic.week) !== context.week) {
+      throw failure('Diagnóstico oficial indisponível para esta liga e semana.');
+    }
+    onboardingData.diagnosticMatchup = diagnostic;
+    onboardingData.diagnosticContext = context;
+    onboardingData.diagnosticStatus = 'SUCCESS';
+    currentOnboardingStep = 4;
+    renderOnboardingStep();
   } catch (err) {
-    console.warn("Notice ao gerar diagnostico inicial:", err);
+    if (requestId !== onboardingDiagnosticRequest) return;
+    onboardingData.diagnosticStatus = err.onboardingStatus || 'ERROR';
+    onboardingData.diagnosticError = err.onboardingMessage || 'Diagnóstico indisponível: erro de comunicação com a API. Tente novamente.';
+    window.YL_REFRESH_STATUS = { status: 'stale', message: onboardingData.diagnosticError };
+    currentOnboardingStep = 3;
+    renderOnboardingStep();
+    showToast(onboardingData.diagnosticError);
   }
-  currentOnboardingStep = 4;
-  renderOnboardingStep();
 }
 
 function completeOnboardingFlow() {
+  const context = onboardingData.diagnosticContext;
+  if (onboardingData.diagnosticStatus !== 'SUCCESS' || !onboardingData.diagnosticMatchup || !context
+    || context.leagueId !== String(onboardingData.selectedLeagueId) || context.username !== onboardingData.sleeperUsername || context.week !== Number(activeLeagueWeek)) {
+    showToast('Diagnóstico indisponível. Conclua a sincronização antes de continuar.');
+    return;
+  }
   closeModal("onboarding-modal");
   localStorage.setItem("yl_onboarded_completed", "true");
   localStorage.setItem("yl_active_league", onboardingData.selectedLeagueId);

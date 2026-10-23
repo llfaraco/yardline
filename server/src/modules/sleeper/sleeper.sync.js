@@ -285,11 +285,26 @@ async function fetchMetric(fetcher) {
 
 function persistPayload({ leagueId = null, resource, resourceKey, payload, capturedAt }) {
   const hash = payloadHash(payload);
+  const id = payloadHash([leagueId, resource, String(resourceKey), hash]);
   db.prepare(`
     INSERT OR IGNORE INTO sync_payloads (id, league_id, resource, resource_key, payload_hash, payload_json, captured_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(`raw_${hash.slice(0, 32)}`, leagueId, resource, String(resourceKey), hash, JSON.stringify(payload ?? null), capturedAt);
+  `).run(`raw_${id.slice(0, 32)}`, leagueId, resource, String(resourceKey), hash, JSON.stringify(payload ?? null), capturedAt);
   return hash;
+}
+
+function savepoint(name, write) {
+  return (...args) => {
+    db.exec(`SAVEPOINT ${name}`);
+    try {
+      const result = write(...args);
+      db.exec(`RELEASE ${name}`);
+      return result;
+    } catch (error) {
+      db.exec(`ROLLBACK TO ${name}; RELEASE ${name}`);
+      throw error;
+    }
+  };
 }
 
 export function persistCatalog(catalog, capturedAt) {
@@ -305,7 +320,7 @@ export function persistCatalog(catalog, capturedAt) {
   const identity = db.prepare(`INSERT INTO player_identities (id, player_id, provider, provider_player_id, raw_name, valid_from, metadata_json)
     VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(provider, provider_player_id) DO UPDATE SET
     raw_name=excluded.raw_name, metadata_json=excluded.metadata_json, valid_to=NULL`);
-  const saveCatalogTx = db.transaction(() => {
+  const saveCatalogTx = savepoint('sleeper_catalog', () => {
     for (const [id, raw] of Object.entries(catalog || {})) {
       const player = normalizeSleeperPlayer(id, raw);
       if (!player) continue;
@@ -336,7 +351,7 @@ export function persistPlayerStats({ leagueId, season, week, stats, projections,
   const checkPlayerStatement = db.prepare('SELECT id FROM players WHERE id = ?');
   const insertMissingPlayerStatement = db.prepare(`INSERT INTO players (id, canonical_name, position, status, created_at, updated_at) VALUES (?, ?, 'NFL', 'Unknown', ?, ?)`);
   const deleteProjectionStatement = db.prepare("DELETE FROM projections WHERE player_id=? AND season=? AND week=? AND source='sleeper'");
-  const saveStatsTx = db.transaction((ids) => {
+  const saveStatsTx = savepoint('sleeper_stats', (ids) => {
     for (const playerId of ids) {
       const pid = String(playerId);
       if (!checkPlayerStatement.get(pid)) insertMissingPlayerStatement.run(pid, `Jogador #${pid}`, capturedAt, capturedAt);
@@ -463,30 +478,31 @@ function recordSourceProvenance({ entityType, entityId, source = 'sleeper', stat
   `).run(id, entityType, entityId, source, status, isEstimate, confidence, capturedAt, capturedAt);
 }
 
+// Collection is side-effect free so league sync can stage the catalog before commit.
+async function fetchPlayersCatalog() {
+  const rawCatalog = await sleeperConnector.getPlayersCatalog();
+  if (!rawCatalog || typeof rawCatalog !== 'object' || Array.isArray(rawCatalog)) throw new Error('Invalid Sleeper player catalog.');
+  const normalized = {};
+  for (const [id, raw] of Object.entries(rawCatalog)) {
+    if (raw && typeof raw === 'object' && !Array.isArray(raw) && (raw.active || raw.team || ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].includes(raw.position))) {
+      const player = normalizeSleeperPlayer(id, raw);
+      if (player) normalized[id] = player;
+    }
+  }
+  if (!Object.keys(normalized).length) throw new Error('Sleeper returned an empty catalog; previous snapshot preserved.');
+  return normalized;
+}
+
 async function refreshPlayersCatalog(now = Date.now()) {
   try {
-    console.log('[SleeperSync] Atualizando catálogo oficial de jogadores da NFL em background...');
-    const rawCatalog = await sleeperConnector.getPlayersCatalog();
-    if (!rawCatalog || typeof rawCatalog !== 'object' || Array.isArray(rawCatalog)) {
-      throw new Error('Catálogo retornado pelo Sleeper é inválido.');
-    }
-
-    const normalized = {};
-    for (const [id, rawP] of Object.entries(rawCatalog)) {
-      if (rawP && typeof rawP === 'object' && !Array.isArray(rawP) && (rawP.active || rawP.team || ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].includes(rawP.position))) {
-        const player = normalizeSleeperPlayer(id, rawP);
-        if (player) normalized[id] = player;
-      }
-    }
-    if (!Object.keys(normalized).length) throw new Error('Sleeper retornou catálogo vazio; snapshot anterior preservado.');
-
+    const normalized = await fetchPlayersCatalog();
+    // Never publish a memory cache whose database write failed.
+    persistCatalog(normalized, new Date(now).toISOString());
     cachedPlayersCatalog = normalized;
     cachedPlayersTimestamp = now;
-    persistCatalog(normalized, new Date(now).toISOString());
-    console.log(`[SleeperSync] Catálogo atualizado com ${Object.keys(normalized).length} jogadores elegíveis.`);
     return normalized;
   } catch (err) {
-    console.error('[SleeperSync] Falha no refresh do catálogo; dados persistidos preservados:', err.message);
+    console.error('[SleeperSync] Catalog refresh failed; persisted data preserved:', err.message);
     const persisted = loadPersistedCatalog(db);
     cachedPlayersCatalog = Object.fromEntries(Object.entries(persisted).map(([id, player]) => [id, { ...player, dataStatus: 'stale' }]));
     return cachedPlayersCatalog;
@@ -532,12 +548,23 @@ export const sleeperSyncService = {
   },
 
   // Catálogo completo da NFL: entrega persistido imediatamente e atualiza do Sleeper em background.
-  async getNflPlayers() {
+  async getNflPlayers({ deferPersistence = false } = {}) {
     const now = Date.now();
     const persisted = cachedPlayersCatalog || loadPersistedCatalog(db);
     const hasPersisted = Object.keys(persisted).length > 0;
     const fresh = cachedPlayersCatalog && (now - cachedPlayersTimestamp < PLAYERS_CACHE_TTL_MS);
 
+    if (deferPersistence) {
+      // Do not start/join a background writer or change cache freshness for a sync.
+      const freshCache = fresh && Object.values(cachedPlayersCatalog).every(player => player.dataStatus !== 'stale');
+      if (freshCache) return { catalog: cachedPlayersCatalog, capturedAt: null };
+      const stored = loadPersistedCatalog(db);
+      const persistedAt = Date.parse(db.prepare('SELECT MAX(updated_at) AS fetched_at FROM players WHERE catalog_json IS NOT NULL').get()?.fetched_at || '');
+      if (Object.keys(stored).length && Number.isFinite(persistedAt) && now - persistedAt < PLAYERS_CACHE_TTL_MS) {
+        return { catalog: stored, capturedAt: null };
+      }
+      return { catalog: await fetchPlayersCatalog(), capturedAt: new Date(now).toISOString() };
+    }
     if (fresh) return cachedPlayersCatalog;
 
     if (hasPersisted) {
@@ -628,14 +655,14 @@ export const sleeperSyncService = {
           JSON.stringify(norm.settings),
           JSON.stringify(norm.scoringSettings),
           JSON.stringify(norm.rosterPositions),
-          now,
+          null,
           now,
           now
         );
       } else {
         db.prepare(`
           UPDATE leagues 
-          SET name = ?, status = ?, total_rosters = ?, settings_json = ?, scoring_settings_json = ?, roster_positions_json = ?, last_synced_at = ?, updated_at = ?
+          SET name = ?, status = ?, total_rosters = ?, settings_json = ?, scoring_settings_json = ?, roster_positions_json = ?, updated_at = ?
           WHERE id = ?
         `).run(
           norm.name,
@@ -644,7 +671,6 @@ export const sleeperSyncService = {
           JSON.stringify(norm.settings),
           JSON.stringify(norm.scoringSettings),
           JSON.stringify(norm.rosterPositions),
-          now,
           now,
           leagueDbId
         );
@@ -754,6 +780,8 @@ export const sleeperSyncService = {
     const startedAt = new Date().toISOString();
     let recordsRead = 0;
     let recordsWritten = 0;
+    let snapshotOpen = false;
+    let syncContext = null;
     let metricStatus = { stats: 'unavailable', projections: 'unavailable' };
     let league = db.prepare('SELECT * FROM leagues WHERE id = ? OR provider_league_id = ?').get(leagueId, leagueId);
 
@@ -765,28 +793,58 @@ export const sleeperSyncService = {
       ]);
       if (!rawLeague) throw new Error(`Liga Sleeper ${providerLeagueId} não encontrada.`);
 
+      if (String(rawLeague.league_id) !== providerLeagueId || !rawLeague.season) throw new Error('Contexto de liga Sleeper invalido.');
       const normLeague = normalizeLeague(rawLeague);
-      const week = Number(currentWeek || state?.week || normLeague.settings?.leg || normLeague.settings?.last_scored_leg || 1);
+      if (league && String(league.season) !== normLeague.season) throw new Error('Temporada da liga divergente.');
+      const week = Number(currentWeek ?? (String(state?.season) === normLeague.season ? state?.week : null) ?? normLeague.settings?.leg ?? normLeague.settings?.last_scored_leg);
+      if (!Number.isInteger(week) || week < 1) throw new Error('Semana da sincronizacao indisponivel ou invalida.');
+      syncContext = { season: normLeague.season, week };
       const now = new Date().toISOString();
 
+      // Fetch upstream resources before opening the synchronous snapshot transaction.
+      const [users, rosters, matchups] = await Promise.all([
+        this.getLeagueUsers(normLeague.id), this.getLeagueRosters(normLeague.id), this.getLeagueMatchups(normLeague.id, week)
+      ]);
+      if (!Array.isArray(users) || !Array.isArray(rosters) || !Array.isArray(matchups)) throw new Error('Resposta de liga incompleta.');
+      const [transactions, tradedPicks, drafts, statsResult, projectionsResult] = await Promise.all([
+        coreOnly ? [] : this.getLeagueTransactions(normLeague.id, week),
+        coreOnly ? [] : sleeperConnector.getLeagueTradedPicks(normLeague.id),
+        coreOnly ? [] : sleeperConnector.getLeagueDrafts(normLeague.id),
+        fetchMetric(() => sleeperConnector.getNflStats(normLeague.season, week)),
+        fetchMetric(() => sleeperConnector.getNflProjections(normLeague.season, week))
+      ]);
+      const stats = statsResult.payload || {};
+      const projections = projectionsResult.payload || {};
+      metricStatus = { stats: statsResult.status, projections: projectionsResult.status };
+      recordsRead += (users?.length || 0) + (rosters?.length || 0) + (matchups?.length || 0) + (transactions?.length || 0) + (tradedPicks?.length || 0) + (drafts?.length || 0) + Object.keys(stats).length + Object.keys(projections).length;
+
+      const stagedCatalog = await this.getNflPlayers({ deferPersistence: true });
+      if (!Array.isArray(transactions) || !Array.isArray(tradedPicks) || !Array.isArray(drafts)) throw new Error('Resposta de recursos Sleeper incompleta.');
+      const draftPicks = new Map();
+      for (const draft of drafts) {
+        const draftId = String(draft.draft_id || draft.id);
+        const picks = await sleeperConnector.getDraftPicks(draftId);
+        if (!Array.isArray(picks)) throw new Error('Resposta de draft picks incompleta.');
+        draftPicks.set(draftId, picks);
+      }
+      league = db.prepare('SELECT * FROM leagues WHERE provider_league_id = ?').get(normLeague.id);
+      if (league && String(league.season) !== normLeague.season) throw new Error('Temporada da liga divergente.');
+      db.exec('SAVEPOINT sleeper_snapshot');
+      snapshotOpen = true;
+      if (stagedCatalog.capturedAt) persistCatalog(stagedCatalog.catalog, stagedCatalog.capturedAt);
       if (!league) {
         const id = `lg_${crypto.randomUUID()}`;
         db.prepare(`
           INSERT INTO leagues (id, provider, provider_league_id, sport, season, name, status, season_type, total_rosters, settings_json, scoring_settings_json, roster_positions_json, last_synced_at, created_at, updated_at)
           VALUES (?, 'sleeper', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(id, normLeague.id, normLeague.sport, normLeague.season, normLeague.name, normLeague.status, normLeague.seasonType, normLeague.totalRosters, JSON.stringify(normLeague.settings), JSON.stringify(normLeague.scoringSettings), JSON.stringify(normLeague.rosterPositions), now, now, now);
+        `).run(id, normLeague.id, normLeague.sport, normLeague.season, normLeague.name, normLeague.status, normLeague.seasonType, normLeague.totalRosters, JSON.stringify(normLeague.settings), JSON.stringify(normLeague.scoringSettings), JSON.stringify(normLeague.rosterPositions), null, now, now);
         league = db.prepare('SELECT * FROM leagues WHERE id = ?').get(id);
       } else {
-        db.prepare(`UPDATE leagues SET name=?, status=?, season_type=?, total_rosters=?, settings_json=?, scoring_settings_json=?, roster_positions_json=?, last_synced_at=?, updated_at=? WHERE id=?`)
-          .run(normLeague.name, normLeague.status, normLeague.seasonType, normLeague.totalRosters, JSON.stringify(normLeague.settings), JSON.stringify(normLeague.scoringSettings), JSON.stringify(normLeague.rosterPositions), now, now, league.id);
+        db.prepare(`UPDATE leagues SET name=?, status=?, season_type=?, total_rosters=?, settings_json=?, scoring_settings_json=?, roster_positions_json=?, updated_at=? WHERE id=?`)
+          .run(normLeague.name, normLeague.status, normLeague.seasonType, normLeague.totalRosters, JSON.stringify(normLeague.settings), JSON.stringify(normLeague.scoringSettings), JSON.stringify(normLeague.rosterPositions), now, league.id);
         league = db.prepare('SELECT * FROM leagues WHERE id = ?').get(league.id);
       }
 
-      // Persist core league ownership and rosters before optional analytics/drafts.
-      const [users, rosters, matchups] = await Promise.all([
-        this.getLeagueUsers(normLeague.id), this.getLeagueRosters(normLeague.id), this.getLeagueMatchups(normLeague.id, week)
-      ]);
-      if (!Array.isArray(users) || !Array.isArray(rosters) || !Array.isArray(matchups)) throw new Error('Resposta de liga incompleta.');
       const userMap = Object.fromEntries((users || []).map(user => [user.user_id, user]));
       for (const r of rosters || []) {
         const u = userMap[r.owner_id] || {};
@@ -802,22 +860,7 @@ export const sleeperSyncService = {
         recordsWritten += 2;
       }
 
-
-      const [transactions, tradedPicks, drafts, statsResult, projectionsResult] = await Promise.all([
-        coreOnly ? [] : this.getLeagueTransactions(normLeague.id, week).catch(() => []),
-        coreOnly ? [] : sleeperConnector.getLeagueTradedPicks(normLeague.id).catch(() => []),
-        coreOnly ? [] : sleeperConnector.getLeagueDrafts(normLeague.id).catch(() => []),
-        fetchMetric(() => sleeperConnector.getNflStats(normLeague.season, week)),
-        fetchMetric(() => sleeperConnector.getNflProjections(normLeague.season, week))
-      ]);
-      const stats = statsResult.payload || {};
-      const projections = projectionsResult.payload || {};
-      metricStatus = { stats: statsResult.status, projections: projectionsResult.status };
-      recordsRead += (users?.length || 0) + (rosters?.length || 0) + (matchups?.length || 0) + (transactions?.length || 0) + (tradedPicks?.length || 0) + (drafts?.length || 0) + Object.keys(stats).length + Object.keys(projections).length;
-
-      const catalog = await this.getNflPlayers();
-      // getNflPlayers persists a newly fetched catalogue itself. Rewriting the
-      // entire catalogue here both blocks SQLite and resets its freshness TTL.
+      // The staged catalog is persisted once, inside this snapshot transaction.
       for (const roster of rosters || []) {
         for (const playerId of roster.players || []) {
           if (!db.prepare('SELECT id FROM players WHERE id = ?').get(String(playerId))) {
@@ -835,17 +878,12 @@ export const sleeperSyncService = {
         for (const draft of drafts) {
           const draftId = String(draft.draft_id || draft.id);
           const draftDbId = `draft_${league.id}_${draftId}`;
-          try {
-            const picks = await sleeperConnector.getDraftPicks(draftId);
-            recordsWritten += persistDraftPicks({ draftId: draftDbId, picks, capturedAt: now });
-          } catch (e) {
-            console.error('[DraftPicks Error]:', e.message);
-          }
+          recordsWritten += persistDraftPicks({ draftId: draftDbId, picks: draftPicks.get(draftId), capturedAt: now });
         }
       }
-      recordSourceProvenance({ entityType: 'league', entityId: league.id, source: 'sleeper', status: 'official', capturedAt: now });
+      recordSourceProvenance({ entityType: 'league', entityId: league.id, source: 'sleeper', status: Object.values(metricStatus).includes('failed') ? 'stale' : 'official', capturedAt: now });
       persistPayload({ leagueId: league.id, resource: 'league', resourceKey: normLeague.id, payload: rawLeague, capturedAt: now });
-      persistPayload({ leagueId: league.id, resource: 'state', resourceKey: `${normLeague.season}:${week}`, payload: state, capturedAt: now });
+      persistPayload({ leagueId: league.id, resource: 'state', resourceKey: `${normLeague.id}:${normLeague.season}:${week}`, payload: state, capturedAt: now });
 
       const grouped = {};
       for (const item of matchups || []) {
@@ -855,14 +893,14 @@ export const sleeperSyncService = {
       const scoringSettings = normalizeScoringSettings(normLeague.scoringSettings);
       const matchupInsert = db.prepare(`INSERT INTO matchup_players (id, matchup_id, roster_id, player_id, slot, is_starter, points, projected_points, scoring_breakdown_json, captured_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET slot=excluded.slot, is_starter=excluded.is_starter, points=excluded.points, projected_points=excluded.projected_points, scoring_breakdown_json=excluded.scoring_breakdown_json, captured_at=excluded.captured_at`);
-      const persistMatchupsTx = db.transaction(() => {
+
       for (const [providerMatchupId, pair] of Object.entries(grouped)) {
         const a = pair[0];
         const b = pair[1] || null;
         const matchupDbId = `match_${league.id}_w${week}_m${providerMatchupId}`;
         const status = Number(state?.week) === week ? 'live' : ((a?.points || b?.points) ? 'finished' : 'scheduled');
         db.prepare(`INSERT INTO matchups (id, league_id, season, week, provider_matchup_id, roster_a_id, roster_b_id, status, score_a, score_b, custom_points_json, captured_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET status=excluded.status, score_a=excluded.score_a, score_b=excluded.score_b, custom_points_json=excluded.custom_points_json, captured_at=excluded.captured_at`)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET roster_a_id=excluded.roster_a_id, roster_b_id=excluded.roster_b_id, status=excluded.status, score_a=excluded.score_a, score_b=excluded.score_b, custom_points_json=excluded.custom_points_json, captured_at=excluded.captured_at`)
           .run(matchupDbId, league.id, normLeague.season, week, Number(providerMatchupId), a?.roster_id || 0, b?.roster_id || null, status, numberOrNull(a?.custom_points) ?? numberOrNull(a?.points), numberOrNull(b?.custom_points) ?? numberOrNull(b?.points), JSON.stringify({ a: a?.custom_points ?? null, b: b?.custom_points ?? null }), now);
         db.prepare('DELETE FROM matchup_players WHERE matchup_id = ?').run(matchupDbId);
         for (const item of pair) {
@@ -881,18 +919,28 @@ export const sleeperSyncService = {
         recordsWritten++;
       }
 
-      });
-      persistMatchupsTx();
-      db.prepare('UPDATE leagues SET last_synced_at = ?, updated_at = ? WHERE id = ?').run(now, now, league.id);
-      db.prepare(`INSERT INTO sync_runs (id, league_id, provider, resource, status, started_at, finished_at, records_read, records_written, metric_status_json) VALUES (?, ?, 'sleeper', 'league_full', 'SUCCESS', ?, ?, ?, ?, ?)`)
-        .run(runId, league.id, startedAt, now, recordsRead, recordsWritten, JSON.stringify(metricStatus));
-      return { success: true, recordsRead, recordsWritten, leagueId: league.id, providerLeagueId: normLeague.id, season: normLeague.season, week, state };
-    } catch (err) {
       const finishedAt = new Date().toISOString();
-      if (league?.id) {
-        db.prepare(`INSERT INTO sync_runs (id, league_id, provider, resource, status, started_at, finished_at, records_read, records_written, error_code, error_message) VALUES (?, ?, 'sleeper', 'league_full', 'ERROR', ?, ?, ?, ?, 'SYNC_FAILED', ?)`)
-          .run(runId, league.id, startedAt, finishedAt, recordsRead, recordsWritten, err.message);
+      const status = Object.values(metricStatus).includes('failed') ? 'PARTIAL' : 'SUCCESS';
+      const error = status === 'PARTIAL' ? 'Sleeper sync incomplete: stats or projections fetch failed.' : null;
+      if (status === 'SUCCESS') db.prepare('UPDATE leagues SET last_synced_at = ?, updated_at = ? WHERE id = ?').run(finishedAt, finishedAt, league.id);
+      db.prepare(`INSERT INTO sync_runs (id, league_id, provider, resource, status, started_at, finished_at, records_read, records_written, metric_status_json, error_code, error_message) VALUES (?, ?, 'sleeper', 'league_full', ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(runId, league.id, status, startedAt, finishedAt, recordsRead, recordsWritten, JSON.stringify({ ...metricStatus, context: syncContext }), error ? 'SYNC_PARTIAL' : null, error);
+      db.exec('RELEASE sleeper_snapshot');
+      snapshotOpen = false;
+      if (stagedCatalog.capturedAt) {
+        cachedPlayersCatalog = stagedCatalog.catalog;
+        cachedPlayersTimestamp = Date.parse(stagedCatalog.capturedAt);
       }
+      return { success: status === 'SUCCESS', status, error, recordsRead, recordsWritten, leagueId: league.id, providerLeagueId: normLeague.id, season: normLeague.season, week, state };
+    } catch (err) {
+      if (snapshotOpen) {
+        db.exec('ROLLBACK TO sleeper_snapshot; RELEASE sleeper_snapshot');
+        recordsWritten = 0;
+      }
+      const finishedAt = new Date().toISOString();
+      db.prepare(`INSERT INTO sync_runs (id, league_id, provider, resource, status, started_at, finished_at, records_read, records_written, error_code, error_message, metric_status_json) VALUES (?, ?, 'sleeper', 'league_full', 'ERROR', ?, ?, ?, ?, 'SYNC_FAILED', ?, ?)`)
+        .run(runId, league?.id || String(leagueId), startedAt, finishedAt, recordsRead, recordsWritten, err.message, JSON.stringify({ ...metricStatus, context: syncContext }));
+      err.syncResult = { success: false, status: 'ERROR', error: err.message, leagueId: league?.id || String(leagueId) };
       throw err;
     }
   }
