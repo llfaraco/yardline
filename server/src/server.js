@@ -181,7 +181,7 @@ app.get('/api/integrations/sleeper/user/:userId/leagues/:season', async (req, re
 const refreshLeague = createLeagueRefresh((id,week,options)=>sleeperSyncService.syncLeagueDetails(id,week,options));
 
 // Sincronizar Liga Escolhida
-app.post('/api/integrations/sleeper/sync-league', requireAuth, async (req, res) => {
+app.post('/api/integrations/sleeper/sync-league', async (req, res) => {
   try {
     const { leagueId, week = null, coreOnly = false, automatic = false } = req.body;
     if (!leagueId) return res.status(400).json({ error: 'leagueId é obrigatório.' });
