@@ -1736,25 +1736,12 @@ function renderTradeView() {
     verdictDesc = "Concessão marginal de pontos, justificada caso resolva uma carência posicional grave.";
   }
 
-  const leagueTeams = [
-    { rosterId: 13, name: "South Caxias Immigrants", owner: "@BrunoChiarello", record: "5-0" },
-    { rosterId: 11, name: "Capanema Noias", owner: "@perriy", record: "4-1" },
-    { rosterId: 16, name: "Hurts So Good", owner: "@negrini", record: "4-1" },
-    { rosterId: 9,  name: "Arapiraca Miners", owner: "@Fontanella", record: "4-1" },
-    { rosterId: 8,  name: "Paranaguá Rat Crew", owner: "@cauexavier", record: "4-1" },
-    { rosterId: 12, name: "31ers", owner: "@31ers", record: "3-2" },
-    { rosterId: 10, name: "The Nuggets", owner: "@Mattadra", record: "2-3" },
-    { rosterId: 6,  name: "Uranus Destroyers", owner: "@wendelayres", record: "2-3" },
-    { rosterId: 1,  name: "Curitiba Red Fox", owner: "@neyllon", record: "2-3" },
-    { rosterId: 3,  name: "Chiarello Squad", owner: "@Chiarello", record: "2-3" },
-    { rosterId: 4,  name: "Indaiatuba Blue Jays", owner: "@bluejays", record: "2-3" },
-    { rosterId: 5,  name: "Belo Horizonte Spiders", owner: "@spiders", record: "1-4" },
-    { rosterId: 7,  name: "Floripa Manés", owner: "@manes", record: "1-4" },
-    { rosterId: 14, name: "Porto Alegre Pumpkins", owner: "@pumpkins", record: "1-4" },
-    { rosterId: 15, name: "Brasília Capital", owner: "@capital", record: "0-5" }
-  ];
-
-  const currentPartner = leagueTeams.find(t => t.rosterId === tradePartnerRosterId) || leagueTeams[0];
+  const leagueTeams = (typeof LEAGUE_12_TEAMS !== "undefined" ? LEAGUE_12_TEAMS : []).filter(t => !t.isMyTeam);
+  if (!leagueTeams.length) {
+    container.innerHTML = '<div class="yl-card"><strong>Trade Analyzer indisponível</strong><p class="yl-muted">Sincronize os rosters oficiais da liga para selecionar um adversário. Nenhum time é inventado como fallback.</p></div>';
+    return;
+  }
+  const currentPartner = leagueTeams.find(t => Number(t.rosterId) === Number(tradePartnerRosterId)) || leagueTeams[0];
 
   container.innerHTML = `
     <div class="yl-card" style="margin-bottom:18px;padding:18px 22px;">
@@ -1783,7 +1770,7 @@ function renderTradeView() {
       <div class="yl-card" style="padding:18px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div>
-            <h4 style="font-size:14px;font-weight:700;color:var(--yl-navy);margin:0;">Você Envia (Gengar My Balls):</h4>
+            <h4 style="font-size:14px;font-weight:700;color:var(--yl-navy);margin:0;">Você Envia (meu roster oficial):</h4>
             <small style="color:var(--text-muted);font-size:11px;">Selecione os atletas a negociar</small>
           </div>
           <span class="badge badge-navy mono" style="font-size:12px;">Total: ${sentProjTotal.toFixed(1)} pts</span>
