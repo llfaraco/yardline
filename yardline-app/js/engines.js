@@ -945,11 +945,11 @@ function simulateWaiverAddition(claimedPlayerId) {
 //  CONEXÃO DIRETA COM A LIGA REAL DO SLEEPER
 // League ID: 1369770282776006656 · Time: Gengar My Balls (@Faraco)
 // ==========================================
-const REAL_SLEEPER_LEAGUE_ID = "1369770282776006656";
-// Identidade informada para a liga configurada no Yardline; não é aplicada a outras ligas.
-const REAL_SLEEPER_USERNAME = "Faraco";
+let REAL_SLEEPER_LEAGUE_ID = localStorage.getItem("yl_active_league_id") || localStorage.getItem("yl_active_league") || null;
+// Identidade e liga são preenchidas somente após o onboarding/snapshot oficial.
+let REAL_SLEEPER_USERNAME = localStorage.getItem("yl_sleeper_username") || null;
 let activeNflState = null;
-let activeLeagueWeek = 6;
+let activeLeagueWeek = null;
 let activeSleeperLeagueData = null;
 let activeSleeperRosters = [];
 let activeSleeperUsers = [];
@@ -2105,6 +2105,7 @@ if (typeof window !== 'undefined') {
       return syncInFlight;
     }
     inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
+    if (!inFlightLeagueId) return Promise.reject(new Error('Nenhuma liga Sleeper selecionada.'));
     inFlightHydration = false;
     syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: false, ...options }).finally(() => { syncInFlight = null; });
     return syncInFlight;
@@ -2112,6 +2113,7 @@ if (typeof window !== 'undefined') {
   window.hydrateSleeperLeagueShell = function(customLeagueId){
     if (syncInFlight) return syncInFlight;
     inFlightLeagueId = customLeagueId || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || REAL_SLEEPER_LEAGUE_ID;
+    if (!inFlightLeagueId) return Promise.reject(new Error('Nenhuma liga Sleeper selecionada.'));
     inFlightHydration = true;
     syncInFlight = syncShell(inFlightLeagueId, { skipRemoteSync: true }).finally(() => { syncInFlight = null; });
     return syncInFlight;

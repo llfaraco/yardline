@@ -2079,7 +2079,13 @@ async function openManagerDnaDetailModal(rosterId) {
   `;
 
   try {
-    const leagueId = (typeof REAL_SLEEPER_LEAGUE_ID !== "undefined" ? REAL_SLEEPER_LEAGUE_ID : "1369770282776006656");
+    const leagueId = (typeof REAL_SLEEPER_LEAGUE_ID !== "undefined" ? REAL_SLEEPER_LEAGUE_ID : null)
+      || localStorage.getItem('yl_active_league_id')
+      || localStorage.getItem('yl_active_league');
+    if (!leagueId) {
+      content.innerHTML = '<div style="padding:24px;color:var(--text-muted);">Manager DNA indisponível até uma liga oficial ser selecionada e sincronizada.</div>';
+      return;
+    }
     let dna = null;
     try {
       const res = await fetch(`${YL_API_BASE}/leagues/${leagueId}/manager-dna/${rosterId}`);
@@ -2748,11 +2754,11 @@ function renderPlansView() {
 let currentOnboardingStep = 1;
 let onboardingData = {
   profile: "competitive",
-  sleeperUsername: localStorage.getItem("yl_sleeper_username") || "Faraco",
+  sleeperUsername: localStorage.getItem("yl_sleeper_username") || "",
   sleeperUserId: null,
   userLeagues: [],
-  selectedLeagueId: localStorage.getItem("yl_active_league") || localStorage.getItem("yl_active_league_id") || "1369770282776006656",
-  selectedLeagueName: "Neilo Pistola League (#1369770282776006656)",
+  selectedLeagueId: localStorage.getItem("yl_active_league") || localStorage.getItem("yl_active_league_id") || null,
+  selectedLeagueName: "Nenhuma liga selecionada",
   diagnosticMatchup: null
 };
 
@@ -2891,18 +2897,8 @@ function renderOnboardingStep() {
             </div>
           `;
         }).join('') : `
-          <!-- Card de Conexão Rápida para Neilo Pistola League -->
-          <div onclick="setOnboardingLeague('1369770282776006656', 'Neilo Pistola League (#1369770282776006656)')"
-               style="cursor:pointer;padding:16px;border-radius:10px;border:2px solid var(--yl-crimson);background:rgba(195,17,43,0.04);display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span class="badge badge-green">LIGA OFICIAL</span>
-                <strong style="color:var(--yl-navy);font-size:14px;">Neilo Pistola League</strong>
-                <span style="font-size:11px;color:var(--text-muted);font-family:monospace;">#1369770282776006656</span>
-              </div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">16 Times · IDP · Temporada 2026 · Time: <strong>Gengar My Balls (@Faraco)</strong></div>
-            </div>
-            <span style="font-size:20px;color:var(--yl-crimson);">●</span>
+          <div style="padding:18px;border:1px dashed var(--border-light);border-radius:10px;background:var(--bg-subtle);color:var(--text-muted);font-size:13px;line-height:1.5;">
+            Nenhuma liga foi encontrada para este usuário. Verifique o username do Sleeper e execute a busca novamente. A YARDLINE não seleciona uma liga implícita.
           </div>
         `}
       </div>
@@ -2914,10 +2910,10 @@ function renderOnboardingStep() {
     `;
   } else if (step === 4) {
     const diag = onboardingData.diagnosticMatchup;
-    const myTeamName = diag?.user?.manager?.teamName || "Gengar My Balls";
-    const oppTeamName = diag?.opponent?.manager?.teamName || "Curitiba Red Fox";
-    const myManager = diag?.user?.manager?.displayName || onboardingData.sleeperUsername || "Faraco";
-    const oppManager = diag?.opponent?.manager?.displayName || "neyllon";
+    const myTeamName = diag?.user?.manager?.teamName || "—";
+    const oppTeamName = diag?.opponent?.manager?.teamName || "—";
+    const myManager = diag?.user?.manager?.displayName || onboardingData.sleeperUsername || "—";
+    const oppManager = diag?.opponent?.manager?.displayName || "—";
     const startersList = diag?.user?.roster?.startersDetails || [];
     const topStarters = startersList.slice(0, 4);
 
@@ -2945,12 +2941,8 @@ function renderOnboardingStep() {
           </div>
           <ul style="font-size:12px;color:var(--text-body);margin:0;padding-left:16px;line-height:1.6;">
             ${topStarters.length > 0 ? topStarters.map(st => `
-              <li><strong>${st.name} (${st.position} - ${st.team}):</strong> Status ${st.injuryStatus || 'Ativo'} · Titular confirmado.</li>
-            `).join('') : `
-              <li><strong>Brock Purdy (QB - SF):</strong> Projeção 19.4 pts.</li>
-              <li><strong>Javonte Williams (RB - DAL):</strong> Projeção 16.2 pts.</li>
-              <li><strong>George Kittle (TE - SF):</strong> Projeção 12.4 pts.</li>
-            `}
+              <li><strong>${esc(st.name)} (${esc(st.position)} - ${esc(st.team)}):</strong> Status ${esc(st.injuryStatus || '—')} · Titular confirmado.</li>
+            `).join('') : '<li>Dados oficiais de titulares indisponíveis até a sincronização da liga.</li>'}
           </ul>
         </div>
 
@@ -2982,7 +2974,11 @@ async function executeSleeperUserLookup(advance = true) {
   if (inp && inp.value.trim()) {
     onboardingData.sleeperUsername = inp.value.trim();
   }
-  const uname = onboardingData.sleeperUsername || "Faraco";
+  const uname = onboardingData.sleeperUsername;
+  if (!uname) {
+    showToast('Informe seu username do Sleeper antes de buscar as ligas.');
+    return;
+  }
   showToast(`Consultando usuário @${uname} via YARDLINE API...`);
 
   try {
@@ -3052,12 +3048,19 @@ async function generateFirstDiagnostic() {
   showToast(`Sincronizando ${onboardingData.selectedLeagueName} e calculando matchup...`);
   try {
     try {
+      const diagnosticWeek = Number.isInteger(Number(activeLeagueWeek)) ? Number(activeLeagueWeek) : null;
+      if (!onboardingData.selectedLeagueId || !diagnosticWeek || !onboardingData.sleeperUsername) {
+        showToast('Liga, usuário ou semana oficial indisponível; diagnóstico não será fabricado.');
+        currentOnboardingStep = 4;
+        renderOnboardingStep();
+        return;
+      }
       await fetch(`${YL_API_BASE}/integrations/sleeper/sync-league`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leagueId: onboardingData.selectedLeagueId, week: 6 })
+        body: JSON.stringify({ leagueId: onboardingData.selectedLeagueId, week: diagnosticWeek })
       });
-      const matchRes = await fetch(`${YL_API_BASE}/leagues/${onboardingData.selectedLeagueId}/matchups/current?sleeperUserId=${encodeURIComponent(onboardingData.sleeperUsername)}&week=6`);
+      const matchRes = await fetch(`${YL_API_BASE}/leagues/${onboardingData.selectedLeagueId}/matchups/current?sleeperUserId=${encodeURIComponent(onboardingData.sleeperUsername)}&week=${diagnosticWeek}`);
       if (matchRes.ok) {
         onboardingData.diagnosticMatchup = await matchRes.json();
       }
@@ -4709,7 +4712,8 @@ window.toggleSidebarGroup=function(key){
 
   async function hydrateLeagueChat() {
     const base = (window.YL_API_BASE || "/api").replace(/\/api\/?$/, "");
-    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
+    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || null;
+    if (!leagueId) return;
     try {
       const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages?limit=100`, { headers: { Accept: 'application/json' } });
       if (!response.ok) return;
@@ -4753,7 +4757,11 @@ window.toggleSidebarGroup=function(key){
     };
 
     const base = (window.YL_API_BASE || "/api").replace(/\/api\/?$/, "");
-    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || '1369770282776006656';
+    const leagueId = window.REAL_SLEEPER_LEAGUE_ID || localStorage.getItem('yl_active_league_id') || localStorage.getItem('yl_active_league') || null;
+    if (!leagueId) {
+      showToast('Selecione e sincronize uma liga antes de enviar mensagens.');
+      return;
+    }
     try {
       const response = await fetch(`${base}/api/leagues/${encodeURIComponent(leagueId)}/messages`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ message: text, author: draft.author, initials: draft.initials }) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
