@@ -45,12 +45,12 @@ export function solveOptimalLineupAssignment(slots, playerList) {
 
     // Poda por Limitante Superior
     let upperBound = currentScore;
-    const tempUsed = new Set(usedPlayers);
     for (let i = slotIdx; i < slotCandidates.length; i++) {
-      const cand = slotCandidates[i].candidates.find(p => !tempUsed.has(p.id));
+      // Relax uniqueness BETWEEN remaining slots. Each independent maximum
+      // dominates every feasible completion; a greedy matching does not.
+      const cand = slotCandidates[i].candidates.find(p => !usedPlayers.has(p.id));
       if (cand) {
-        upperBound += (cand.projection || cand.proj || 0);
-        tempUsed.add(cand.id);
+        upperBound += Math.max(0, cand.projection ?? cand.proj ?? 0);
       }
     }
 

@@ -8,7 +8,7 @@ const { numberOrNull } = contract;
 const STAT_ALIASES = {
   passYards: ['pass_yd', 'pass_yds', 'passing_yards'],
   passTd: ['pass_td', 'pass_tds', 'passing_touchdowns'],
-  interceptions: ['pass_int', 'interceptions', 'int'],
+  interceptions: ['pass_int', 'interceptions'],
   passTwoPt: ['pass_2pt', 'pass_2pt_conv'],
   rushYards: ['rush_yd', 'rush_yds', 'rushing_yards'],
   rushTd: ['rush_td', 'rush_tds', 'rushing_touchdowns'],
@@ -38,13 +38,29 @@ const STAT_ALIASES = {
   puntReturnTd: ['pr_td', 'punt_return_td']
 };
 
+// Sleeper's granular scoring counters are already normalized in raw stats:
+// idp_* are individual defense; unprefixed defense keys belong to D/ST.
+const DIRECT_SCORING_KEYS = [
+  'sack', 'int', 'ff', 'fum_rec', 'safe', 'blk_kick', 'fum_rec_td', 'def_st_td',
+  'def_st_fum_rec', 'def_st_ff', 'st_td', 'st_ff', 'st_fum_rec', 'st_tkl_solo',
+  'idp_sack', 'idp_int', 'idp_ff', 'idp_fum_rec', 'idp_def_td', 'idp_safe',
+  'idp_blk_kick', 'idp_tkl', 'idp_tkl_loss', 'idp_tkl_solo', 'idp_tkl_ast', 'idp_pass_def', 'idp_qb_hit',
+  'fgm_0_19', 'fgm_20_29', 'fgm_30_39', 'fgm_40_49', 'fgm_50_59', 'fgm_60p',
+  'fgmiss_0_19', 'fgmiss_20_29', 'fgmiss_30_39', 'fgmiss_40_49', 'fgmiss_50_59', 'fgmiss_60p',
+  'pts_allow_0', 'pts_allow_1_6', 'pts_allow_7_13', 'pts_allow_14_20', 'pts_allow_21_27', 'pts_allow_28_34', 'pts_allow_35p',
+  'xpm', 'xpmiss', 'pass_sack', 'pass_int_td', 'fum', 'kr_yd', 'pr_yd',
+  'pass_fd', 'rush_fd', 'rec_fd', 'bonus_fd_te', 'bonus_fd_wr', 'bonus_fd_rb', 'bonus_fd_qb',
+  'bonus_rec_te', 'bonus_rec_wr', 'bonus_rec_rb'
+];
+
 // Cards fail closed rather than claiming a complete custom-league score.
 export const SUPPORTED_SCORING_KEYS = new Set([
   'pass_yd', 'pass_td', 'pass_int', 'pass_2pt', 'rush_yd', 'rush_td', 'rush_2pt',
   'rec', 'rec_yd', 'rec_td', 'rec_2pt', 'fum_lost', 'def_sack', 'def_int', 'def_ff',
   'def_fumble_rec', 'def_td', 'def_tackle', 'def_tackle_solo', 'def_tackle_assist',
   'def_pass_def', 'def_qb_hit', 'def_safety', 'def_block_kick', 'extra_pt', 'fgm',
-  'fgmiss', 'kr_td', 'pr_td', 'bonus_pass_yd_300', 'bonus_rush_yd_100', 'bonus_rec_yd_100'
+  'fgmiss', 'kr_td', 'pr_td', 'bonus_pass_yd_300', 'bonus_rush_yd_100', 'bonus_rec_yd_100',
+  ...DIRECT_SCORING_KEYS
 ]);
 
 function firstNumber(stats, aliases) {
@@ -90,7 +106,7 @@ export function scoringUnavailableReason(scoringSettings) {
 export function scorePlayerStats(stats = {}, scoringSettings = {}) {
   const unavailableReason = scoringUnavailableReason(scoringSettings)
     || (!stats || typeof stats !== 'object' || Array.isArray(stats) || !Object.keys(stats).length ? 'stats_unavailable'
-      : !Object.values(STAT_ALIASES).flat().some(key => numberOrNull(stats[key]) !== null) ? 'scorable_stats_unavailable' : null);
+      : ![...Object.values(STAT_ALIASES).flat(), ...DIRECT_SCORING_KEYS].some(key => numberOrNull(stats[key]) !== null) ? 'scorable_stats_unavailable' : null);
   if (unavailableReason) {
     const unsupported = unavailableReason.startsWith('unsupported_scoring:');
     return { points: null, status: unsupported ? 'unsupported' : 'unavailable',
@@ -137,6 +153,9 @@ export function scorePlayerStats(stats = {}, scoringSettings = {}) {
   total += bonus(stats, scoringSettings, STAT_ALIASES.passYards, 300, 'bonus_pass_yd_300');
   total += bonus(stats, scoringSettings, STAT_ALIASES.rushYards, 100, 'bonus_rush_yd_100');
   total += bonus(stats, scoringSettings, STAT_ALIASES.receivingYards, 100, 'bonus_rec_yd_100');
+  for (const key of DIRECT_SCORING_KEYS) {
+    total += addBreakdown(breakdown, key, numberOrNull(stats[key]) ?? 0, setting(scoringSettings, key));
+  }
 
   return {
     points: Number(total.toFixed(2)),

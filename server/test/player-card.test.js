@@ -11,6 +11,7 @@ const service = await import('../src/modules/players/player-card.service.js');
 const { persistCatalog, persistPlayerStats, sleeperSyncService } = await import('../src/modules/sleeper/sleeper.sync.js');
 const { sleeperConnector } = await import('../src/modules/sleeper/sleeper.connector.js');
 const { app } = await import('../src/server.js');
+const { playerHistoryService } = await import('../src/modules/players/player-history.service.js');
 const contract = (await import('../../yardline-app/js/player-card-contract.js')).default;
 const fixture = JSON.parse(fs.readFileSync(new URL('./fixtures/sleeper-player-card.json', import.meta.url), 'utf8'));
 const capturedAt = '2025-09-10T00:00:00.000Z';
@@ -127,11 +128,12 @@ test('owner requires unique reliable owner ID, never display-name/roster-2/first
 test('projection-only and absent playerData allocate no fabricated points', () => {
   reset();
   const { catalog, data } = seedData();
-  assert.equal(data['3294'].projectedPoints, fixture.projections['3294'].pts_ppr);
+  assert.equal(data['3294'].projectedPoints, 19.21);
+  assert.equal(data['3294'].projectionFormat, 'LEAGUE');
   assert.equal(data['3294'].points, null);
   assert.equal(data['3294'].totalPoints, null);
   const cards = service.buildPlayerCards(catalog, data, { season: fixture.season, week: 1 }, [fixture.roster]);
-  assert.equal(cards['3294'].metrics.projectedPoints, 20.6);
+  assert.equal(cards['3294'].metrics.projectedPoints, 19.21);
   assert.equal(cards['4217'].metrics.pointsPerGame, null);
   assert.equal(service.buildPlayerCards(catalog, undefined, {}, [])['4984'].metrics.totalPoints, null);
 });
@@ -218,7 +220,7 @@ test('actual frontend card and final dossier consume the exact same DTO without 
   assert.ok(cardHtml.includes(cards['13281'].photoUrl));
   assert.ok(dossierHtml.includes(cards['13281'].photoUrl));
   await sandbox.openPlayerDossierModal('3294');
-  assert.match(elements.get('player-modal-content').innerHTML, /20\.6/);
+  assert.match(elements.get('player-modal-content').innerHTML, /19\.2/);
   assert.equal(vm.runInContext('selectedActiveRosterId', context), null);
   sandbox.renderPlaybookView();
   assert.match(elements.get('view-playbook').innerHTML, /Owner não identificado/i);
@@ -232,7 +234,7 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   t.mock.method(sleeperConnector, 'getNFLState', async () => ({ season: '2025', week: 1, season_type: 'regular' }));
   t.mock.method(sleeperConnector, 'getLeagueUsers', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueRosters', async () => [fixture.roster]);
-  t.mock.method(sleeperConnector, 'getLeagueMatchups', async () => []);
+  t.mock.method(sleeperConnector, 'getLeagueMatchups', async () => [{...fixture.roster, players:['4984','4217'], starters:['4984'], matchup_id:1, players_points:{'4217':0}}]);
   t.mock.method(sleeperConnector, 'getLeagueTransactions', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueTradedPicks', async () => []);
   t.mock.method(sleeperConnector, 'getLeagueDrafts', async () => [{ draft_id: 'fixture-draft', season: '2025', type: 'snake', status: 'complete' }]);
@@ -244,6 +246,9 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   let shell = await (await request('/api/leagues/fixture-league/shell?week=1')).json();
   assert.equal(shell.playerCards['4984'].metrics.points, null);
   assert.equal(shell.cardContext.metricAvailability.stats.status, 'empty');
+  assert.equal(shell.matchups[0].scoreA, null);
+  assert.equal(shell.playerCards['4217'].metrics.points, 0);
+  assert.equal(shell.matchups[0].players.find(p=>p.player_id==='4984').points, null);
   assert.equal(db.prepare("SELECT count(*) n FROM drafts WHERE provider_draft_id='fixture-draft'").get().n, 1);
   assert.equal(db.prepare("SELECT player_id FROM draft_picks WHERE pick_no=1").get().player_id, '4984');
   t.mock.method(sleeperConnector, 'getNflStats', async () => { throw new Error('fixture upstream failure'); });
@@ -254,6 +259,9 @@ test('mocked sync preserves season_type and distinguishes empty metrics from ups
   assert.equal(db.prepare("SELECT count(*) n FROM drafts WHERE provider_draft_id='fixture-draft'").get().n, 1);
   assert.equal(db.prepare("SELECT count(*) n FROM draft_picks").get().n, 1);
   assert.ok(db.prepare("SELECT count(*) n FROM source_provenance WHERE entity_type='league'").get().n >= 2);
+  const draftsBefore=sleeperConnector.getLeagueDrafts.mock.callCount();
+  await sleeperSyncService.syncLeagueDetails('fixture-league',1,{coreOnly:true});
+  assert.equal(sleeperConnector.getLeagueDrafts.mock.callCount(),draftsBefore);
   league.season_type = 'post';
   await sleeperSyncService.syncLeagueDetails('fixture-league', 1);
   assert.equal(db.prepare("SELECT season_type FROM leagues WHERE id=? OR provider_league_id=?").get('fixture-league', 'fixture-league').season_type, 'post');
@@ -343,4 +351,102 @@ test('merged history route keeps league-scored rows and raw official stats/prove
   assert.deepEqual(observed.stats, fixture.stats['4984']);
   assert.equal(observed.provenance.status, 'official');
   assert.equal(observed.provenance.source, 'sleeper');
+});
+
+
+test('history keeps the same week in different seasons distinct when reconciling matchups', async () => {
+  reset(); seedLeague(); seedData();
+  for (const [year, points] of [[2024, 11], [2025, 22]]) {
+    const id = `history_match_${year}`;
+    db.prepare(`INSERT INTO matchups (id,league_id,season,week,provider_matchup_id,roster_a_id,captured_at)
+      VALUES (?,'fixture-league',?,1,1,1,?)`).run(id, String(year), capturedAt);
+    db.prepare(`INSERT INTO matchup_players (id,matchup_id,roster_id,player_id,slot,is_starter,points,captured_at)
+      VALUES (?,?,1,'4984','QB',1,?,?)`).run(`history_mp_${year}`, id, points, capturedAt);
+  }
+  const response = await request('/api/players/4984/history?leagueId=fixture-league');
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  const weekOne = payload.rows.filter(row => row.week === 1);
+  assert.deepEqual(weekOne.map(row => row.season).sort(), ['2024','2025']);
+  assert.equal(weekOne.find(row => row.season === '2024').fpts, 11);
+});
+
+test('career HTTP validates seasons, exposes progressive sync, and returns requested league-scored year', async t => {
+  reset(); seedLeague();
+  db.prepare('UPDATE players SET catalog_json=? WHERE id=?').run(JSON.stringify({ ...fixture.players['4984'], rookieYear: 2024 }), '4984');
+  t.mock.method(sleeperConnector, 'getPlayerSeasonStats', async (id, year) => Number(year) === 2024
+    ? { 1: { player_id: id, season: String(year), season_type: 'regular', week: 1, team: 'BUF', stats: { gp: 1, pass_yd: 200, pass_td: 2, pts_ppr: 16 } } } : {});
+  assert.equal((await request('/api/players/4984/career?season=invalid')).status, 400);
+  assert.equal((await request('/api/players/4984/career?season=2024&leagueId=missing')).status, 404);
+  const response = await request('/api/players/4984/career?season=2024&leagueId=fixture-league');
+  assert.equal(response.status, 200);
+  await playerHistoryService.wait('4984');
+  const payload = await (await request('/api/players/4984/career?season=2024&leagueId=fixture-league')).json();
+  assert.equal(payload.syncing, false);
+  assert.equal(payload.scoringFormat, 'LEAGUE');
+  assert.equal(payload.rows[0].season, '2024');
+  assert.equal(payload.rows[0].fpts, 16);
+  assert.ok(payload.seasons.some(row => row.season === '2024'));
+});
+
+
+test('final dossier uses dynamic career years, team logo, portrait and selected-season totals', async () => {
+  reset(); const { catalog, data } = seedData();
+  const cards = service.buildPlayerCards(catalog, data, { season: '2025', week: 1 }, [fixture.roster]);
+  const { sandbox, elements } = frontend(cards);
+  sandbox.fetch = async url => ({ ok: true, json: async () => String(url).includes('/career?')
+    ? { syncing: false, scoringLabel: 'Regras atuais da liga', seasons: [
+      { season: '2025', teams: ['BUF'], observedWeeks: 1, totalPoints: 16, pointsPerGame: 16, status: 'available' },
+      { season: '2018', teams: ['BUF'], observedWeeks: 1, totalPoints: 12, pointsPerGame: 12, status: 'available' }
+    ], rows: [{ week: 1, fpts: 16, points: 16, stats: { pass_yd: 200 } }] } : [] });
+  await sandbox.openPlayerDossierModal('4984');
+  const html = elements.get('player-modal-content').innerHTML;
+  assert.ok(html.includes(cards['4984'].photoUrl.replace(/&/g, '&amp;')));
+  assert.ok(html.includes(cards['4984'].teamLogoUrl));
+  assert.match(html, /id="yl-dossier-season"/);
+  assert.match(html, /value="2018"/);
+  assert.match(html, /A carreira, temporada por temporada/);
+  assert.match(html, /Regras atuais da liga/);
+});
+
+
+test('official matchup overlays preserve stat weeks and history uses the same score', () => {
+  reset(); seedLeague();
+  const {catalog,data}=seedData();
+  const original=data['4984'].totalPoints;
+  db.prepare(`INSERT INTO matchups (id,league_id,season,week,provider_matchup_id,roster_a_id,captured_at) VALUES ('merge-w2','fixture-league',?,2,1,1,?)`).run(String(fixture.season),capturedAt);
+  db.prepare(`INSERT INTO matchup_players (id,matchup_id,roster_id,player_id,slot,is_starter,points,captured_at) VALUES ('merge-p2','merge-w2',1,'4984','QB',1,5,?)`).run(capturedAt);
+  const merged=service.mergeOfficialMatchupData(db,{leagueId:'fixture-league',season:fixture.season,week:2,playerData:data,catalog});
+  assert.equal(merged['4984'].totalPoints,Number((original+5).toFixed(2)));
+  assert.equal(merged['4984'].observedWeeks,2);
+  assert.equal(merged['4984'].points,5);
+  const history=service.buildPlayerHistory(db,{playerId:'4984',season:fixture.season,league:{id:'fixture-league',season_type:'regular',scoring_settings_json:JSON.stringify(scoringSettings)}});
+  assert.equal(history.find(r=>r.week===2).fpts,5);
+  assert.equal(history.find(r=>r.week===2).source.points,'sleeper_matchups');
+});
+
+
+test('refresh publishes cards and shell together only after async owner lookup finishes',async()=>{
+ reset();seedLeague();seedData();
+ const next=await (await request('/api/leagues/fixture-league/shell?week=1')).json();
+ const {sandbox,context}=frontend(next.playerCards,{marker:'previous'});
+ const oldCards=sandbox.YL_PLAYER_CARDS;
+ const storage=new Map([['yl_sleeper_username','fixture-user']]);
+ sandbox.localStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,String(value))};
+ for(const name of ['renderTeamsView','renderRankingsView','renderWaiversView','renderPlaybookView','renderLeagueView','renderPlayersView','renderHomeView','renderTradeView'])sandbox[name]=()=>{};
+ let resolveOwner,posts=0;
+ sandbox.fetch=async(url,options)=>{
+   if(url.includes('/sync-league')){posts++;assert.equal(JSON.parse(options.body).automatic,true);return {ok:true,json:async()=>({success:true})};}
+   if(url.includes('/shell'))return {ok:true,json:async()=>next};
+   if(url.includes('/user/'))return new Promise(resolve=>resolveOwner=()=>resolve({ok:true,json:async()=>({user_id:'fixture-owner'})}));
+   if(url.includes('/news'))return {ok:true,json:async()=>({articles:[],items:[]})};
+   throw Error('Unexpected route '+url);
+ };
+ const pending=sandbox.syncRealSleeperLeagueLive('fixture-league',{quiet:true,automatic:true});
+ await new Promise(setImmediate);
+ assert.ok(resolveOwner);assert.equal(posts,1);
+ assert.equal(sandbox.YL_SHELL_SNAPSHOT.marker,'previous');assert.equal(sandbox.YL_PLAYER_CARDS,oldCards);
+ resolveOwner();await pending;
+ assert.equal(sandbox.YL_SHELL_SNAPSHOT,next);assert.equal(sandbox.YL_PLAYER_CARDS,next.playerCards);
+ assert.equal(vm.runInContext('selectedActiveRosterId',context),1);
 });

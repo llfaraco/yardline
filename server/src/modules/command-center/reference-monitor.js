@@ -1,3 +1,4 @@
+import { compareLeagueSnapshot } from './league-parity.js';
 import crypto from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { isoNow } from './orchestration-store.js';
@@ -115,12 +116,31 @@ export async function runReferenceChecks(config, { fetchImpl, previousReport } =
     }
     const observed = await observeReference(target, config, { fetchImpl, variables });
     results.push(observed.check); data[target.id] = observed.data;
-    if (target.id === 'sleeper.league') variables.week = Number(observed.data?.settings?.leg) || null;
+    if (target.id === 'sleeper.league') {
+      const state = data['sleeper.state'];
+      variables.week = String(state?.season) === String(observed.data?.season) ? Number(state?.week) || null : Number(observed.data?.settings?.leg) || null;
+    }
     if (target.id === 'sleeper.drafts') variables.draftId = observed.data?.[0]?.draft_id || null;
   };
   // Dependency order prevents guessing league week/draft ID from current NFL state.
   for (const id of ['sleeper.state', 'sleeper.league', 'sleeper.drafts']) await observe(config.referenceTargets.find(t => t.id === id));
   const queue = config.referenceTargets.filter(t => !['sleeper.state', 'sleeper.league', 'sleeper.drafts'].includes(t.id));
   await Promise.all(Array.from({ length: Math.min(config.referenceConcurrency, queue.length) }, async () => { while (queue.length) await observe(queue.shift()); }));
+  if (process.env.API_URL) {
+    const check = {id:'sleeper.local-parity',agentId:'agent_sleeper_ref',checkedAt:isoNow(),status:'NOT_VERIFIABLE',observationType:'NOT_VERIFIABLE',limitations:'Comparação pontual de dados públicos; não valida aparência, interação ou latência zero.'};
+    try {
+      const base = new URL(process.env.API_URL);
+      if (!['http:','https:'].includes(base.protocol) || !['localhost','127.0.0.1','[::1]'].includes(base.hostname) || base.username || base.password) throw new Error('Parity requires explicit loopback API_URL');
+      if (!variables.week) throw new Error('Semana pública indisponível');
+      const url = new URL('/api/leagues/' + encodeURIComponent(config.leagueId) + '/shell?week=' + variables.week,base);
+      const response = await (fetchImpl || fetch)(url,{method:'GET',redirect:'error',signal:AbortSignal.timeout(10000)});
+      if (!response.ok) throw new Error('Local snapshot HTTP ' + response.status);
+      const snapshot = JSON.parse(await boundedText(response,40*1024*1024));
+      Object.assign(check,compareLeagueSnapshot(snapshot,data));
+      check.evidence = {week:variables.week,season:snapshot.league?.season,syncedAt:snapshot.syncedAt,issues:check.issues,unavailable:check.unavailable};
+      check.observationType='OBSERVED';
+    } catch(error) {check.error=error.message;}
+    results.push(check);
+  }
   return { checks: results, data, editorialComparison: { observationType: 'INFERRED', comparedSources: ['NFL', 'Yahoo'], sharedCanonicalUrls: results.filter(r => ['nfl.news', 'yahoo.news'].includes(r.id)).flatMap(r => r.evidence?.visibleArticleLinks || []).map(a => a.url), limitation: 'URLs/títulos públicos são pistas de cobertura, não equivalência editorial nem deduplicação semântica confirmada; revisão Team Leader/News exigida.' } };
 }

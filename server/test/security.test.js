@@ -7,6 +7,19 @@ import { db } from '../src/db/database.js';
 
 seedTestDatabase({ largeCatalog: true });
 
+test('Authentication rejects malformed and oversized credentials before hashing', () => {
+  for (const password of [{}, [], 'x'.repeat(1025)]) {
+    assert.throws(() => authService.register({ email: 'invalid@example.test', password, displayName: 'Tester' }), /inválid/);
+  }
+  assert.throws(() => authService.login({ email: {}, password: 'pass' }), /inválid/);
+});
+
+test('Authentication rejects corrupt stored hashes without timingSafeEqual length errors', () => {
+  const session = authService.register({ email: 'corrupt@example.test', password: 'Password123!', displayName: 'Tester' });
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run('salt:ab', session.user.id);
+  assert.throws(() => authService.login({ email: 'corrupt@example.test', password: 'Password123!' }), /Credenciais inválidas/);
+});
+
 function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, c => ({
     '&': '&amp;',

@@ -1,10 +1,11 @@
 import test from 'node:test';
+import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import { db, initDatabase } from '../src/db/database.js';
 import { authService } from '../src/modules/auth/auth.service.js';
 import { solveOptimalLineupAssignment } from '../src/modules/engines/lineup.solver.js';
 import { calculateLeagueBaselines, computeVBD } from '../src/modules/engines/vbd.engine.js';
-import { billingService } from '../src/modules/billing/billing.service.js';
+import { billingService, YardlinePaymentProvider } from '../src/modules/billing/billing.service.js';
 import { newsService } from '../src/modules/news/news.service.js';
 
 initDatabase();
@@ -34,6 +35,8 @@ test('1. Auth Service: Registro, Login e Sessões Seguras', () => {
 });
 
 test('2. Billing Service: Planos, Checkout Pix e Webhook Idempotente', async () => {
+  process.env.PAYMENT_SANDBOX = 'true';
+  billingService.provider = new YardlinePaymentProvider('test-only-webhook-secret');
   const plans = billingService.getPlans();
   assert.ok(plans.length >= 3, 'Deve conter planos Free, Pro e All-Pro');
 
@@ -56,7 +59,8 @@ test('2. Billing Service: Planos, Checkout Pix e Webhook Idempotente', async () 
     rawEventId: 'evt_sandbox_test'
   };
 
-  const webhookResult = await billingService.handlePaymentWebhook(webhookPayload, 'sandbox_test_signature');
+  const signature = crypto.createHmac('sha256', 'test-only-webhook-secret').update(JSON.stringify(webhookPayload)).digest('hex');
+  const webhookResult = await billingService.handlePaymentWebhook(webhookPayload, signature);
   assert.equal(webhookResult.status, 'success');
 
   // Verificar ativação do plano
@@ -65,7 +69,7 @@ test('2. Billing Service: Planos, Checkout Pix e Webhook Idempotente', async () 
   assert.equal(sub.status, 'active');
 
   // Teste de Idempotência: reenvio do mesmo webhook
-  const duplicateResult = await billingService.handlePaymentWebhook(webhookPayload, 'sandbox_test_signature');
+  const duplicateResult = await billingService.handlePaymentWebhook(webhookPayload, signature);
   assert.equal(duplicateResult.status, 'already_processed');
 });
 

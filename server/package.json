@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "DATABASE_PATH=:memory: node --test test/**/*.test.js",
+    "test": "node scripts/test.js",
     "monitor:once": "node scripts/run-hourly-monitor.js",
     "monitor:continuous": "node scripts/run-monitor-daemon.js",
     "handoff": "node scripts/agent-handoff.js"

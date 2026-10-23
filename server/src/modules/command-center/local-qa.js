@@ -18,8 +18,8 @@ export async function runUnitQA(logFile, timeoutMs = 120000) {
   fs.mkdirSync(path.dirname(logFile), { recursive: true, mode: 0o700 });
   return new Promise(resolve => {
     const output = fs.openSync(logFile, 'w', 0o600);
-    const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    const child = spawn(command, ['test'], { cwd: path.join(REPO_ROOT, 'server'), env: { ...process.env, DATABASE_PATH: ':memory:', MONITOR_CHILD: '1' }, stdio: ['ignore', output, output], shell: false });
+    const command = process.execPath;
+    const child = spawn(command, ['scripts/test.js'], { cwd: path.join(REPO_ROOT, 'server'), env: { ...process.env, DATABASE_PATH: ':memory:', MONITOR_CHILD: '1' }, stdio: ['ignore', output, output], shell: false });
     let timedOut = false; let settled = false;
     const finish = (status, observed, evidence) => { if (settled) return; settled = true; clearTimeout(timer); fs.closeSync(output); resolve(result('qa.unit', 'npm test — regressões reais em SQLite isolado', status, observed, evidence, { viewport: 'Node test runner (não E2E visual)', priority: 'P0', severity: 'P0', command: 'DATABASE_PATH=:memory: npm test', affectedFiles: ['server/test', 'server/src'] })); };
     const timer = setTimeout(() => { timedOut = true; child.kill('SIGTERM'); setTimeout(() => child.kill('SIGKILL'), 2000).unref(); }, timeoutMs);
@@ -236,6 +236,7 @@ export async function runLocalSmoke(config, { fetchImpl = fetch, appURL = proces
   virtualConsole.on('jsdomError', e => record({ kind: 'jsdomError', type: e.type, message: e.message, stack: e.cause?.stack || e.stack, causeName: e.cause?.name, url: e.url || e.cause?.url || null }));
   for (const level of ['log', 'info', 'warn', 'error', 'debug']) virtualConsole.on(level, (...args) => record({ kind: 'console', level, message: args.map(a => typeof a === 'string' ? a : a?.stack || JSON.stringify(a)).join(' '), causeName: args.find(a => a instanceof Error || a?.name?.endsWith('Error'))?.name }));
   const dom = new JSDOM(html, { url: new URL('/', app).href, runScripts: 'dangerously', resources: { interceptors: [readOnlyResources] }, virtualConsole, pretendToBeVisual: false, beforeParse(window) {
+    window.YL_DISABLE_AUTO_REFRESH = true; // Monitor stays read-only even when the interactive app refreshes itself.
     window.AbortController = AbortController; window.AbortSignal = AbortSignal;
     window.YL_API_BASE = api.origin;
     // Existing UI preference selects the configured real league, not a synthetic player/catalog fixture.
