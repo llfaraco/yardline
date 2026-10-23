@@ -4177,6 +4177,17 @@ window.toggleSidebarGroup=function(key){
       return;
     }
 
+    container.innerHTML = `
+      <div class="yl-card" style="padding:24px;text-align:center;">
+        <span class="badge badge-amber">MATCHUP INDISPONÍVEL</span>
+        <h2 style="margin:10px 0 6px;color:var(--yl-navy);font-size:20px;">Sincronize uma liga para carregar o confronto</h2>
+        <p style="margin:0 auto 16px;max-width:620px;color:var(--text-muted);font-size:13px;line-height:1.5;">
+          Nenhum roster, placar ou semana oficial está disponível neste momento. Fixtures históricas não são exibidas como se fossem dados atuais.
+        </p>
+        <button class="btn-yl btn-primary" onclick="openOnboardingModal(2)">Conectar Sleeper</button>
+      </div>`;
+    return;
+
     const activeMatchupId = window.selectedLeagueMatchupId || 7;
     const currentMatchup = WEEK6_ALL_MATCHUPS.find(m => m.id === activeMatchupId) || WEEK6_ALL_MATCHUPS[6];
 
@@ -4656,29 +4667,42 @@ window.toggleSidebarGroup=function(key){
 
     const storedMsgs = getStoredChatMessages();
 
-    // Eventos do Sistema & 14 Transações Reais
-    const eventsHtml = REAL_WEEK6_TRANSACTIONS.map(tx => `
+    // Eventos do sistema derivados somente das transações persistidas no snapshot.
+    const officialTransactions = Array.isArray(window.YL_SHELL_SNAPSHOT?.transactions)
+      ? window.YL_SHELL_SNAPSHOT.transactions
+      : [];
+    const playerLabel = id => {
+      const player = typeof resolveNFLPlayer === 'function' ? resolveNFLPlayer(String(id)) : null;
+      return player?.name || `Jogador #${id}`;
+    };
+    const eventsHtml = officialTransactions.map(tx => {
+      const adds = Object.values(tx.adds || {}).map(playerLabel);
+      const drops = Object.values(tx.drops || {}).map(playerLabel);
+      const timestamp = tx.createdAt ? new Date(tx.createdAt).toLocaleString('pt-BR') : 'Data indisponível';
+      const rosterLabel = Array.isArray(tx.rosterIds) && tx.rosterIds.length ? `Roster ${tx.rosterIds.join(', ')}` : 'Roster não identificado';
+      return `
       <div class="yl-chat-event event-${esc(tx.type)}">
         <div class="yl-chat-event__head">
-          <span class="yl-chat-event__user">@${esc(tx.user)}</span>
-          <span class="yl-chat-event__time">${esc(tx.time)}</span>
+          <span class="yl-chat-event__user">${esc(rosterLabel)}</span>
+          <span class="yl-chat-event__time">${esc(timestamp)}</span>
         </div>
         <div class="yl-chat-event__body">
-          <span class="yl-chat-event__badge badge-${esc(tx.type)}">${esc(tx.badge)}</span>
-          Adicionou <strong>${esc(tx.add)}</strong>${tx.drop ? `, liberou <em>${esc(tx.drop)}</em>` : ''}.
+          <span class="yl-chat-event__badge badge-${esc(tx.type)}">${esc(tx.status || tx.type || 'TRANSAÇÃO')}</span>
+          ${adds.length ? `Adicionou <strong>${esc(adds.join(', '))}</strong>` : 'Adição não informada'}${drops.length ? `, liberou <em>${esc(drops.join(', '))}</em>` : ''}.
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     const systemCard = `
       <div class="yl-chat-event event-system">
         <div class="yl-chat-event__head">
           <span class="yl-chat-event__user" style="color:#C3112B;"><span class="badge badge-crimson" style="font-size:9px;margin-right:4px;">COMISSÁRIO</span> SISTEMA OFICIAL</span>
-          <span class="yl-chat-event__time">Semana 6</span>
+          <span class="yl-chat-event__time">${esc(window.YL_SHELL_SNAPSHOT?.state?.week ? `Semana ${window.YL_SHELL_SNAPSHOT.state.week}` : 'Semana não informada')}</span>
         </div>
         <div class="yl-chat-event__body">
           <span class="yl-chat-event__badge badge-system">WEEKLY REPORT</span>
-          Duelo validado: <strong>Gengar My Balls</strong> (4-1) vs <strong>Curitiba Red Fox</strong> (2-3). 19 atletas confirmados para cada lado!
+          ${officialTransactions.length ? `${officialTransactions.length} transações oficiais recebidas do snapshot Sleeper.` : 'Nenhuma transação oficial foi recebida para a liga ativa.'}
         </div>
       </div>
     `;

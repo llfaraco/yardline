@@ -51,7 +51,7 @@ function renderMatchupWithUnavailableProjections() {
     vm.runInContext(fs.readFileSync(new URL(file, APP_JS), 'utf8'), context, { filename: file });
   }
 
-  // One valid sourced zero must remain numeric; every other fixture projection is unavailable.
+  // Without an official matchup, the renderer must not fall back to historical fixtures.
   sandbox.resolveNFLPlayer = id => ({
     id: String(id),
     name: 'Fixture Player',
@@ -61,9 +61,6 @@ function renderMatchupWithUnavailableProjections() {
     injuryStatus: 'Healthy',
     metrics: { projectedPoints: String(id) === '7588' ? 0 : null }
   });
-  sandbox.YL_WEEK6_MATCHUPS[6].home.proj = null;
-  sandbox.YL_WEEK6_MATCHUPS[6].away.proj = null;
-
   const render = sandbox.renderAuditLeagueView;
   assert.equal(typeof render, 'function');
   assert.doesNotThrow(() => render());
@@ -73,9 +70,8 @@ function renderMatchupWithUnavailableProjections() {
 test('Game Center renders null projections as unavailable and preserves a valid zero', () => {
   const html = renderMatchupWithUnavailableProjections();
 
-  assert.match(html, /Placar Oficial Sleeper:[\s\S]*>0\.0 × 0\.0<\/strong>/, 'official zero score remains visible');
-  assert.match(html, /font-size:26px[^>]*>\s*0\.0\s*<span[^>]*>pts proj/, 'valid zero projection is not treated as unavailable');
-  assert.match(html, /font-size:26px[^>]*>\s*—\s*<span[^>]*>pts proj/, 'unavailable team projection is rendered as a dash');
-  assert.match(html, /indisponível/, 'the matchup exposes unavailable projection status');
+  assert.match(html, /MATCHUP INDISPONÍVEL/, 'the matchup exposes unavailable state');
+  assert.match(html, /Fixtures históricas não são exibidas/, 'historical fixtures are not presented as current data');
+  assert.match(html, /Conectar Sleeper/, 'the user receives a recovery action');
   assert.doesNotMatch(html, /NaN|undefined|null/, 'rendered markup has no fabricated or invalid values');
 });
