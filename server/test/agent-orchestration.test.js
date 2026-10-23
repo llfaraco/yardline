@@ -63,7 +63,12 @@ test('Handoff deduplicates each cycle and reopens after transient PASS without a
   const reopened = store.upsertHandoff(bug(), cycle());
   assert.equal(reopened.action, 'REOPENED'); assert.equal(reopened.handoff.reopenedCount, 1);
   assert.equal(store.handoffs().length, 1);
+  // Windows não expõe permissões POSIX pelo mode do fs.statSync.
+// Em Linux/macOS, a proteção 0600 continua sendo validada.
+if (process.platform !== 'win32') {
   assert.equal(fs.statSync(store.handoffFile).mode & 0o777, 0o600);
+}
+
 });
 test('VERIFIED requires fresh passing exact-check evidence; recurrence reopens same ID', async t => {
   const store = isolated(t); const initial = store.upsertHandoff(bug(), cycle()).handoff;
